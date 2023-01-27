@@ -4,6 +4,7 @@
 
 #include "InputManager.h"
 #include "LifecycleManager.h"
+#include "Renderer.h"
 #include "TimeManager.h"
 
 namespace linguine {
@@ -11,9 +12,11 @@ namespace linguine {
     public:
       Engine(const std::shared_ptr<InputManager>& inputManager,
              const std::shared_ptr<LifecycleManager>& lifecycleManager,
+             const std::shared_ptr<Renderer>& renderer,
              const std::shared_ptr<TimeManager>& timeManager)
           : _inputManager(inputManager),
             _lifecycleManager(lifecycleManager),
+            _renderer(renderer),
             _timeManager(timeManager) {}
 
       void run();
@@ -21,6 +24,7 @@ namespace linguine {
     private:
       const std::shared_ptr<InputManager> _inputManager;
       const std::shared_ptr<LifecycleManager> _lifecycleManager;
+      const std::shared_ptr<Renderer> _renderer;
       const std::shared_ptr<TimeManager> _timeManager;
 
       void update(float deltaTime);

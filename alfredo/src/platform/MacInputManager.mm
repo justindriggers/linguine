@@ -1,6 +1,6 @@
-#import <Cocoa/Cocoa.h>
-
 #import "MacInputManager.h"
+
+#import <Cocoa/Cocoa.h>
 
 void linguine::alfredo::MacInputManager::pollEvents() {
   @autoreleasepool {

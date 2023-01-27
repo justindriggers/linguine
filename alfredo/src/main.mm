@@ -1,5 +1,6 @@
-#import <Cocoa/Cocoa.h>
 #import <memory>
+
+#import <Cocoa/Cocoa.h>
 
 #import <Engine.h>
 
@@ -22,8 +23,9 @@ int main(int argc, const char *argv[]) {
 
     auto inputManager = std::shared_ptr<InputManager>(new MacInputManager());
     auto lifecycleManager = std::shared_ptr<LifecycleManager>(new MacLifecycleManager());
+    auto renderer = std::shared_ptr<Renderer>(appDelegate.renderer);
     auto timeManager = std::shared_ptr<TimeManager>(new MacTimeManager());
-    auto engine = Engine(inputManager, lifecycleManager, timeManager);
+    auto engine = Engine(inputManager, lifecycleManager, renderer, timeManager);
 
     engine.run();
 

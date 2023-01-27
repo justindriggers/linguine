@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "Engine.h"
+
+#include <iostream>
 
 void linguine::Engine::run() {
   const auto fixedDeltaTime = 0.02f;
@@ -23,7 +23,7 @@ void linguine::Engine::run() {
 
     update(deltaTime);
 
-    // TODO render();
+    _renderer->draw();
   }
 }
 

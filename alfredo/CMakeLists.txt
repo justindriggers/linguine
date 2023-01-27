@@ -5,9 +5,11 @@ enable_language(OBJCXX)
 add_executable(alfredo
         src/main.mm
         src/appkit/AlfredoApplicationDelegate.mm
+        src/metalkit/AlfredoViewDelegate.mm
         src/platform/MacInputManager.mm
         src/platform/MacLifecycleManager.mm
         src/platform/MacTimeManager.cpp
+        src/render/MetalRenderer.cpp
 )
 
 target_link_libraries(alfredo PRIVATE linguine)

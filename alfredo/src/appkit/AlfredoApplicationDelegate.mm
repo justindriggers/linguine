@@ -1,5 +1,9 @@
 #import "AlfredoApplicationDelegate.h"
 
+#import <Metal/Metal.h>
+
+#import "../metalkit/AlfredoViewDelegate.h"
+
 @implementation AlfredoApplicationDelegate
 
 - (void)closeWindow {
@@ -47,23 +51,38 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   @autoreleasepool {
+    NSRect frame = CGRectMake(100.0, 100.0, 512.0, 512.0);
+
     self.window = [[NSWindow alloc]
-        initWithContentRect:CGRectMake(100.0, 100.0, 512.0, 512.0)
+        initWithContentRect:frame
                   styleMask:NSWindowStyleMaskClosable | NSWindowStyleMaskTitled
                     backing:NSBackingStoreBuffered
                       defer:NO];
-    self.window.title = @"Alfredo";
 
-    [NSApp activateIgnoringOtherApps:YES];
+    self.device = MTLCreateSystemDefaultDevice();
+    view = [[MTKView alloc] initWithFrame:frame
+                                   device:self.device];
+    [view setColorPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB];
+    [view setClearColor:MTLClearColorMake(1.0f, 0.0f, 0.0f, 1.0f)];
+    [view setPaused:YES];
+    [view setEnableSetNeedsDisplay:NO];
+//    ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
+
+    self.renderer = linguine::alfredo::MetalRenderer::create(*(__bridge MTK::View*)view);
+    [view setDelegate:[[AlfredoViewDelegate alloc] initWithRenderer:self.renderer]];
+
+    [self.window setContentView:view];
+    [self.window setTitle:@"Alfredo"];
     [self.window center];
     [self.window makeKeyAndOrderFront:nil];
 
+    [NSApp activateIgnoringOtherApps:YES];
     [NSApp stop:nil];
   }
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app {
-  return YES;
+- (void)applicationWillTerminate:(NSNotification *)notification {
+  delete _renderer;
 }
 
 @end
