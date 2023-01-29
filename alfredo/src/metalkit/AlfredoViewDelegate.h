@@ -1,12 +1,12 @@
 #import <MetalKit/MetalKit.h>
 
-#import "../render/MetalRenderer.h"
+#import <MetalRenderer.h>
 
 @interface AlfredoViewDelegate : NSObject <MTKViewDelegate> {
   @private
-    linguine::alfredo::MetalRenderer * _renderer;
+    linguine::render::MetalRenderer * _renderer;
 }
 
-- (instancetype)initWithRenderer:(linguine::alfredo::MetalRenderer *)renderer;
+- (instancetype)initWithRenderer:(linguine::render::MetalRenderer *)renderer;
 
 @end

@@ -1,7 +1,5 @@
 #include "MetalRenderer.h"
 
-#include <iostream>
-
 #define NS_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
 #define MTK_PRIVATE_IMPLEMENTATION
@@ -9,12 +7,13 @@
 #include <Metal/Metal.hpp>
 #include <MetalKit/MetalKit.hpp>
 
-class linguine::alfredo::MetalRendererImpl : public linguine::alfredo::MetalRenderer {
+class linguine::render::MetalRendererImpl : public linguine::render::MetalRenderer {
   public:
     explicit MetalRendererImpl(MTK::View& view) : _view(view) {
-      _device = _view.device();
+      _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
+      _view.setClearColor(MTL::ClearColor::Make(1.0f, 0.0f, 0.0f, 1.0f));
 
-      std::cout << _device->name()->cString(NS::StringEncoding::UTF8StringEncoding) << std::endl;
+      _device = _view.device();
 
       _commandQueue = _device->newCommandQueue();
     }
@@ -23,11 +22,7 @@ class linguine::alfredo::MetalRendererImpl : public linguine::alfredo::MetalRend
       _device->release();
     }
 
-    void draw() override {
-      _view.draw();
-    }
-
-    void drawInternal() override;
+    void draw() override;
 
   private:
     MTK::View& _view;
@@ -35,7 +30,7 @@ class linguine::alfredo::MetalRendererImpl : public linguine::alfredo::MetalRend
     MTL::CommandQueue* _commandQueue = nullptr;
 };
 
-void linguine::alfredo::MetalRendererImpl::drawInternal() {
+void linguine::render::MetalRendererImpl::draw() {
   auto pool = NS::AutoreleasePool::alloc()->init();
 
   auto commandBuffer = _commandQueue->commandBuffer();
@@ -50,6 +45,6 @@ void linguine::alfredo::MetalRendererImpl::drawInternal() {
   pool->release();
 }
 
-linguine::alfredo::MetalRenderer* linguine::alfredo::MetalRenderer::create(MTK::View& view) {
+linguine::render::MetalRenderer* linguine::render::MetalRenderer::create(MTK::View& view) {
   return new MetalRendererImpl(view);
 }

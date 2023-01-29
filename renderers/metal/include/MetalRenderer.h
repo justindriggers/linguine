@@ -2,13 +2,11 @@
 
 #include <Renderer.h>
 
-#include <memory>
-
 namespace MTK {
   class View;
 }
 
-namespace linguine::alfredo {
+namespace linguine::render {
   class MetalRendererImpl;
 
   class MetalRenderer : public Renderer {
@@ -16,8 +14,6 @@ namespace linguine::alfredo {
       virtual ~MetalRenderer() = default;
 
       static MetalRenderer* create(MTK::View& view);
-
-      virtual void drawInternal() = 0;
 
     private:
       friend class MetalRendererImpl;

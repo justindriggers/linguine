@@ -7,6 +7,7 @@
 #import "appkit/AlfredoApplicationDelegate.h"
 #import "platform/MacInputManager.h"
 #import "platform/MacLifecycleManager.h"
+#import "platform/MacLogger.h"
 #import "platform/MacTimeManager.h"
 
 using namespace linguine;
@@ -21,11 +22,12 @@ int main(int argc, const char *argv[]) {
 
     [app run];
 
+    auto logger = std::shared_ptr<Logger>(new MacLogger());
     auto inputManager = std::shared_ptr<InputManager>(new MacInputManager());
     auto lifecycleManager = std::shared_ptr<LifecycleManager>(new MacLifecycleManager());
-    auto renderer = std::shared_ptr<Renderer>(appDelegate.renderer);
-    auto timeManager = std::shared_ptr<TimeManager>(new MacTimeManager());
-    auto engine = Engine(inputManager, lifecycleManager, renderer, timeManager);
+    auto renderer = std::shared_ptr<Renderer>(appDelegate.mtkRenderer);
+    auto timeManager = std::shared_ptr<TimeManager>(new IosTimeManager());
+    auto engine = Engine(logger, inputManager, lifecycleManager, renderer, timeManager);
 
     engine.run();
 

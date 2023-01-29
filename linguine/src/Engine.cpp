@@ -1,30 +1,31 @@
 #include "Engine.h"
 
-#include <iostream>
+#include "Logger.h"
 
 void linguine::Engine::run() {
-  const auto fixedDeltaTime = 0.02f;
-
-  auto currentTime = _timeManager->currentTime();
-  auto accumulator = 0.0f;
+  _currentTime = _timeManager->currentTime();
 
   while (_lifecycleManager->isRunning()) {
-    _inputManager->pollEvents();
-
-    auto newTime = _timeManager->currentTime();
-    auto deltaTime = _timeManager->durationInSeconds(currentTime, newTime);
-    currentTime = newTime;
-    accumulator += deltaTime;
-
-    while (accumulator >= fixedDeltaTime) {
-      fixedUpdate(fixedDeltaTime);
-      accumulator -= fixedDeltaTime;
-    }
-
-    update(deltaTime);
-
-    _renderer->draw();
+    tick();
   }
+}
+
+void linguine::Engine::tick() {
+  _inputManager->pollEvents();
+
+  auto newTime = _timeManager->currentTime();
+  auto deltaTime = _timeManager->durationInSeconds(_currentTime, newTime);
+  _currentTime = newTime;
+  _accumulator += deltaTime;
+
+  while (_accumulator >= _fixedDeltaTime) {
+    fixedUpdate(_fixedDeltaTime);
+    _accumulator -= _fixedDeltaTime;
+  }
+
+  update(deltaTime);
+
+  _renderer->draw();
 }
 
 void linguine::Engine::update(float deltaTime) {
@@ -32,7 +33,7 @@ void linguine::Engine::update(float deltaTime) {
   _updateCounter++;
 
   while (_dtAccumulator >= 1.0f) {
-    std::cout << "update(): " << _updateCounter << " fps" << std::endl;
+    _logger->log("update(): " + std::to_string(_updateCounter) + " fps");
 
     _dtAccumulator -= 1.0f;
     _updateCounter = 0;
@@ -44,7 +45,7 @@ void linguine::Engine::fixedUpdate(float fixedDeltaTime) {
   _fixedUpdateCounter++;
 
   while (_fdtAccumulator >= 1.0f) {
-    std::cout << "fixedUpdate(): " << _fixedUpdateCounter << " fps" << std::endl;
+    _logger->log("fixedUpdate(): " + std::to_string(_fixedUpdateCounter) + " fps");
 
     _fdtAccumulator -= 1.0f;
     _fixedUpdateCounter = 0;

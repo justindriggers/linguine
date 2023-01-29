@@ -2,7 +2,7 @@
 
 @implementation AlfredoViewDelegate
 
-- (instancetype)initWithRenderer:(linguine::alfredo::MetalRenderer *)renderer {
+- (instancetype)initWithRenderer:(linguine::render::MetalRenderer *)renderer {
   self = [super init];
 
   if (self) {
@@ -17,7 +17,7 @@
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
-  _renderer->drawInternal();
+  _renderer->draw();
 }
 
 @end

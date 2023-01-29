@@ -1,16 +1,10 @@
 #import "ScampiAppDelegate.h"
 
-#import <os/log.h>
-
 @implementation ScampiAppDelegate
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   // Override point for customization after application launch.
-  NSString* bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
-  os_log_t customLog = os_log_create([bundleIdentifier UTF8String], "ScampiAppDelegate");
-  os_log_error(customLog, "Hello iOS!");
-
   return YES;
 }
 

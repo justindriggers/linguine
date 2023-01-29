@@ -2,7 +2,7 @@
 
 #include <TimeManager.h>
 
-namespace linguine::alfredo {
+namespace linguine::scampi {
   class IosTimeManager : public TimeManager {
     public:
       [[nodiscard]] time_t currentTime() const override;

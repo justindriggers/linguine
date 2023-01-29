@@ -1,7 +1,5 @@
 #import "AlfredoApplicationDelegate.h"
 
-#import <Metal/Metal.h>
-
 #import "../metalkit/AlfredoViewDelegate.h"
 
 @implementation AlfredoApplicationDelegate
@@ -62,14 +60,13 @@
     self.device = MTLCreateSystemDefaultDevice();
     view = [[MTKView alloc] initWithFrame:frame
                                    device:self.device];
-    [view setColorPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB];
-    [view setClearColor:MTLClearColorMake(1.0f, 0.0f, 0.0f, 1.0f)];
     [view setPaused:YES];
     [view setEnableSetNeedsDisplay:NO];
 //    ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
 
-    self.renderer = linguine::alfredo::MetalRenderer::create(*(__bridge MTK::View*)view);
-    [view setDelegate:[[AlfredoViewDelegate alloc] initWithRenderer:self.renderer]];
+    self.mtkRenderer = new linguine::alfredo::MTKRenderer(*(__bridge MTK::View*)view);
+    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view);
+    [view setDelegate:[[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer]];
 
     [self.window setContentView:view];
     [self.window setTitle:@"Alfredo"];
@@ -82,7 +79,8 @@
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
-  delete _renderer;
+  delete _mtkRenderer;
+  delete _metalRenderer;
 }
 
 @end

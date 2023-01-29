@@ -1,5 +1,6 @@
+#import "uikit/ScampiAppDelegate.h"
+
 #import <UIKit/UIKit.h>
-#import "ScampiAppDelegate.h"
 
 int main(int argc, char * argv[]) {
   @autoreleasepool {

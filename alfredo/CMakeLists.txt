@@ -8,11 +8,12 @@ add_executable(alfredo
         src/metalkit/AlfredoViewDelegate.mm
         src/platform/MacInputManager.mm
         src/platform/MacLifecycleManager.mm
+        src/platform/MacLogger.mm
         src/platform/MacTimeManager.cpp
-        src/render/MetalRenderer.cpp
+        src/render/MTKRenderer.cpp
 )
 
-target_link_libraries(alfredo PRIVATE linguine)
+target_link_libraries(alfredo PRIVATE linguine metal)
 
 find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
 target_link_libraries(alfredo PRIVATE ${FOUNDATION_LIBRARY})
@@ -20,13 +21,5 @@ target_link_libraries(alfredo PRIVATE ${FOUNDATION_LIBRARY})
 find_library(APPKIT_LIBRARY AppKit REQUIRED)
 target_link_libraries(alfredo PRIVATE ${APPKIT_LIBRARY})
 
-find_library(METAL_LIBRARY Metal REQUIRED)
-target_link_libraries(alfredo PRIVATE ${METAL_LIBRARY})
-
 find_library(METALKIT_LIBRARY MetalKit REQUIRED)
 target_link_libraries(alfredo PRIVATE ${METALKIT_LIBRARY})
-
-target_include_directories(alfredo PUBLIC
-        "${THIRD_PARTY_DIR}/metal-cpp"
-        "${THIRD_PARTY_DIR}/metal-cpp-extensions"
-)
