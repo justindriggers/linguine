@@ -11,7 +11,7 @@ class linguine::render::MetalRendererImpl : public linguine::render::MetalRender
   public:
     explicit MetalRendererImpl(MTK::View& view) : _view(view) {
       _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
-      _view.setClearColor(MTL::ClearColor::Make(1.0f, 0.0f, 0.0f, 1.0f));
+      _view.setClearColor(MTL::ClearColor::Make(0.0f, 0.0f, 1.0f, 1.0f));
 
       _device = _view.device();
 
