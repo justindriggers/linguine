@@ -49,7 +49,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   @autoreleasepool {
-    NSRect frame = CGRectMake(100.0, 100.0, 512.0, 512.0);
+    NSRect frame = CGRectMake(0.0, 0.0, 375.0, 667.0);
 
     self.window = [[NSWindow alloc]
         initWithContentRect:frame
