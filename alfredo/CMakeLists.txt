@@ -10,7 +10,6 @@ add_executable(alfredo
         src/platform/MacLifecycleManager.mm
         src/platform/MacLogger.mm
         src/platform/MacTimeManager.cpp
-        src/render/MTKRenderer.cpp
 )
 
 target_link_libraries(alfredo PRIVATE linguine metal)

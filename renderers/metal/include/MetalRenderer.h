@@ -1,23 +1,30 @@
 #pragma once
 
-#include <Renderer.h>
+#include "renderer/Renderer.h"
+#include "renderer/features/FeatureRenderer.h"
 
 namespace MTK {
+
   class View;
-}
+
+}  // namespace MTK
 
 namespace linguine::render {
-  class MetalRendererImpl;
 
-  class MetalRenderer : public Renderer {
-    public:
-      virtual ~MetalRenderer() = default;
+class MetalRendererImpl;
 
-      static MetalRenderer* create(MTK::View& view);
+class MetalRenderer : public Renderer {
+  public:
+    ~MetalRenderer() override = default;
 
-    private:
-      friend class MetalRendererImpl;
+    virtual void doDraw() = 0;
 
-      MetalRenderer() = default;
-  };
-}
+    static MetalRenderer* create(MTK::View& view, bool autoDraw);
+
+  private:
+    friend class MetalRendererImpl;
+
+    MetalRenderer() = default;
+};
+
+}  // namespace linguine::render

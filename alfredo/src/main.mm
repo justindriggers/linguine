@@ -25,7 +25,7 @@ int main(int argc, const char *argv[]) {
     auto logger = std::shared_ptr<Logger>(new MacLogger());
     auto inputManager = std::shared_ptr<InputManager>(new MacInputManager());
     auto lifecycleManager = std::shared_ptr<LifecycleManager>(new MacLifecycleManager());
-    auto renderer = std::shared_ptr<Renderer>(appDelegate.mtkRenderer);
+    auto renderer = std::shared_ptr<Renderer>(appDelegate.metalRenderer);
     auto timeManager = std::shared_ptr<TimeManager>(new IosTimeManager());
     auto engine = Engine(logger, inputManager, lifecycleManager, renderer, timeManager);
 

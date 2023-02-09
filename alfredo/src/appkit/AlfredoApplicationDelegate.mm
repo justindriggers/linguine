@@ -62,10 +62,9 @@
                                    device:self.device];
     [view setPaused:YES];
     [view setEnableSetNeedsDisplay:NO];
-//    ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
+    ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
 
-    self.mtkRenderer = new linguine::alfredo::MTKRenderer(*(__bridge MTK::View*)view);
-    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view);
+    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view, false);
     [view setDelegate:[[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer]];
 
     [self.window setContentView:view];
@@ -79,7 +78,6 @@
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
-  delete _mtkRenderer;
   delete _metalRenderer;
 }
 

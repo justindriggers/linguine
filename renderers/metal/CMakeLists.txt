@@ -1,5 +1,7 @@
 add_library(metal
         src/MetalRenderer.cpp
+        src/features/QuadFeatureRenderer.cpp
+        src/features/TriangleFeatureRenderer.cpp
 )
 
 target_include_directories(metal PUBLIC include)

@@ -35,7 +35,7 @@
   auto logger = std::shared_ptr<linguine::Logger>(new linguine::scampi::NSLogger());
   auto inputManager = std::shared_ptr<linguine::InputManager>(new linguine::scampi::IosInputManager());
   auto lifecycleManager = std::shared_ptr<linguine::LifecycleManager>(new linguine::scampi::IosLifecycleManager());
-  auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view));
+  auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true));
   auto timeManager = std::shared_ptr<linguine::TimeManager>(new linguine::scampi::IosTimeManager());
 
   auto engine = new linguine::Engine(logger, inputManager, lifecycleManager, renderer, timeManager);

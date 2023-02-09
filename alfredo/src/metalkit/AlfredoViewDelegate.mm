@@ -17,7 +17,7 @@
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
-  _renderer->draw();
+  _renderer->doDraw();
 }
 
 @end
