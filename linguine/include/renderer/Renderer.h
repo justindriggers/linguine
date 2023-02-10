@@ -29,6 +29,8 @@ class Renderer {
     std::shared_ptr<Camera> _camera = std::make_shared<Camera>();
     std::shared_ptr<Viewport> _viewport = std::make_shared<Viewport>();
 
+    uint64_t _nextIndex = 0;
+
     void onFeatureChanged(Renderable& renderable);
 
     friend class Renderable;

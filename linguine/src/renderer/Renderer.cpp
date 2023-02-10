@@ -5,7 +5,7 @@
 namespace linguine {
 
 std::shared_ptr<Renderable> Renderer::create(const std::shared_ptr<RenderFeature>& feature) {
-  auto renderable = std::make_shared<Renderable>(0, *this, feature);
+  auto renderable = std::make_shared<Renderable>(_nextIndex++, *this, feature);
   onFeatureChanged(*renderable);
   return renderable;
 }
