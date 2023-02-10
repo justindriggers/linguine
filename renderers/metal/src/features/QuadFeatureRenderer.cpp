@@ -1,14 +1,12 @@
 #include "QuadFeatureRenderer.h"
 
-#include <glm/vec2.hpp>
-
 #include "renderer/features/QuadFeature.h"
 
 namespace linguine::render {
 
 QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
     : _context(context) {
-  glm::vec2 positions[] = {
+  simd::float2 positions[] = {
       { -0.5f, -0.5f },
       { -0.5f,  0.5f },
       {  0.5f, -0.5f },
@@ -18,13 +16,18 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
       {  0.5f,  0.5f }
   };
 
-  const auto positionsBufferSize = std::size(positions) * sizeof(glm::vec2);
+  const auto positionsBufferSize = std::size(positions) * sizeof(simd::float2);
   _vertexPositionsBuffer = context.device->newBuffer(positionsBufferSize, MTL::ResourceStorageModeShared);
 
   memcpy(_vertexPositionsBuffer->contents(), positions, positionsBufferSize);
   _vertexPositionsBuffer->didModifyRange(NS::Range::Make(0, positionsBufferSize));
 
   const auto shaderSourceCode = R"(
+      struct MetalQuadFeature {
+        metal::float4x4 modelMatrix;
+        float value;
+      };
+
       struct VertexOutput {
         float4 position [[position]];
         half3 color;
@@ -32,10 +35,10 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
 
       VertexOutput vertex vertexColored(uint index [[vertex_id]],
           const device float2* positions [[buffer(0)]],
-          const constant float& value [[buffer(1)]]) {
+          const constant MetalQuadFeature& feature [[buffer(1)]]) {
         VertexOutput o;
-        o.position = float4(positions[index], 0.0, 1.0);
-        o.color = half3(value, 0.0, 0.0);
+        o.position = feature.modelMatrix * float4(positions[index], 0.0, 1.0);
+        o.color = half3(feature.value, 0.0, 0.0);
         return o;
       }
 
@@ -91,7 +94,7 @@ void QuadFeatureRenderer::draw() {
   const auto renderables = getRenderables();
 
   while (_valueBuffers.size() < renderables.size()) {
-    _valueBuffers.push_back(_context.device->newBuffer(sizeof(float), MTL::ResourceStorageModeShared));
+    _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalQuadFeature), MTL::ResourceStorageModeShared));
   }
 
   for (int i = 0; i < renderables.size(); ++i) {
@@ -101,8 +104,11 @@ void QuadFeatureRenderer::draw() {
       auto feature = renderable->getFeature<QuadFeature>();
 
       auto valueBuffer = _valueBuffers[i];
-      memcpy(valueBuffer->contents(), &feature->value, sizeof(feature->value));
-      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(feature->value)));
+      auto metalQuadFeature = static_cast<MetalQuadFeature*>(valueBuffer->contents());
+
+      memcpy(&metalQuadFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
+      memcpy(&metalQuadFeature->value, &feature->value, sizeof(float));
+      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalQuadFeature)));
 
       _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 1);
       _context.renderCommandEncoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));

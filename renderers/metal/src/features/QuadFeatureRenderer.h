@@ -4,6 +4,8 @@
 
 #include <Metal/Metal.hpp>
 
+#include <simd/simd.h>
+
 #include "../MetalRenderContext.h"
 
 namespace linguine::render {
@@ -25,6 +27,11 @@ class QuadFeatureRenderer : public FeatureRenderer {
     MTL::RenderPipelineState* _pipelineState = nullptr;
 
     std::vector<MTL::Buffer*> _valueBuffers;
+
+    struct MetalQuadFeature {
+      simd::float4x4 modelMatrix{};
+      float value{};
+    };
 };
 
 }  // namespace linguine::render

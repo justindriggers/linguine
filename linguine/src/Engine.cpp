@@ -1,8 +1,9 @@
 #include "Engine.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "Logger.h"
 #include "renderer/features/QuadFeature.h"
-#include "renderer/features/TriangleFeature.h"
 
 namespace linguine {
 
@@ -56,6 +57,8 @@ void Engine::update(float deltaTime) {
     if (feature->value > 1.0f) {
       feature->value = 1.0f;
     }
+
+    feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.25f, 0.0f) * deltaTime);
   }
 
   while (_dtAccumulator >= 1.0f) {
@@ -63,11 +66,6 @@ void Engine::update(float deltaTime) {
 
     _dtAccumulator -= 1.0f;
     _updateCounter = 0;
-
-    if (_renderable->hasFeature<QuadFeature>()) {
-      auto feature = std::make_shared<TriangleFeature>();
-      _renderable->setFeature(feature);
-    }
   }
 }
 

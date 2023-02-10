@@ -3,7 +3,7 @@
 #include "renderer/features/FeatureRenderer.h"
 
 #include <Metal/Metal.hpp>
-\
+
 #include "renderer/features/QuadFeature.h"
 
 #include "../MetalRenderContext.h"

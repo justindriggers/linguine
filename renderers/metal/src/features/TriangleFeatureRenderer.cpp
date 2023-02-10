@@ -1,6 +1,6 @@
 #include "TriangleFeatureRenderer.h"
 
-#include <glm/vec2.hpp>
+#include <simd/simd.h>
 
 #include "renderer/features/TriangleFeature.h"
 
@@ -8,13 +8,13 @@ namespace linguine::render {
 
 TriangleFeatureRenderer::TriangleFeatureRenderer(MetalRenderContext& context)
     : _context(context) {
-  glm::vec2 positions[] = {
+  simd::float2 positions[] = {
       { -0.5f, -0.5f },
       {  0.0f,  0.5f },
       {  0.5f, -0.5f }
   };
 
-  const auto positionsBufferSize = std::size(positions) * sizeof(glm::vec2);
+  const auto positionsBufferSize = std::size(positions) * sizeof(simd::float2);
   _vertexPositionsBuffer = context.device->newBuffer(positionsBufferSize, MTL::ResourceStorageModeShared);
 
   memcpy(_vertexPositionsBuffer->contents(), positions, positionsBufferSize);
