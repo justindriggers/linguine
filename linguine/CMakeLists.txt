@@ -5,4 +5,7 @@ add_library(linguine
         src/renderer/features/FeatureRenderer.cpp
 )
 
-target_include_directories(linguine PUBLIC include)
+target_include_directories(linguine PUBLIC
+        include
+        "${THIRD_PARTY_DIR}/glm"
+)

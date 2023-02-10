@@ -1,6 +1,6 @@
 #include "QuadFeatureRenderer.h"
 
-#include <simd/simd.h>
+#include <glm/vec2.hpp>
 
 #include "renderer/features/QuadFeature.h"
 
@@ -8,7 +8,7 @@ namespace linguine::render {
 
 QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
     : _context(context) {
-  simd::float2 positions[] = {
+  glm::vec2 positions[] = {
       { -0.5f, -0.5f },
       { -0.5f,  0.5f },
       {  0.5f, -0.5f },
@@ -18,7 +18,7 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
       {  0.5f,  0.5f }
   };
 
-  const auto positionsBufferSize = std::size(positions) * sizeof(simd::float2);
+  const auto positionsBufferSize = std::size(positions) * sizeof(glm::vec2);
   _vertexPositionsBuffer = context.device->newBuffer(positionsBufferSize, MTL::ResourceStorageModeShared);
 
   memcpy(_vertexPositionsBuffer->contents(), positions, positionsBufferSize);
