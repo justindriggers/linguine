@@ -40,7 +40,8 @@
 
   auto engine = new linguine::Engine(logger, inputManager, lifecycleManager, renderer, timeManager);
 
-  _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine];
+  _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
+                                                    renderer:renderer];
 
   [_viewDelegate mtkView:_view drawableSizeWillChange:_view.bounds.size];
   [_view setDelegate:_viewDelegate];

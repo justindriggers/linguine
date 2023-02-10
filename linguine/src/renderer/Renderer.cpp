@@ -14,6 +14,10 @@ const std::shared_ptr<Camera>& Renderer::getCamera() const {
   return _camera;
 }
 
+const std::shared_ptr<Viewport>& Renderer::getViewport() const {
+  return _viewport;
+}
+
 void Renderer::onFeatureChanged(Renderable& renderable) {
   for (const auto& feature : getFeatures()) {
     feature->onFeatureChanged(renderable);

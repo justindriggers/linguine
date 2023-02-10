@@ -33,7 +33,7 @@ class QuadFeatureRenderer : public FeatureRenderer {
     std::vector<MTL::Buffer*> _valueBuffers;
 
     struct MetalCamera {
-      simd::float4x4 viewMatrix{};
+      simd::float4x4 viewProjectionMatrix{};
     };
 
     struct MetalQuadFeature {

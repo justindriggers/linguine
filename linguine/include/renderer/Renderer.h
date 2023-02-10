@@ -6,6 +6,7 @@
 #include "renderer/Camera.h"
 #include "renderer/features/FeatureRenderer.h"
 #include "renderer/features/RenderFeature.h"
+#include "renderer/Viewport.h"
 
 namespace linguine {
 
@@ -15,7 +16,9 @@ class Renderer {
 
     std::shared_ptr<Renderable> create(const std::shared_ptr<RenderFeature>& feature);
 
-    const std::shared_ptr<Camera>& getCamera() const;
+    [[nodiscard]] const std::shared_ptr<Camera>& getCamera() const;
+
+    [[nodiscard]] const std::shared_ptr<Viewport>& getViewport() const;
 
     virtual void draw() = 0;
 
@@ -24,6 +27,7 @@ class Renderer {
 
   private:
     std::shared_ptr<Camera> _camera = std::make_shared<Camera>();
+    std::shared_ptr<Viewport> _viewport = std::make_shared<Viewport>();
 
     void onFeatureChanged(Renderable& renderable);
 

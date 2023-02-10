@@ -55,6 +55,21 @@ void Engine::update(float deltaTime) {
   _dtAccumulator += deltaTime;
   _updateCounter++;
 
+  const auto height = 5.0f;
+  const auto viewport = _renderer->getViewport();
+
+  auto camera = _renderer->getCamera();
+  camera->projectionMatrix = glm::ortho(
+      -height / 2.0f * viewport->getAspectRatio(),
+      height / 2.0f * viewport->getAspectRatio(),
+      -height / 2.0f,
+      height / 2.0f,
+      0.0f,
+      10.0f
+  );
+
+  camera->viewProjectionMatrix = camera->projectionMatrix * camera->viewMatrix;
+
   if (_renderable->hasFeature<QuadFeature>()) {
     auto feature = _renderable->getFeature<QuadFeature>();
     feature->value += deltaTime;

@@ -26,7 +26,7 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
 
   const auto shaderSourceCode = R"(
       struct MetalCamera {
-        metal::float4x4 viewMatrix;
+        metal::float4x4 viewProjectionMatrix;
       };
 
       struct MetalQuadFeature {
@@ -44,7 +44,7 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
           const constant MetalCamera& camera [[buffer(1)]],
           const constant MetalQuadFeature& feature [[buffer(2)]]) {
         VertexOutput o;
-        o.position = camera.viewMatrix * feature.modelMatrix * float4(positions[index], 0.0, 1.0);
+        o.position = camera.viewProjectionMatrix * feature.modelMatrix * float4(positions[index], 0.0, 1.0);
         o.color = half3(feature.value, 0.0, 0.0);
         return o;
       }
@@ -100,7 +100,7 @@ void QuadFeatureRenderer::draw() {
   _context.renderCommandEncoder->setVertexBuffer(_vertexPositionsBuffer, 0, 0);
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
-  memcpy(&metalCamera->viewMatrix, &_camera.viewMatrix, sizeof(simd::float4x4));
+  memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
   _cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalCamera)));
   _context.renderCommandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
 

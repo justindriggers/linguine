@@ -13,7 +13,8 @@
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {
-  // No-op
+  auto viewport = _renderer->getViewport();
+  viewport->setSize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {

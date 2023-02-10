@@ -3,9 +3,12 @@
 #import <MetalKit/MetalKit.h>
 #import <MetalRenderer.h>
 
+#import "../metalkit/AlfredoViewDelegate.h"
+
 @interface AlfredoApplicationDelegate : NSObject <NSApplicationDelegate> {
   @private
     MTKView *view;
+    AlfredoViewDelegate *_viewDelegate;
 }
 @property(nonatomic, strong) NSWindow *window;
 @property(nonatomic, retain) id<MTLDevice> device;

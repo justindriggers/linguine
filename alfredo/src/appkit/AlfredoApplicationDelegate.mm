@@ -65,7 +65,11 @@
     ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
 
     self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view, false);
-    [view setDelegate:[[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer]];
+
+    _viewDelegate = [[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer];
+
+    [_viewDelegate mtkView:view drawableSizeWillChange:view.bounds.size];
+    [view setDelegate:_viewDelegate];
 
     [self.window setContentView:view];
     [self.window setTitle:@"Alfredo"];

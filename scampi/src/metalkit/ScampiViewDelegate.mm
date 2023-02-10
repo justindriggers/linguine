@@ -4,24 +4,24 @@
 
 @implementation ScampiViewDelegate {
   linguine::Engine* _engine;
-  linguine::scampi::NSLogger logger;
+  std::shared_ptr<linguine::Renderer> _renderer;
 }
 
-- (instancetype)initWithEngine:(nonnull linguine::Engine *)engine {
+- (instancetype)initWithEngine:(nonnull linguine::Engine *)engine
+                      renderer:(std::shared_ptr<linguine::Renderer>&)renderer {
   self = [super init];
 
   if (self) {
     _engine = engine;
+    _renderer = renderer;
   }
 
   return self;
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {
-  @autoreleasepool {
-    NSString *sizeStr = NSStringFromCGSize(size);
-    logger.log(sizeStr);
-  }
+  auto viewport = _renderer->getViewport();
+  viewport->setSize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
