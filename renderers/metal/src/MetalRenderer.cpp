@@ -24,7 +24,7 @@ class MetalRendererImpl : public MetalRenderer {
       _context.device = _view.device();
       _context.commandQueue = _context.device->newCommandQueue();
 
-      _features.push_back(std::make_unique<QuadFeatureRenderer>(_context));
+      _features.push_back(std::make_unique<QuadFeatureRenderer>(_context, *getCamera()));
       _features.push_back(std::make_unique<TriangleFeatureRenderer>(_context));
       _features.shrink_to_fit();
     }

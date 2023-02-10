@@ -10,6 +10,10 @@ std::shared_ptr<Renderable> Renderer::create(const std::shared_ptr<RenderFeature
   return renderable;
 }
 
+const std::shared_ptr<Camera>& Renderer::getCamera() const {
+  return _camera;
+}
+
 void Renderer::onFeatureChanged(Renderable& renderable) {
   for (const auto& feature : getFeatures()) {
     feature->onFeatureChanged(renderable);

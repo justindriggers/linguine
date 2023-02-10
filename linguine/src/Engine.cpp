@@ -18,6 +18,11 @@ Engine::Engine(
       _timeManager(timeManager) {
   auto feature = std::make_shared<QuadFeature>();
   _renderable = _renderer->create(feature);
+
+  auto camera = _renderer->getCamera();
+  auto cameraModelMatrix = glm::mat4(1.0f);
+  cameraModelMatrix = glm::translate(cameraModelMatrix, glm::vec3(-0.75f, 0.0f, 0.0f));
+  camera->viewMatrix = glm::inverse(cameraModelMatrix);
 }
 
 void Engine::run() {

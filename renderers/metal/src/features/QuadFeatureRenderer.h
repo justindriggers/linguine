@@ -2,9 +2,11 @@
 
 #include "renderer/features/FeatureRenderer.h"
 
+#include <simd/simd.h>
+
 #include <Metal/Metal.hpp>
 
-#include <simd/simd.h>
+#include <renderer/Camera.h>
 
 #include "../MetalRenderContext.h"
 
@@ -12,7 +14,7 @@ namespace linguine::render {
 
 class QuadFeatureRenderer : public FeatureRenderer {
   public:
-    explicit QuadFeatureRenderer(MetalRenderContext& context);
+    explicit QuadFeatureRenderer(MetalRenderContext& context, Camera& camera);
 
     ~QuadFeatureRenderer() override;
 
@@ -22,11 +24,17 @@ class QuadFeatureRenderer : public FeatureRenderer {
 
   private:
     MetalRenderContext& _context;
+    Camera& _camera;
 
+    MTL::Buffer* _cameraBuffer = nullptr;
     MTL::Buffer* _vertexPositionsBuffer = nullptr;
     MTL::RenderPipelineState* _pipelineState = nullptr;
 
     std::vector<MTL::Buffer*> _valueBuffers;
+
+    struct MetalCamera {
+      simd::float4x4 viewMatrix{};
+    };
 
     struct MetalQuadFeature {
       simd::float4x4 modelMatrix{};

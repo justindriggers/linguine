@@ -4,8 +4,10 @@
 
 namespace linguine::render {
 
-QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
-    : _context(context) {
+QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& camera)
+    : _context(context), _camera(camera) {
+  _cameraBuffer = context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
+
   simd::float2 positions[] = {
       { -0.5f, -0.5f },
       { -0.5f,  0.5f },
@@ -23,6 +25,10 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
   _vertexPositionsBuffer->didModifyRange(NS::Range::Make(0, positionsBufferSize));
 
   const auto shaderSourceCode = R"(
+      struct MetalCamera {
+        metal::float4x4 viewMatrix;
+      };
+
       struct MetalQuadFeature {
         metal::float4x4 modelMatrix;
         float value;
@@ -35,9 +41,10 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context)
 
       VertexOutput vertex vertexColored(uint index [[vertex_id]],
           const device float2* positions [[buffer(0)]],
-          const constant MetalQuadFeature& feature [[buffer(1)]]) {
+          const constant MetalCamera& camera [[buffer(1)]],
+          const constant MetalQuadFeature& feature [[buffer(2)]]) {
         VertexOutput o;
-        o.position = feature.modelMatrix * float4(positions[index], 0.0, 1.0);
+        o.position = camera.viewMatrix * feature.modelMatrix * float4(positions[index], 0.0, 1.0);
         o.color = half3(feature.value, 0.0, 0.0);
         return o;
       }
@@ -79,6 +86,7 @@ QuadFeatureRenderer::~QuadFeatureRenderer() {
     valueBuffer->release();
   }
 
+  _cameraBuffer->release();
   _vertexPositionsBuffer->release();
   _pipelineState->release();
 }
@@ -90,6 +98,11 @@ bool QuadFeatureRenderer::isRelevant(Renderable& renderable) {
 void QuadFeatureRenderer::draw() {
   _context.renderCommandEncoder->setRenderPipelineState(_pipelineState);
   _context.renderCommandEncoder->setVertexBuffer(_vertexPositionsBuffer, 0, 0);
+
+  auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
+  memcpy(&metalCamera->viewMatrix, &_camera.viewMatrix, sizeof(simd::float4x4));
+  _cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalCamera)));
+  _context.renderCommandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
 
   const auto renderables = getRenderables();
 
@@ -110,7 +123,7 @@ void QuadFeatureRenderer::draw() {
       memcpy(&metalQuadFeature->value, &feature->value, sizeof(float));
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalQuadFeature)));
 
-      _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 1);
+      _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 2);
       _context.renderCommandEncoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
     }
   }
