@@ -16,13 +16,19 @@ Engine::Engine(
     : _logger(logger), _inputManager(inputManager),
       _lifecycleManager(lifecycleManager), _renderer(renderer),
       _timeManager(timeManager) {
-  auto feature = std::make_shared<QuadFeature>();
-  _renderable = _renderer->create(feature);
-
   auto camera = _renderer->getCamera();
   auto cameraModelMatrix = glm::mat4(1.0f);
-  cameraModelMatrix = glm::translate(cameraModelMatrix, glm::vec3(-0.75f, 0.0f, 0.0f));
   camera->viewMatrix = glm::inverse(cameraModelMatrix);
+
+  auto feature = std::make_shared<QuadFeature>();
+  feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.0f, 1.0f));
+  feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
+  _renderable = _renderer->create(feature);
+
+  auto feature2 = std::make_shared<QuadFeature>();
+  feature2->modelMatrix = glm::translate(feature2->modelMatrix, glm::vec3(0.0f, 0.0f, 1.5f));
+  feature2->color = glm::vec3(0.0f, 0.0f, 1.0f);
+  _renderable2 = _renderer->create(feature2);
 }
 
 void Engine::run() {
@@ -72,12 +78,6 @@ void Engine::update(float deltaTime) {
 
   if (_renderable->hasFeature<QuadFeature>()) {
     auto feature = _renderable->getFeature<QuadFeature>();
-    feature->value += deltaTime;
-
-    if (feature->value > 1.0f) {
-      feature->value = 1.0f;
-    }
-
     feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.25f, 0.0f) * deltaTime);
   }
 

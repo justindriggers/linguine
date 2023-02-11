@@ -29,6 +29,7 @@ class QuadFeatureRenderer : public FeatureRenderer {
     MTL::Buffer* _cameraBuffer = nullptr;
     MTL::Buffer* _vertexPositionsBuffer = nullptr;
     MTL::RenderPipelineState* _pipelineState = nullptr;
+    MTL::DepthStencilState* _depthState = nullptr;
 
     std::vector<MTL::Buffer*> _valueBuffers;
 
@@ -38,7 +39,7 @@ class QuadFeatureRenderer : public FeatureRenderer {
 
     struct MetalQuadFeature {
       simd::float4x4 modelMatrix{};
-      float value{};
+      simd::float3 color{};
     };
 };
 

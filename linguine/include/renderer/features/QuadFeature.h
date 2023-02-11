@@ -8,7 +8,7 @@ namespace linguine {
 
 struct QuadFeature : public RenderFeature {
   glm::mat4 modelMatrix = glm::mat4(1.0f);
-  float value = 0.0f;
+  glm::vec3 color = glm::vec3(1.0f);
 };
 
 }  // namespace linguine

@@ -46,6 +46,7 @@ class Engine {
     int _fixedUpdateCounter = 0;
 
     std::shared_ptr<Renderable> _renderable = nullptr;
+    std::shared_ptr<Renderable> _renderable2 = nullptr;
 };
 
 }  // namespace linguine

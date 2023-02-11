@@ -31,12 +31,12 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
 
       struct MetalQuadFeature {
         metal::float4x4 modelMatrix;
-        float value;
+        float3 color;
       };
 
       struct VertexOutput {
         float4 position [[position]];
-        half3 color;
+        float3 color;
       };
 
       VertexOutput vertex vertexColored(uint index [[vertex_id]],
@@ -45,12 +45,12 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
           const constant MetalQuadFeature& feature [[buffer(2)]]) {
         VertexOutput o;
         o.position = camera.viewProjectionMatrix * feature.modelMatrix * float4(positions[index], 0.0, 1.0);
-        o.color = half3(feature.value, 0.0, 0.0);
+        o.color = feature.color;
         return o;
       }
 
-      half4 fragment fragmentColored(VertexOutput in [[stage_in]]) {
-        return half4(in.color, 1.0);
+      float4 fragment fragmentColored(VertexOutput in [[stage_in]]) {
+        return float4(in.color, 1.0);
       }
     )";
 
@@ -68,10 +68,21 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
   renderPipelineDescriptor->setVertexFunction(vertexFunction);
   renderPipelineDescriptor->setFragmentFunction(fragmentFunction);
   renderPipelineDescriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+  renderPipelineDescriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
 
   _pipelineState = context.device->newRenderPipelineState(renderPipelineDescriptor, &error);
 
   if (!_pipelineState) {
+    throw std::runtime_error(error->localizedDescription()->utf8String());
+  }
+
+  const auto depthStencilDescriptor = MTL::DepthStencilDescriptor::alloc()->init();
+  depthStencilDescriptor->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLessEqual);
+  depthStencilDescriptor->setDepthWriteEnabled(true);
+
+  _depthState = context.device->newDepthStencilState(depthStencilDescriptor);
+
+  if (!_depthState) {
     throw std::runtime_error(error->localizedDescription()->utf8String());
   }
 
@@ -89,6 +100,7 @@ QuadFeatureRenderer::~QuadFeatureRenderer() {
   _cameraBuffer->release();
   _vertexPositionsBuffer->release();
   _pipelineState->release();
+  _depthState->release();
 }
 
 bool QuadFeatureRenderer::isRelevant(Renderable& renderable) {
@@ -97,6 +109,8 @@ bool QuadFeatureRenderer::isRelevant(Renderable& renderable) {
 
 void QuadFeatureRenderer::draw() {
   _context.renderCommandEncoder->setRenderPipelineState(_pipelineState);
+  _context.renderCommandEncoder->setDepthStencilState(_depthState);
+
   _context.renderCommandEncoder->setVertexBuffer(_vertexPositionsBuffer, 0, 0);
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
@@ -120,7 +134,7 @@ void QuadFeatureRenderer::draw() {
       auto metalQuadFeature = static_cast<MetalQuadFeature*>(valueBuffer->contents());
 
       memcpy(&metalQuadFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
-      memcpy(&metalQuadFeature->value, &feature->value, sizeof(float));
+      memcpy(&metalQuadFeature->color, &feature->color, sizeof(simd::float3));
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalQuadFeature)));
 
       _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 2);
