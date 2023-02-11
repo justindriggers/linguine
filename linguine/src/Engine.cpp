@@ -81,6 +81,11 @@ void Engine::update(float deltaTime) {
     feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.25f, 0.0f) * deltaTime);
   }
 
+  if (_renderable2->hasFeature<QuadFeature>()) {
+    auto feature = _renderable2->getFeature<QuadFeature>();
+    feature->modelMatrix = glm::rotate(feature->modelMatrix, glm::radians(90.0f) * deltaTime, glm::vec3(0.0f, 0.0f, 1.0f));
+  }
+
   while (_dtAccumulator >= 1.0f) {
     _logger->log("update(): " + std::to_string(_updateCounter) + " fps");
 
