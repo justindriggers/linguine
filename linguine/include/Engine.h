@@ -6,6 +6,7 @@
 #include "LifecycleManager.h"
 #include "Logger.h"
 #include "TimeManager.h"
+#include "entity/EntityManager.h"
 #include "renderer/Renderer.h"
 
 namespace linguine {
@@ -30,6 +31,8 @@ class Engine {
     const std::shared_ptr<Renderer> _renderer;
     const std::shared_ptr<TimeManager> _timeManager;
 
+    const std::unique_ptr<EntityManager> _entityManager;
+
     void update(float deltaTime);
 
     void fixedUpdate(float fixedDeltaTime);
@@ -44,9 +47,6 @@ class Engine {
 
     float _fdtAccumulator = 0.0f;
     int _fixedUpdateCounter = 0;
-
-    std::shared_ptr<Renderable> _renderable = nullptr;
-    std::shared_ptr<Renderable> _renderable2 = nullptr;
 };
 
 }  // namespace linguine

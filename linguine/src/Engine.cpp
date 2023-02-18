@@ -1,11 +1,38 @@
 #include "Engine.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include "Logger.h"
+#include "entity/archetype/ArchetypeEntityManager.h"
 #include "renderer/features/QuadFeature.h"
 
 namespace linguine {
+
+struct Transform {
+  glm::vec3 position = glm::vec3(0.0f);
+  glm::quat rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+};
+
+struct HasCamera {
+  std::shared_ptr<Camera> camera;
+};
+
+struct Drawable {
+  std::shared_ptr<Renderable> renderable;
+};
+
+struct Quad {
+  std::shared_ptr<QuadFeature> feature;
+};
+
+struct Rotating {
+  float speed = 1.0f;
+};
+
+struct Rising {
+  float speed = 1.0f;
+};
 
 Engine::Engine(
     const std::shared_ptr<Logger>& logger,
@@ -15,20 +42,45 @@ Engine::Engine(
     const std::shared_ptr<TimeManager>& timeManager)
     : _logger(logger), _inputManager(inputManager),
       _lifecycleManager(lifecycleManager), _renderer(renderer),
-      _timeManager(timeManager) {
-  auto camera = _renderer->getCamera();
-  auto cameraModelMatrix = glm::mat4(1.0f);
-  camera->viewMatrix = glm::inverse(cameraModelMatrix);
+      _timeManager(timeManager), _entityManager(std::make_unique<archetype::ArchetypeEntityManager>()) {
+  // Camera
+  auto cameraEntity = _entityManager->create();
 
-  auto feature = std::make_shared<QuadFeature>();
-  feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.0f, 1.0f));
-  feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
-  _renderable = _renderer->create(feature);
+  auto cameraTransform = cameraEntity->add<Transform>();
+  cameraTransform->position = glm::vec3(-0.5f, 0.0f, 0.0f);
 
-  auto feature2 = std::make_shared<QuadFeature>();
-  feature2->modelMatrix = glm::translate(feature2->modelMatrix, glm::vec3(0.0f, 0.0f, 1.5f));
-  feature2->color = glm::vec3(0.0f, 0.0f, 1.0f);
-  _renderable2 = _renderer->create(feature2);
+  auto hasCamera = cameraEntity->add<HasCamera>();
+  hasCamera->camera = _renderer->getCamera();
+
+  // Red quad
+  auto entityA = _entityManager->create();
+
+  auto transformA = entityA->add<Transform>();
+  transformA->position = glm::vec3(0.0f, 0.0f, 1.0f);
+
+  auto quadA = entityA->add<Quad>();
+  quadA->feature = std::make_shared<QuadFeature>();
+  quadA->feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
+
+  auto drawableA = entityA->add<Drawable>();
+  drawableA->renderable = _renderer->create(quadA->feature);
+
+  entityA->add<Rising>();
+
+  // Blue quad
+  auto entityB = _entityManager->create();
+
+  auto transformB = entityB->add<Transform>();
+  transformB->position = glm::vec3(0.0f, 0.0f, 1.5f);
+
+  auto quadB = entityB->add<Quad>();
+  quadB->feature = std::make_shared<QuadFeature>();
+  quadB->feature->color = glm::vec3(0.0f, 0.0f, 1.0f);
+
+  auto drawableB = entityB->add<Drawable>();
+  drawableB->renderable = _renderer->create(quadB->feature);
+
+  entityB->add<Rotating>();
 }
 
 void Engine::run() {
@@ -61,30 +113,55 @@ void Engine::update(float deltaTime) {
   _dtAccumulator += deltaTime;
   _updateCounter++;
 
+  // RiserSystem
+  _entityManager->find<Rising, Transform>()->each([deltaTime](const Entity& entity) {
+    const auto rising = entity.get<Rising>();
+    const auto transform = entity.get<Transform>();
+
+    transform->position += glm::vec3(0.0f, 1.0f, 0.0f) * rising->speed * deltaTime;
+  });
+
+  // RotatorSystem
+  _entityManager->find<Rotating, Transform>()->each([deltaTime](const Entity& entity) {
+    const auto rotating = entity.get<Rotating>();
+    const auto transform = entity.get<Transform>();
+
+    transform->rotation *= glm::angleAxis(glm::two_pi<float>() * rotating->speed * deltaTime, glm::vec3(0.0f, 0.0f, 1.0f));
+  });
+
+  // QuadTransformationSystem
+  _entityManager->find<Transform, Quad>()->each([](const Entity& entity) {
+    const auto transform = entity.get<Transform>();
+    const auto quad = entity.get<Quad>();
+
+    quad->feature->modelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
+                                 * glm::mat4_cast(transform->rotation);
+  });
+
   const auto height = 5.0f;
   const auto viewport = _renderer->getViewport();
 
-  auto camera = _renderer->getCamera();
-  camera->projectionMatrix = glm::ortho(
-      -height / 2.0f * viewport->getAspectRatio(),
-      height / 2.0f * viewport->getAspectRatio(),
-      -height / 2.0f,
-      height / 2.0f,
-      0.0f,
-      10.0f
-  );
+  // CameraSystem
+  _entityManager->find<Transform, HasCamera>()->each([height, viewport](const Entity& entity) {
+    const auto transform = entity.get<Transform>();
+    const auto hasCamera = entity.get<HasCamera>();
+    const auto camera = hasCamera->camera;
 
-  camera->viewProjectionMatrix = camera->projectionMatrix * camera->viewMatrix;
+    auto cameraModelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
+                             * glm::mat4_cast(transform->rotation);
 
-  if (_renderable->hasFeature<QuadFeature>()) {
-    auto feature = _renderable->getFeature<QuadFeature>();
-    feature->modelMatrix = glm::translate(feature->modelMatrix, glm::vec3(0.0f, 0.25f, 0.0f) * deltaTime);
-  }
+    camera->viewMatrix = glm::inverse(cameraModelMatrix);
+    camera->projectionMatrix = glm::ortho(
+        -height / 2.0f * viewport->getAspectRatio(),
+        height / 2.0f * viewport->getAspectRatio(),
+        -height / 2.0f,
+        height / 2.0f,
+        0.0f,
+        10.0f
+    );
 
-  if (_renderable2->hasFeature<QuadFeature>()) {
-    auto feature = _renderable2->getFeature<QuadFeature>();
-    feature->modelMatrix = glm::rotate(feature->modelMatrix, glm::radians(90.0f) * deltaTime, glm::vec3(0.0f, 0.0f, 1.0f));
-  }
+    camera->viewProjectionMatrix = camera->projectionMatrix * camera->viewMatrix;
+  });
 
   while (_dtAccumulator >= 1.0f) {
     _logger->log("update(): " + std::to_string(_updateCounter) + " fps");
