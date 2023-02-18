@@ -10,6 +10,8 @@ class Store {
   public:
     explicit Store(const std::unordered_map<std::type_index, size_t>& types);
 
+    ~Store();
+
     size_t reserve();
 
     void release(size_t index);

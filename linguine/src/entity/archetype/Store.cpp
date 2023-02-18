@@ -15,6 +15,12 @@ Store::Store(const std::unordered_map<std::type_index, size_t>& types)
   _entitySize = offset;
 }
 
+Store::~Store() {
+  if (_chunk) {
+    free(_chunk);
+  }
+}
+
 size_t Store::reserve() {
   if (!_availableIndices.empty()) {
     auto index = _availableIndices.front();
