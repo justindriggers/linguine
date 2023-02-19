@@ -47,6 +47,14 @@ class Engine {
 
     float _fdtAccumulator = 0.0f;
     int _fixedUpdateCounter = 0;
+
+    void riserSystem(float deltaTime);
+
+    void rotatorSystem(float deltaTime);
+
+    void quadTransformationSystem();
+
+    void cameraSystem();
 };
 
 }  // namespace linguine

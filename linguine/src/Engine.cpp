@@ -112,27 +112,25 @@ void Engine::tick() {
   _renderer->draw();
 }
 
-void Engine::update(float deltaTime) {
-  _dtAccumulator += deltaTime;
-  _updateCounter++;
-
-  // RiserSystem
+void Engine::riserSystem(float deltaTime) {
   _entityManager->find<Rising, Transform>()->each([deltaTime](const Entity& entity) {
     const auto rising = entity.get<Rising>();
     const auto transform = entity.get<Transform>();
 
     transform->position += glm::vec3(0.0f, 1.0f, 0.0f) * rising->speed * deltaTime;
   });
+}
 
-  // RotatorSystem
+void Engine::rotatorSystem(float deltaTime) {
   _entityManager->find<Rotating, Transform>()->each([deltaTime](const Entity& entity) {
     const auto rotating = entity.get<Rotating>();
     const auto transform = entity.get<Transform>();
 
     transform->rotation *= glm::angleAxis(glm::two_pi<float>() * rotating->speed * deltaTime, glm::vec3(0.0f, 0.0f, 1.0f));
   });
+}
 
-  // QuadTransformationSystem
+void Engine::quadTransformationSystem() {
   _entityManager->find<Transform, Quad>()->each([](const Entity& entity) {
     const auto transform = entity.get<Transform>();
     const auto quad = entity.get<Quad>();
@@ -140,11 +138,12 @@ void Engine::update(float deltaTime) {
     quad->feature->modelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
                                  * glm::mat4_cast(transform->rotation);
   });
+}
 
+void Engine::cameraSystem() {
   const auto height = 10.0f;
   const auto viewport = _renderer->getViewport();
 
-  // CameraSystem
   _entityManager->find<Transform, HasCamera>()->each([height, viewport](const Entity& entity) {
     const auto transform = entity.get<Transform>();
     const auto hasCamera = entity.get<HasCamera>();
@@ -165,6 +164,16 @@ void Engine::update(float deltaTime) {
 
     camera->viewProjectionMatrix = camera->projectionMatrix * camera->viewMatrix;
   });
+}
+
+void Engine::update(float deltaTime) {
+  _dtAccumulator += deltaTime;
+  _updateCounter++;
+
+  riserSystem(deltaTime);
+  rotatorSystem(deltaTime);
+  quadTransformationSystem();
+  cameraSystem();
 
   while (_dtAccumulator >= 1.0f) {
     _logger->log("update(): " + std::to_string(_updateCounter) + " fps");
