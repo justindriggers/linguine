@@ -15,9 +15,9 @@ class ArchetypeResult : public Result {
 
     ~ArchetypeResult() override = default;
 
-    void each(std::function<void(Entity&)> function) override;
+    void each(const std::function<void(Entity&)>& function) const override;
 
-    std::vector<std::shared_ptr<Entity>> get() override;
+    [[nodiscard]] std::vector<std::shared_ptr<Entity>> get() const override;
 
   private:
     ArchetypeEntityManager& _entityManager;

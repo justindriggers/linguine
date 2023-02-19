@@ -81,10 +81,6 @@ Archetype Archetype::trunk(const std::type_info& missingType) const {
   return Archetype(types);
 }
 
-const std::vector<uint64_t>& Archetype::getEntityIds() const {
-  return _entityIds;
-}
-
 void Archetype::addEntity(uint64_t entityId) {
   if (_indicesById.find(entityId) != _indicesById.end()) {
     return;
@@ -92,12 +88,6 @@ void Archetype::addEntity(uint64_t entityId) {
 
   const auto index = _store.reserve();
   _indicesById.insert({entityId, index});
-
-  if (_entityIds.size() < index) {
-    _entityIds[index] = entityId;
-  } else {
-    _entityIds.push_back(entityId);
-  }
 }
 
 void Archetype::removeEntity(uint64_t entityId) {
@@ -110,7 +100,12 @@ void Archetype::removeEntity(uint64_t entityId) {
   const auto index = idIndex->second;
   _store.release(index);
   _indicesById.erase(entityId);
-  _entityIds[index] = InvalidEntityId;
+}
+
+void Archetype::each(const std::function<void(uint64_t)>& function) const {
+  for (const auto& entry : _indicesById) {
+    function(entry.first);
+  }
 }
 
 void* Archetype::getComponent(uint64_t entityId, const std::type_info& typeInfo) const {

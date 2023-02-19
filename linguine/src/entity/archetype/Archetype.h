@@ -36,11 +36,11 @@ class Archetype {
 
     [[nodiscard]] Archetype trunk(const std::type_info& missingType) const;
 
-    [[nodiscard]] const std::vector<uint64_t>& getEntityIds() const;
-
     void addEntity(uint64_t entityId);
 
     void removeEntity(uint64_t entityId);
+
+    void each(const std::function<void(uint64_t)>& function) const;
 
     [[nodiscard]] void* getComponent(uint64_t entityId, const std::type_info& typeInfo) const;
 
@@ -52,7 +52,6 @@ class Archetype {
     std::unordered_map<std::type_index, Archetype*> _children;
 
     Store _store;
-    std::vector<uint64_t> _entityIds;
     std::map<uint64_t, size_t> _indicesById;
 };
 

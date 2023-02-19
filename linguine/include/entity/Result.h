@@ -11,9 +11,9 @@ class Result {
   public:
     virtual ~Result() = default;
 
-    virtual void each(std::function<void(Entity&)> function) = 0;
+    virtual void each(const std::function<void(Entity&)>& function) const = 0;
 
-    virtual std::vector<std::shared_ptr<Entity>> get() = 0;
+    [[nodiscard]] virtual std::vector<std::shared_ptr<Entity>> get() const = 0;
 };
 
 }  // namespace linguine

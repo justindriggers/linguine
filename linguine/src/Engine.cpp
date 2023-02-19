@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include <random>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -47,40 +49,41 @@ Engine::Engine(
   auto cameraEntity = _entityManager->create();
 
   auto cameraTransform = cameraEntity->add<Transform>();
-  cameraTransform->position = glm::vec3(-0.5f, 0.0f, 0.0f);
+  cameraTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
   auto hasCamera = cameraEntity->add<HasCamera>();
   hasCamera->camera = _renderer->getCamera();
 
-  // Red quad
-  auto entityA = _entityManager->create();
+  auto random = std::random_device();
+  auto xDist = std::uniform_real_distribution(-2.55f, 2.5f);
+  auto yDist = std::uniform_real_distribution(-5.0f, 5.0f);
+  auto zDist = std::uniform_real_distribution(0.0f, 10.0f);
+  auto normalDist = std::uniform_real_distribution(0.0f, 1.0f);
+  auto rotationDist = std::uniform_real_distribution(-1.0f, 1.0f);
 
-  auto transformA = entityA->add<Transform>();
-  transformA->position = glm::vec3(0.0f, 0.0f, 1.0f);
+  auto componentDist = std::uniform_int_distribution(0, 1);
 
-  auto quadA = entityA->add<Quad>();
-  quadA->feature = std::make_shared<QuadFeature>();
-  quadA->feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
+  for (int i = 0; i < 10'000; ++i) {
+    auto entity = _entityManager->create();
 
-  auto drawableA = entityA->add<Drawable>();
-  drawableA->renderable = _renderer->create(quadA->feature);
+    auto transform = entity->add<Transform>();
+    transform->position = glm::vec3(xDist(random), yDist(random), zDist(random));
 
-  entityA->add<Rising>();
+    auto quad = entity->add<Quad>();
+    quad->feature = std::make_shared<QuadFeature>();
+    quad->feature->color = glm::vec3(normalDist(random), normalDist(random), normalDist(random));
 
-  // Blue quad
-  auto entityB = _entityManager->create();
+    auto drawable = entity->add<Drawable>();
+    drawable->renderable = _renderer->create(quad->feature);
 
-  auto transformB = entityB->add<Transform>();
-  transformB->position = glm::vec3(0.0f, 0.0f, 1.5f);
-
-  auto quadB = entityB->add<Quad>();
-  quadB->feature = std::make_shared<QuadFeature>();
-  quadB->feature->color = glm::vec3(0.0f, 0.0f, 1.0f);
-
-  auto drawableB = entityB->add<Drawable>();
-  drawableB->renderable = _renderer->create(quadB->feature);
-
-  entityB->add<Rotating>();
+    if (componentDist(random) > 0) {
+      auto rising = entity->add<Rising>();
+      rising->speed = normalDist(random);
+    } else {
+      auto rotating = entity->add<Rotating>();
+      rotating->speed = rotationDist(random);
+    }
+  }
 }
 
 void Engine::run() {
@@ -138,7 +141,7 @@ void Engine::update(float deltaTime) {
                                  * glm::mat4_cast(transform->rotation);
   });
 
-  const auto height = 5.0f;
+  const auto height = 10.0f;
   const auto viewport = _renderer->getViewport();
 
   // CameraSystem
