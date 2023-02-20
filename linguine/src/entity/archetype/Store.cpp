@@ -42,9 +42,15 @@ void Store::release(size_t index) {
 }
 
 void* Store::get(size_t index, const std::type_index& typeInfo) const {
+  const auto typeMetadata = _types.find(typeInfo);
+
+  if (typeMetadata == _types.end()) {
+    return nullptr;
+  }
+
   return static_cast<std::byte*>(_chunk)
          + _entitySize * index
-         + _types.at(typeInfo).offset;
+         + typeMetadata->second.offset;
 }
 
 size_t Store::getSizeOf(const std::type_index& typeInfo) const {

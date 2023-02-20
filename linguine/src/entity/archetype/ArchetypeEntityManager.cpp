@@ -95,11 +95,6 @@ void ArchetypeEntityManager::remove(uint64_t id, const std::type_info& typeInfo)
 
 void* ArchetypeEntityManager::get(uint64_t id, const std::type_info& typeInfo) const {
   const auto& archetype = _entityArchetypes.at(id).get();
-
-  if (!archetype.has(typeInfo)) {
-    return nullptr;
-  }
-
   return archetype.getComponent(id, typeInfo);
 }
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <set>
 #include <typeindex>
 #include <unordered_map>
@@ -12,8 +11,6 @@ namespace linguine::archetype {
 
 class Archetype {
   public:
-    static const uint64_t InvalidEntityId = UINT64_MAX;
-
     explicit Archetype(const std::unordered_map<std::type_index, size_t>& types);
 
     [[nodiscard]] bool has(const std::type_info& typeInfo) const;
@@ -52,7 +49,7 @@ class Archetype {
     std::unordered_map<std::type_index, Archetype*> _children;
 
     Store _store;
-    std::map<uint64_t, size_t> _indicesById;
+    std::unordered_map<uint64_t, size_t> _indicesById;
 };
 
 }  // namespace linguine::archetype
