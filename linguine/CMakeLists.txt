@@ -1,7 +1,6 @@
 add_library(linguine
         src/Engine.cpp
         src/entity/archetype/Archetype.cpp
-        src/entity/archetype/ArchetypeEntity.cpp
         src/entity/archetype/ArchetypeEntityManager.cpp
         src/entity/archetype/ArchetypeResult.cpp
         src/entity/archetype/Query.cpp

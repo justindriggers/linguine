@@ -1,7 +1,6 @@
 #include "ArchetypeEntityManager.h"
 
 #include "Archetype.h"
-#include "ArchetypeEntity.h"
 #include "ArchetypeResult.h"
 #include "Query.h"
 
@@ -17,7 +16,7 @@ std::shared_ptr<Entity> ArchetypeEntityManager::create() {
   _rootArchetype->addEntity(index);
   _entityArchetypes.emplace_back(*_rootArchetype);
 
-  return std::make_shared<ArchetypeEntity>(*this, index);
+  return std::make_shared<Entity>(*this, index);
 }
 
 std::shared_ptr<Result> ArchetypeEntityManager::find(std::set<std::type_index> types) {

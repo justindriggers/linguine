@@ -4,10 +4,10 @@
 #include <set>
 #include <typeindex>
 
-#include "Entity.h"
-#include "Result.h"
-
 namespace linguine {
+
+class Entity;
+class Result;
 
 class EntityManager {
   public:
@@ -21,7 +21,19 @@ class EntityManager {
     }
 
   private:
+    template<typename T>
+    friend class Component;
+    friend class Entity;
+
     virtual std::shared_ptr<Result> find(std::set<std::type_index> types) = 0;
+
+    [[nodiscard]] virtual bool has(uint64_t id, const std::type_info& typeInfo) const = 0;
+
+    virtual void* add(uint64_t id, const std::type_info& typeInfo, size_t size) = 0;
+
+    virtual void remove(uint64_t id, const std::type_info& typeInfo) = 0;
+
+    [[nodiscard]] virtual void* get(uint64_t id, const std::type_info& typeInfo) const = 0;
 };
 
 }  // namespace linguine

@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "Archetype.h"
+#include "entity/Entity.h"
+#include "entity/Result.h"
 
 template<>
 struct std::hash<std::set<std::type_index>> {
@@ -37,15 +39,13 @@ class ArchetypeEntityManager : public EntityManager {
   private:
     std::shared_ptr<Result> find(std::set<std::type_index> types) override;
 
-    [[nodiscard]] bool has(uint64_t id, const std::type_info& typeInfo) const;
+    [[nodiscard]] bool has(uint64_t id, const std::type_info& typeInfo) const override;
 
-    void* add(uint64_t id, const std::type_info& typeInfo, size_t size);
+    void* add(uint64_t id, const std::type_info& typeInfo, size_t size) override;
 
-    void remove(uint64_t id, const std::type_info& typeInfo);
+    void remove(uint64_t id, const std::type_info& typeInfo) override;
 
-    [[nodiscard]] void* get(uint64_t id, const std::type_info& typeInfo) const;
-
-    friend class ArchetypeEntity;
+    [[nodiscard]] void* get(uint64_t id, const std::type_info& typeInfo) const override;
 
     Archetype* _rootArchetype;
     std::vector<std::reference_wrapper<Archetype>> _entityArchetypes;
