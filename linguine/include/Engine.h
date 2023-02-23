@@ -1,17 +1,18 @@
 #pragma once
 
-#include <memory>
+#include "ServiceLocator.h"
 
 #include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
+#include "Scene.h"
 #include "TimeManager.h"
-#include "entity/EntityManager.h"
+#include "entity/EntityManagerFactory.h"
 #include "renderer/Renderer.h"
 
 namespace linguine {
 
-class Engine {
+class Engine : public ServiceLocator {
   public:
     Engine(const std::shared_ptr<Logger>& logger,
          const std::shared_ptr<InputManager>& inputManager,
@@ -24,37 +25,47 @@ class Engine {
     void tick();
 
   private:
-    const std::shared_ptr<Logger> _logger;
+    EntityManagerFactory& getEntityManagerFactory() override {
+      return *_entityManagerFactory;
+    }
 
+    InputManager& getInputManager() override {
+      return *_inputManager;
+    }
+
+    LifecycleManager& getLifecycleManager() override {
+      return *_lifecycleManager;
+    }
+
+    Logger& getLogger() override {
+      return *_logger;
+    }
+
+    Renderer& getRenderer() override {
+      return *_renderer;
+    }
+
+    TimeManager& getTimeManager() override {
+      return *_timeManager;
+    }
+
+    const std::unique_ptr<EntityManagerFactory> _entityManagerFactory;
     const std::shared_ptr<InputManager> _inputManager;
     const std::shared_ptr<LifecycleManager> _lifecycleManager;
+    const std::shared_ptr<Logger> _logger;
     const std::shared_ptr<Renderer> _renderer;
     const std::shared_ptr<TimeManager> _timeManager;
 
-    const std::unique_ptr<EntityManager> _entityManager;
+    std::unique_ptr<Scene> _currentScene;
 
     void update(float deltaTime);
 
     void fixedUpdate(float fixedDeltaTime);
 
-    const float _fixedDeltaTime = 0.02f;
+    constexpr static float _fixedDeltaTime = 0.02f;
 
     time_t _currentTime = _timeManager->currentTime();
     float _accumulator = 0.0f;
-
-    float _dtAccumulator = 0.0f;
-    int _updateCounter = 0;
-
-    float _fdtAccumulator = 0.0f;
-    int _fixedUpdateCounter = 0;
-
-    void riserSystem(float deltaTime);
-
-    void rotatorSystem(float deltaTime);
-
-    void quadTransformationSystem();
-
-    void cameraSystem();
 };
 
 }  // namespace linguine

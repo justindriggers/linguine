@@ -8,9 +8,18 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
+        src/systems/CameraSystem.cpp
+        src/systems/FpsSystem.cpp
+        src/systems/QuadTransformationSystem.cpp
+        src/systems/RiserSystem.cpp
+        src/systems/RotatorSystem.cpp
 )
 
 target_include_directories(linguine PUBLIC
         include
         "${THIRD_PARTY_DIR}/glm"
+)
+
+target_include_directories(linguine PRIVATE
+        src
 )
