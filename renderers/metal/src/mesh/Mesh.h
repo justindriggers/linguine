@@ -9,6 +9,8 @@ class Mesh {
     virtual ~Mesh() = default;
 
     virtual void bind(MTL::RenderCommandEncoder& encoder) = 0;
+
+    virtual void draw(MTL::RenderCommandEncoder& encoder) = 0;
 };
 
 }  // namespace linguine::render

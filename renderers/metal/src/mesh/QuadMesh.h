@@ -12,6 +12,8 @@ class QuadMesh : public Mesh {
 
     void bind(MTL::RenderCommandEncoder& encoder) override;
 
+    void draw(MTL::RenderCommandEncoder& encoder) override;
+
   private:
     MTL::Buffer* _vertexPositionsBuffer;
 };

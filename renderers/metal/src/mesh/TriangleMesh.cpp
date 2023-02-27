@@ -26,4 +26,8 @@ void TriangleMesh::bind(MTL::RenderCommandEncoder& encoder) {
   encoder.setVertexBuffer(_vertexPositionsBuffer, 0, 0);
 }
 
+void TriangleMesh::draw(MTL::RenderCommandEncoder& encoder) {
+  encoder.drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
+}
+
 }  // namespace linguine::render

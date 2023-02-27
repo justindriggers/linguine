@@ -30,4 +30,8 @@ void QuadMesh::bind(MTL::RenderCommandEncoder& encoder) {
   encoder.setVertexBuffer(_vertexPositionsBuffer, 0, 0);
 }
 
+void QuadMesh::draw(MTL::RenderCommandEncoder& encoder) {
+  encoder.drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+}
+
 }  // namespace linguine::render

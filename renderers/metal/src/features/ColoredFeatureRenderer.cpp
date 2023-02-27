@@ -124,7 +124,7 @@ void ColoredFeatureRenderer::draw() {
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalColoredFeature)));
 
       _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 2);
-      _context.renderCommandEncoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+      mesh->draw(*_context.renderCommandEncoder);
     }
   }
 }
