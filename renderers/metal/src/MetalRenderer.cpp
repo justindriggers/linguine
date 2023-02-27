@@ -9,8 +9,7 @@
 
 #include <renderer/features/FeatureRenderer.h>
 
-#include "features/QuadFeatureRenderer.h"
-#include "features/TriangleFeatureRenderer.h"
+#include "features/ColoredFeatureRenderer.h"
 
 namespace linguine::render {
 
@@ -26,8 +25,9 @@ class MetalRendererImpl : public MetalRenderer {
       _context.device = _view.device();
       _context.commandQueue = _context.device->newCommandQueue();
 
-      _features.push_back(std::make_unique<QuadFeatureRenderer>(_context, *getCamera()));
-      _features.push_back(std::make_unique<TriangleFeatureRenderer>(_context));
+      _meshRegistry = std::make_unique<MeshRegistry>(*_context.device);
+
+      _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *getCamera(), *_meshRegistry));
       _features.shrink_to_fit();
     }
 
@@ -50,6 +50,7 @@ class MetalRendererImpl : public MetalRenderer {
     bool _autoDraw;
 
     MetalRenderContext _context;
+    std::unique_ptr<MeshRegistry> _meshRegistry;
 
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
 };

@@ -8,15 +8,17 @@
 
 #include <renderer/Camera.h>
 
-#include "../MetalRenderContext.h"
+#include "mesh/MeshRegistry.h"
+#include "MetalRenderContext.h"
 
 namespace linguine::render {
 
-class QuadFeatureRenderer : public FeatureRenderer {
+class ColoredFeatureRenderer : public FeatureRenderer {
   public:
-    explicit QuadFeatureRenderer(MetalRenderContext& context, Camera& camera);
+    ColoredFeatureRenderer(MetalRenderContext& context, Camera& camera,
+                           MeshRegistry& meshRegistry);
 
-    ~QuadFeatureRenderer() override;
+    ~ColoredFeatureRenderer() override;
 
     bool isRelevant(Renderable& renderable) override;
 
@@ -25,9 +27,9 @@ class QuadFeatureRenderer : public FeatureRenderer {
   private:
     MetalRenderContext& _context;
     Camera& _camera;
+    MeshRegistry& _meshRegistry;
 
     MTL::Buffer* _cameraBuffer = nullptr;
-    MTL::Buffer* _vertexPositionsBuffer = nullptr;
     MTL::RenderPipelineState* _pipelineState = nullptr;
     MTL::DepthStencilState* _depthState = nullptr;
 
@@ -37,7 +39,7 @@ class QuadFeatureRenderer : public FeatureRenderer {
       simd::float4x4 viewProjectionMatrix{};
     };
 
-    struct MetalQuadFeature {
+    struct MetalColoredFeature {
       simd::float4x4 modelMatrix{};
       simd::float3 color{};
     };

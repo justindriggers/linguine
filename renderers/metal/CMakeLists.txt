@@ -1,10 +1,13 @@
 add_library(metal
         src/MetalRenderer.cpp
-        src/features/QuadFeatureRenderer.cpp
-        src/features/TriangleFeatureRenderer.cpp
+        src/features/ColoredFeatureRenderer.cpp
+        src/mesh/MeshRegistry.cpp
+        src/mesh/QuadMesh.cpp
+        src/mesh/TriangleMesh.cpp
 )
 
 target_include_directories(metal PUBLIC include)
+target_include_directories(metal PRIVATE src)
 
 target_link_libraries(metal PRIVATE linguine)
 

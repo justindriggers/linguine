@@ -6,16 +6,15 @@
 
 #include "components/Drawable.h"
 #include "components/HasCamera.h"
-#include "components/Quad.h"
 #include "components/Rising.h"
 #include "components/Rotating.h"
 #include "components/Transform.h"
 #include "systems/CameraSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/InputTestSystem.h"
-#include "systems/QuadTransformationSystem.h"
 #include "systems/RiserSystem.h"
 #include "systems/RotatorSystem.h"
+#include "systems/TransformationSystem.h"
 
 namespace linguine {
 
@@ -27,7 +26,7 @@ class TestScene : public Scene {
       registerSystem(std::make_unique<InputTestSystem>(getEntityManager(), serviceLocator.get<Logger>(), serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<RiserSystem>(getEntityManager()));
       registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
-      registerSystem(std::make_unique<QuadTransformationSystem>(getEntityManager()));
+      registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
       auto& renderer = serviceLocator.get<Renderer>();
@@ -56,12 +55,17 @@ class TestScene : public Scene {
         auto transform = entity->add<Transform>();
         transform->position = glm::vec3(xDist(random), yDist(random), zDist(random));
 
-        auto quad = entity->add<Quad>();
-        quad->feature = std::make_shared<QuadFeature>();
-        quad->feature->color = glm::vec3(normalDist(random), normalDist(random), normalDist(random));
-
         auto drawable = entity->add<Drawable>();
-        drawable->renderable = renderer.create(quad->feature);
+        drawable->feature = std::make_shared<ColoredFeature>();
+        drawable->feature->color = glm::vec3(normalDist(random), normalDist(random), normalDist(random));
+
+        if (componentDist(random) > 0) {
+          drawable->feature->meshType = Quad;
+        } else {
+          drawable->feature->meshType = Triangle;
+        }
+
+        drawable->renderable = renderer.create(drawable->feature);
 
         if (componentDist(random) > 0) {
           auto rising = entity->add<Rising>();

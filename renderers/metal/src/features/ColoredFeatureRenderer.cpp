@@ -1,35 +1,21 @@
-#include "QuadFeatureRenderer.h"
+#include "ColoredFeatureRenderer.h"
 
-#include "renderer/features/QuadFeature.h"
+#include "renderer/features/ColoredFeature.h"
 
 namespace linguine::render {
 
-QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& camera)
-    : _context(context), _camera(camera) {
+ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
+                                               Camera& camera,
+                                               MeshRegistry& meshRegistry)
+    : _context(context), _camera(camera), _meshRegistry(meshRegistry) {
   _cameraBuffer = context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-
-  simd::float2 positions[] = {
-      { -0.5f, -0.5f },
-      { -0.5f,  0.5f },
-      {  0.5f, -0.5f },
-
-      {  0.5f, -0.5f },
-      { -0.5f,  0.5f },
-      {  0.5f,  0.5f }
-  };
-
-  const auto positionsBufferSize = std::size(positions) * sizeof(simd::float2);
-  _vertexPositionsBuffer = context.device->newBuffer(positionsBufferSize, MTL::ResourceStorageModeShared);
-
-  memcpy(_vertexPositionsBuffer->contents(), positions, positionsBufferSize);
-  _vertexPositionsBuffer->didModifyRange(NS::Range::Make(0, positionsBufferSize));
 
   const auto shaderSourceCode = R"(
       struct MetalCamera {
         metal::float4x4 viewProjectionMatrix;
       };
 
-      struct MetalQuadFeature {
+      struct MetalColoredFeature {
         metal::float4x4 modelMatrix;
         float3 color;
       };
@@ -42,7 +28,7 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
       VertexOutput vertex vertexColored(uint index [[vertex_id]],
           const device float2* positions [[buffer(0)]],
           const constant MetalCamera& camera [[buffer(1)]],
-          const constant MetalQuadFeature& feature [[buffer(2)]]) {
+          const constant MetalColoredFeature& feature [[buffer(2)]]) {
         VertexOutput o;
         o.position = camera.viewProjectionMatrix * feature.modelMatrix * float4(positions[index], 0.0, 1.0);
         o.color = feature.color;
@@ -92,26 +78,23 @@ QuadFeatureRenderer::QuadFeatureRenderer(MetalRenderContext& context, Camera& ca
   library->release();
 }
 
-QuadFeatureRenderer::~QuadFeatureRenderer() {
+ColoredFeatureRenderer::~ColoredFeatureRenderer() {
   for (const auto& valueBuffer : _valueBuffers) {
     valueBuffer->release();
   }
 
   _cameraBuffer->release();
-  _vertexPositionsBuffer->release();
   _pipelineState->release();
   _depthState->release();
 }
 
-bool QuadFeatureRenderer::isRelevant(Renderable& renderable) {
-   return renderable.hasFeature<QuadFeature>();
+bool ColoredFeatureRenderer::isRelevant(Renderable& renderable) {
+   return renderable.hasFeature<ColoredFeature>();
 }
 
-void QuadFeatureRenderer::draw() {
+void ColoredFeatureRenderer::draw() {
   _context.renderCommandEncoder->setRenderPipelineState(_pipelineState);
   _context.renderCommandEncoder->setDepthStencilState(_depthState);
-
-  _context.renderCommandEncoder->setVertexBuffer(_vertexPositionsBuffer, 0, 0);
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
   memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
@@ -121,21 +104,24 @@ void QuadFeatureRenderer::draw() {
   const auto renderables = getRenderables();
 
   while (_valueBuffers.size() < renderables.size()) {
-    _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalQuadFeature), MTL::ResourceStorageModeShared));
+    _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalColoredFeature), MTL::ResourceStorageModeShared));
   }
 
   for (int i = 0; i < renderables.size(); ++i) {
     auto renderable = renderables[i];
 
     if (renderable && renderable->isEnabled()) {
-      auto feature = renderable->getFeature<QuadFeature>();
+      auto feature = renderable->getFeature<ColoredFeature>();
+
+      auto& mesh = _meshRegistry.get(feature->meshType);
+      mesh->bind(*_context.renderCommandEncoder);
 
       auto valueBuffer = _valueBuffers[i];
-      auto metalQuadFeature = static_cast<MetalQuadFeature*>(valueBuffer->contents());
+      auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
 
-      memcpy(&metalQuadFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
-      memcpy(&metalQuadFeature->color, &feature->color, sizeof(simd::float3));
-      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalQuadFeature)));
+      memcpy(&metalColoredFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
+      memcpy(&metalColoredFeature->color, &feature->color, sizeof(simd::float3));
+      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalColoredFeature)));
 
       _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 2);
       _context.renderCommandEncoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));

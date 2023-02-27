@@ -4,9 +4,9 @@
 
 namespace linguine {
 
-class QuadTransformationSystem : public System {
+class TransformationSystem : public System {
 public:
-  explicit QuadTransformationSystem(EntityManager& entityManager)
+  explicit TransformationSystem(EntityManager& entityManager)
       : System(entityManager) {}
 
   void update(float deltaTime) override;
