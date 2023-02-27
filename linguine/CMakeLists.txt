@@ -10,6 +10,7 @@ add_library(linguine
         src/renderer/features/FeatureRenderer.cpp
         src/systems/CameraSystem.cpp
         src/systems/FpsSystem.cpp
+        src/systems/InputTestSystem.cpp
         src/systems/QuadTransformationSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp

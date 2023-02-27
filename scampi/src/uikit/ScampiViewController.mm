@@ -11,6 +11,7 @@
 @implementation ScampiViewController {
   MTKView *_view;
   ScampiViewDelegate *_viewDelegate;
+  std::shared_ptr<linguine::scampi::IosInputManager> _inputManager;
 }
 
 - (void)viewDidLoad
@@ -32,19 +33,76 @@
   [_view setEnableSetNeedsDisplay:NO];
   [_view setPreferredFramesPerSecond:120];
 
-  auto logger = std::shared_ptr<linguine::Logger>(new linguine::scampi::NSLogger());
-  auto inputManager = std::shared_ptr<linguine::InputManager>(new linguine::scampi::IosInputManager());
-  auto lifecycleManager = std::shared_ptr<linguine::LifecycleManager>(new linguine::scampi::IosLifecycleManager());
-  auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true));
-  auto timeManager = std::shared_ptr<linguine::TimeManager>(new linguine::scampi::IosTimeManager());
+  _inputManager = std::make_shared<linguine::scampi::IosInputManager>();
 
-  auto engine = new linguine::Engine(logger, inputManager, lifecycleManager, renderer, timeManager);
+  auto logger = std::make_shared<linguine::scampi::NSLogger>();
+  auto lifecycleManager = std::make_shared<linguine::scampi::IosLifecycleManager>();
+  auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true));
+  auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
+
+  auto engine = std::make_shared<linguine::Engine>(logger, _inputManager, lifecycleManager, renderer, timeManager);
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
                                                     renderer:renderer];
 
   [_viewDelegate mtkView:_view drawableSizeWillChange:_view.bounds.size];
   [_view setDelegate:_viewDelegate];
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches
+           withEvent:(nullable UIEvent *)event {
+  for (UITouch *touch in touches) {
+    CGPoint point = [touch locationInView:touch.view];
+    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
+        .x = static_cast<float>(point.x),
+        .y = static_cast<float>(point.y),
+        .isActive = true
+    };
+
+    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+  }
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches
+           withEvent:(nullable UIEvent *)event {
+  for (UITouch *touch in touches) {
+    CGPoint point = [touch locationInView:touch.view];
+    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
+        .x = static_cast<float>(point.x),
+        .y = static_cast<float>(point.y),
+        .isActive = true
+    };
+
+    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+  }
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches
+           withEvent:(nullable UIEvent *)event {
+  for (UITouch *touch in touches) {
+    CGPoint point = [touch locationInView:touch.view];
+    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
+        .x = static_cast<float>(point.x),
+        .y = static_cast<float>(point.y),
+        .isActive = false
+    };
+
+    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+  }
+}
+
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches
+               withEvent:(nullable UIEvent *)event {
+  for (UITouch *touch in touches) {
+    CGPoint point = [touch locationInView:touch.view];
+    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
+        .x = static_cast<float>(point.x),
+        .y = static_cast<float>(point.y),
+        .isActive = false
+    };
+
+    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+  }
 }
 
 @end

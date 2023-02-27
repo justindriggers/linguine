@@ -40,6 +40,6 @@ add_custom_target(scampi-run
         COMMAND xcrun simctl install "753F4927-BCF7-450D-9E12-749CBD46D956" scampi.app
         COMMAND xcrun simctl launch "753F4927-BCF7-450D-9E12-749CBD46D956" com.justindriggers.scampi
         COMMAND open -a Simulator
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/scampi/Release-iphonesimulator
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/scampi/$<CONFIG>-iphonesimulator
 )
 add_dependencies(scampi-run scampi)

@@ -3,11 +3,11 @@
 #import "../platform/NSLogger.h"
 
 @implementation ScampiViewDelegate {
-  linguine::Engine* _engine;
+  std::shared_ptr<linguine::Engine> _engine;
   std::shared_ptr<linguine::Renderer> _renderer;
 }
 
-- (instancetype)initWithEngine:(nonnull linguine::Engine *)engine
+- (instancetype)initWithEngine:(std::shared_ptr<linguine::Engine>&)engine
                       renderer:(std::shared_ptr<linguine::Renderer>&)renderer {
   self = [super init];
 

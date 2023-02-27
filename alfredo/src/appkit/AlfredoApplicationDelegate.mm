@@ -1,7 +1,5 @@
 #import "AlfredoApplicationDelegate.h"
 
-#import "../metalkit/AlfredoViewDelegate.h"
-
 @implementation AlfredoApplicationDelegate
 
 - (void)closeWindow {

@@ -12,6 +12,7 @@
 #include "components/Transform.h"
 #include "systems/CameraSystem.h"
 #include "systems/FpsSystem.h"
+#include "systems/InputTestSystem.h"
 #include "systems/QuadTransformationSystem.h"
 #include "systems/RiserSystem.h"
 #include "systems/RotatorSystem.h"
@@ -23,6 +24,7 @@ class TestScene : public Scene {
     explicit TestScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
+      registerSystem(std::make_unique<InputTestSystem>(getEntityManager(), serviceLocator.get<Logger>(), serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<RiserSystem>(getEntityManager()));
       registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
       registerSystem(std::make_unique<QuadTransformationSystem>(getEntityManager()));

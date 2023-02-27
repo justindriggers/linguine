@@ -5,7 +5,7 @@
 
 @interface ScampiViewDelegate : NSObject <MTKViewDelegate>
 
-- (instancetype)initWithEngine:(linguine::Engine *)engine
+- (instancetype)initWithEngine:(std::shared_ptr<linguine::Engine>&)engine
                       renderer:(std::shared_ptr<linguine::Renderer>&)renderer;
 
 @end
