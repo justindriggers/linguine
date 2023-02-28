@@ -37,8 +37,8 @@ find_library(METALKIT_LIBRARY MetalKit REQUIRED)
 target_link_libraries(scampi PRIVATE ${METALKIT_LIBRARY})
 
 add_custom_target(scampi-run
-        COMMAND xcrun simctl install "753F4927-BCF7-450D-9E12-749CBD46D956" scampi.app
-        COMMAND xcrun simctl launch "753F4927-BCF7-450D-9E12-749CBD46D956" com.justindriggers.scampi
+        COMMAND xcrun simctl install "0A1DF304-5D0A-459E-BB00-3B8017B99031" scampi.app
+        COMMAND xcrun simctl launch "0A1DF304-5D0A-459E-BB00-3B8017B99031" com.justindriggers.scampi
         COMMAND open -a Simulator
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/scampi/$<CONFIG>-iphonesimulator
 )

@@ -8,6 +8,7 @@
 #include "components/HasCamera.h"
 #include "components/Rising.h"
 #include "components/Rotating.h"
+#include "components/Selectable.h"
 #include "components/Transform.h"
 #include "systems/CameraSystem.h"
 #include "systems/FpsSystem.h"
@@ -23,7 +24,7 @@ class TestScene : public Scene {
     explicit TestScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-      registerSystem(std::make_unique<InputTestSystem>(getEntityManager(), serviceLocator.get<Logger>(), serviceLocator.get<InputManager>()));
+      registerSystem(std::make_unique<InputTestSystem>(getEntityManager(), serviceLocator.get<Logger>(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<RiserSystem>(getEntityManager()));
       registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
@@ -59,13 +60,20 @@ class TestScene : public Scene {
         drawable->feature = std::make_shared<ColoredFeature>();
         drawable->feature->color = glm::vec3(normalDist(random), normalDist(random), normalDist(random));
 
+        auto selectable = entity->add<Selectable>();
+        selectable->feature = std::make_shared<SelectableFeature>();
+        selectable->feature->entityId = entity->getId();
+
         if (componentDist(random) > 0) {
           drawable->feature->meshType = Quad;
+          selectable->feature->meshType = Quad;
         } else {
           drawable->feature->meshType = Triangle;
+          selectable->feature->meshType = Triangle;
         }
 
         drawable->renderable = renderer.create(drawable->feature);
+        selectable->renderable = renderer.create(selectable->feature);
 
         if (componentDist(random) > 0) {
           auto rising = entity->add<Rising>();

@@ -10,6 +10,7 @@
 #include <renderer/features/FeatureRenderer.h>
 
 #include "features/ColoredFeatureRenderer.h"
+#include "features/SelectableFeatureRenderer.h"
 
 namespace linguine::render {
 
@@ -27,7 +28,10 @@ class MetalRendererImpl : public MetalRenderer {
 
       _meshRegistry = std::make_unique<MeshRegistry>(*_context.device);
 
+      _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, *getCamera(), *_meshRegistry);
+
       _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *getCamera(), *_meshRegistry));
+      _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
       _features.shrink_to_fit();
     }
 
@@ -39,6 +43,8 @@ class MetalRendererImpl : public MetalRenderer {
     void draw() override;
 
     void doDraw() override;
+
+    [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const override;
 
   protected:
     [[nodiscard]] const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const override {
@@ -53,6 +59,7 @@ class MetalRendererImpl : public MetalRenderer {
     std::unique_ptr<MeshRegistry> _meshRegistry;
 
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
+    SelectableFeatureRenderer* _selectableFeatureRenderer = nullptr;
 };
 
 void MetalRendererImpl::draw() {
@@ -66,20 +73,21 @@ void MetalRendererImpl::draw() {
 void MetalRendererImpl::doDraw() {
   auto pool = NS::AutoreleasePool::alloc()->init();
 
-  auto commandBuffer = _context.commandQueue->commandBuffer();
-
-  _context.renderCommandEncoder = commandBuffer->renderCommandEncoder(_view.currentRenderPassDescriptor());
+  _context.commandBuffer = _context.commandQueue->commandBuffer();
+  _context.coloredRenderPassDescriptor = _view.currentRenderPassDescriptor();
 
   for (const auto& feature : getFeatures()) {
     feature->draw();
   }
 
-  _context.renderCommandEncoder->endEncoding();
-
-  commandBuffer->presentDrawable(_view.currentDrawable());
-  commandBuffer->commit();
+  _context.commandBuffer->presentDrawable(_view.currentDrawable());
+  _context.commandBuffer->commit();
 
   pool->release();
+}
+
+std::optional<uint64_t> MetalRendererImpl::getEntityIdAt(float x, float y) const {
+  return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
 MetalRenderer* MetalRenderer::create(MTK::View& view, bool autoDraw) {

@@ -72,6 +72,7 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
     throw std::runtime_error(error->localizedDescription()->utf8String());
   }
 
+  depthStencilDescriptor->release();
   vertexFunction->release();
   fragmentFunction->release();
   renderPipelineDescriptor->release();
@@ -89,17 +90,19 @@ ColoredFeatureRenderer::~ColoredFeatureRenderer() {
 }
 
 bool ColoredFeatureRenderer::isRelevant(Renderable& renderable) {
-   return renderable.hasFeature<ColoredFeature>();
+  return renderable.hasFeature<ColoredFeature>();
 }
 
 void ColoredFeatureRenderer::draw() {
-  _context.renderCommandEncoder->setRenderPipelineState(_pipelineState);
-  _context.renderCommandEncoder->setDepthStencilState(_depthState);
+  auto commandEncoder = _context.commandBuffer->renderCommandEncoder(_context.coloredRenderPassDescriptor);
+
+  commandEncoder->setRenderPipelineState(_pipelineState);
+  commandEncoder->setDepthStencilState(_depthState);
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
   memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
   _cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalCamera)));
-  _context.renderCommandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
+  commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
 
   const auto renderables = getRenderables();
 
@@ -114,7 +117,7 @@ void ColoredFeatureRenderer::draw() {
       auto feature = renderable->getFeature<ColoredFeature>();
 
       auto& mesh = _meshRegistry.get(feature->meshType);
-      mesh->bind(*_context.renderCommandEncoder);
+      mesh->bind(*commandEncoder);
 
       auto valueBuffer = _valueBuffers[i];
       auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
@@ -123,10 +126,12 @@ void ColoredFeatureRenderer::draw() {
       memcpy(&metalColoredFeature->color, &feature->color, sizeof(simd::float3));
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalColoredFeature)));
 
-      _context.renderCommandEncoder->setVertexBuffer(valueBuffer, 0, 2);
-      mesh->draw(*_context.renderCommandEncoder);
+      commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
+      mesh->draw(*commandEncoder);
     }
   }
+
+  commandEncoder->endEncoding();
 }
 
 }  // namespace linguine::render

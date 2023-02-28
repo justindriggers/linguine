@@ -36,6 +36,8 @@ class ArchetypeEntityManager : public EntityManager {
 
     std::shared_ptr<Entity> create() override;
 
+    std::shared_ptr<Entity> getById(uint64_t id) override;
+
   private:
     std::shared_ptr<Result> find(std::set<std::type_index> types) override;
 

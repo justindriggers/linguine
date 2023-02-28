@@ -15,6 +15,8 @@ class EntityManager {
 
     virtual std::shared_ptr<Entity> create() = 0;
 
+    virtual std::shared_ptr<Entity> getById(uint64_t id) = 0;
+
     template<typename... T>
     inline std::shared_ptr<Result> find() {
       return find({ typeid(T)... });

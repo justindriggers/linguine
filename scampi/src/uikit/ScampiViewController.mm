@@ -54,8 +54,8 @@
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
     linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x),
-        .y = static_cast<float>(point.y),
+        .x = static_cast<float>(point.x / _view.bounds.size.width),
+        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
         .isActive = true
     };
 
@@ -68,8 +68,8 @@
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
     linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x),
-        .y = static_cast<float>(point.y),
+        .x = static_cast<float>(point.x / _view.bounds.size.width),
+        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
         .isActive = true
     };
 
@@ -82,8 +82,8 @@
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
     linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x),
-        .y = static_cast<float>(point.y),
+        .x = static_cast<float>(point.x / _view.bounds.size.width),
+        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
         .isActive = false
     };
 
@@ -96,8 +96,8 @@
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
     linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x),
-        .y = static_cast<float>(point.y),
+        .x = static_cast<float>(point.x / _view.bounds.size.width),
+        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
         .isActive = false
     };
 

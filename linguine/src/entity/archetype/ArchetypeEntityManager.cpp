@@ -19,6 +19,10 @@ std::shared_ptr<Entity> ArchetypeEntityManager::create() {
   return std::make_shared<Entity>(*this, index);
 }
 
+std::shared_ptr<Entity> ArchetypeEntityManager::getById(uint64_t id) {
+  return std::make_shared<Entity>(*this, id);
+}
+
 std::shared_ptr<Result> ArchetypeEntityManager::find(std::set<std::type_index> types) {
   const auto query = Query(_rootArchetype, std::move(types));
   const auto archetypes = query.execute();

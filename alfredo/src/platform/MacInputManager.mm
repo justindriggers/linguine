@@ -7,6 +7,8 @@ namespace linguine::alfredo {
 void MacInputManager::pollEvents() {
   @autoreleasepool {
     NSApplication *app = NSApplication.sharedApplication;
+    auto window = [app mainWindow];
+    auto frameSize = window.contentView.frame.size;
 
     NSEvent *event;
     while ((event = [app nextEventMatchingMask:NSEventMaskAny
@@ -16,16 +18,21 @@ void MacInputManager::pollEvents() {
       switch (event.type) {
       case NSEventTypeLeftMouseDown: {
         auto mouseLocation = event.locationInWindow;
+
+        if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
+            || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+          break;
+        }
+
         auto touch = Touch {
-            .x = static_cast<float>(mouseLocation.x),
-            .y = static_cast<float>(mouseLocation.y)
+            .x = static_cast<float>(mouseLocation.x / frameSize.width),
+            .y = static_cast<float>(mouseLocation.y / frameSize.height)
         };
+
         _active.insert({0, touch});
         break;
       }
       case NSEventTypeLeftMouseDragged: {
-        auto window = [app mainWindow];
-        auto frameSize = window.frame.size;
         auto mouseLocation = event.locationInWindow;
 
         if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
@@ -34,8 +41,8 @@ void MacInputManager::pollEvents() {
         }
 
         auto& touch = _active[0];
-        touch.x = static_cast<float>(mouseLocation.x);
-        touch.y = static_cast<float>(mouseLocation.y);
+        touch.x = static_cast<float>(mouseLocation.x / frameSize.width);
+        touch.y = static_cast<float>(mouseLocation.y / frameSize.height);
         break;
       }
       case NSEventTypeLeftMouseUp:

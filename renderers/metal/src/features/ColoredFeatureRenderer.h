@@ -24,6 +24,8 @@ class ColoredFeatureRenderer : public FeatureRenderer {
 
     void draw() override;
 
+    void resize(uint16_t width, uint16_t height) override {}
+
   private:
     MetalRenderContext& _context;
     Camera& _camera;

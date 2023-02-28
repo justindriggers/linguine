@@ -22,6 +22,21 @@ class Renderer {
 
     virtual void draw() = 0;
 
+    void resize(uint16_t width, uint16_t height) {
+      getViewport()->setSize(width, height);
+
+      for (const auto& feature : getFeatures()) {
+        feature->resize(width, height);
+      }
+    }
+
+    /**
+     * @param x Where 0.0f is the left, and 1.0f is the right
+     * @param y Where 0.0f is the bottom, and 1.0f is the top
+     * @return Entity ID, if it exists at that location
+     */
+    [[nodiscard]] virtual std::optional<uint64_t> getEntityIdAt(float x, float y) const = 0;
+
   protected:
     [[nodiscard]] virtual const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const = 0;
 

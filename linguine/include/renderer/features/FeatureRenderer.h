@@ -17,6 +17,8 @@ class FeatureRenderer {
 
     virtual void draw() = 0;
 
+    virtual void resize(uint16_t width, uint16_t height) = 0;
+
   protected:
     [[nodiscard]] const std::vector<Renderable*>& getRenderables() const {
       return _renderables;

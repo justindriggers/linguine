@@ -22,6 +22,10 @@ class System {
       return _entityManager.create();
     }
 
+    inline std::shared_ptr<Entity> getEntityById(uint64_t id) {
+      return _entityManager.getById(id);
+    }
+
     template<typename... Types>
     inline std::shared_ptr<Result> findEntities() {
       return _entityManager.find<Types...>();

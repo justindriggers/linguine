@@ -5,6 +5,10 @@
 namespace linguine {
   class InputManager {
     public:
+      /**
+       * @param x Where 0.0f is the left, and 1.0f is the right
+       * @param y Where 0.0f is the bottom, and 1.0f is the top
+       */
       struct Touch {
         float x;
         float y;
