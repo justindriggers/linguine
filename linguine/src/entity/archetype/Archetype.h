@@ -19,6 +19,8 @@ class Archetype {
 
     [[nodiscard]] const std::set<std::type_index>& getTypes() const;
 
+    [[nodiscard]] const std::unordered_map<std::type_index, Archetype*>& getParents() const;
+
     Archetype* getParent(const std::type_info& missingType);
 
     void addParent(const std::type_info& missingType, Archetype& archetype);

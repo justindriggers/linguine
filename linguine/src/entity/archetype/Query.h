@@ -22,10 +22,6 @@ class Query {
                const Archetype* node) const;
 
     bool test(const Archetype* node) const;
-
-    static void insertRecursively(std::set<const Archetype*>& results,
-                                  std::set<const Archetype*>& visited,
-                                  const Archetype* node);
 };
 
 }  // namespace linguine::archetype

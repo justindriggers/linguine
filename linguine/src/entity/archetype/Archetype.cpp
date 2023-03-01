@@ -21,6 +21,10 @@ const std::set<std::type_index>& Archetype::getTypes() const {
   return _types;
 }
 
+const std::unordered_map<std::type_index, Archetype*>& Archetype::getParents() const {
+  return _parents;
+}
+
 Archetype* Archetype::getParent(const std::type_info& missingType) {
   const auto parent = _parents.find(missingType);
 
@@ -103,8 +107,15 @@ void Archetype::removeEntity(uint64_t entityId) {
 }
 
 void Archetype::each(const std::function<void(uint64_t)>& function) const {
+  auto indices = std::vector<uint64_t>();
+  indices.reserve(_indicesById.size());
+
   for (const auto& entry : _indicesById) {
-    function(entry.first);
+    indices.push_back(entry.first);
+  }
+
+  for (const auto& id : indices) {
+    function(id);
   }
 }
 

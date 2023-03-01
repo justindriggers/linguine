@@ -15,14 +15,23 @@ void Query::visit(std::set<const Archetype*>& results,
                   std::set<const Archetype*>& visited,
                   const Archetype* node) const {
   if (test(node)) {
-    insertRecursively(results, visited, node);
-    return;
+    results.insert(node);
   }
 
   visited.insert(node);
 
   for (const auto& child : node->getChildren()) {
     const auto* next = child.second;
+
+    if (visited.find(next) != visited.end()) {
+      continue;
+    }
+
+    visit(results, visited, next);
+  }
+
+  for (const auto& parent : node->getParents()) {
+    const auto* next = parent.second;
 
     if (visited.find(next) != visited.end()) {
       continue;
@@ -40,23 +49,6 @@ bool Query::test(const Archetype* node) const {
   }
 
   return true;
-}
-
-void Query::insertRecursively(std::set<const Archetype*>& results,
-                              std::set<const Archetype*>& visited,
-                              const Archetype* node) {
-  visited.insert(node);
-  results.insert(node);
-
-  for (const auto& child : node->getChildren()) {
-    const auto* next = child.second;
-
-    if (visited.find(next) != visited.end()) {
-      continue;
-    }
-
-    insertRecursively(results, visited, next);
-  }
 }
 
 }  // namespace linguine::archetype

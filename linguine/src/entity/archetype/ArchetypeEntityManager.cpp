@@ -90,7 +90,7 @@ void ArchetypeEntityManager::remove(uint64_t id, const std::type_info& typeInfo)
     }
 
     currentArchetype.addParent(typeInfo, *newArchetype);
-    newArchetype->addChild(typeInfo, *newArchetype);
+    newArchetype->addChild(typeInfo, currentArchetype);
   }
 
   Archetype::migrate(id, currentArchetype, *newArchetype);
