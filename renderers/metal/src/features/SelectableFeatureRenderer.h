@@ -3,6 +3,7 @@
 #include "renderer/features/FeatureRenderer.h"
 
 #include <simd/simd.h>
+#include <vector>
 
 #include <Metal/Metal.hpp>
 
@@ -26,7 +27,7 @@ class SelectableFeatureRenderer : public FeatureRenderer {
 
     void resize(uint16_t width, uint16_t height) override;
 
-    std::optional<uint64_t> getEntityIdAt(float x, float y) const;
+    [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const;
 
     static simd::uint2 toUint2(uint64_t value) {
       simd::uint2 result;

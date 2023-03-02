@@ -6,8 +6,8 @@
 namespace linguine {
 
 struct Selectable {
-  std::shared_ptr<Renderable> renderable;
-  std::shared_ptr<SelectableFeature> feature;
+  Renderable* renderable;
+  SelectableFeature* feature;
 };
 
 }  // namespace linguine

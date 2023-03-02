@@ -4,17 +4,21 @@
 
 namespace linguine {
 
-std::shared_ptr<Renderable> Renderer::create(const std::shared_ptr<RenderFeature>& feature) {
-  auto renderable = std::make_shared<Renderable>(_nextIndex++, *this, feature);
+Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature) {
+  const auto id = _nextIndex++;
+  _renderables.insert({id, std::make_unique<Renderable>(id, *this, std::move(feature))});
+
+  auto& renderable = _renderables[id];
   onFeatureChanged(*renderable);
-  return renderable;
+
+  return renderable.get();
 }
 
-const std::shared_ptr<Camera>& Renderer::getCamera() const {
+Camera& Renderer::getCamera() {
   return _camera;
 }
 
-const std::shared_ptr<Viewport>& Renderer::getViewport() const {
+const Viewport& Renderer::getViewport() const {
   return _viewport;
 }
 
@@ -22,6 +26,14 @@ void Renderer::onFeatureChanged(Renderable& renderable) {
   for (const auto& feature : getFeatures()) {
     feature->onFeatureChanged(renderable);
   }
+}
+
+void Renderer::onDestroy(Renderable& renderable) {
+  for (const auto& feature : getFeatures()) {
+    feature->onDestroy(renderable);
+  }
+
+  _renderables.erase(renderable.getId());
 }
 
 }  // namespace linguine

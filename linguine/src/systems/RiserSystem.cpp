@@ -1,11 +1,21 @@
 #include "RiserSystem.h"
 
+#include "components/Falling.h"
 #include "components/Rising.h"
+#include "components/Tapped.h"
 #include "components/Transform.h"
 
 namespace linguine {
 
 void RiserSystem::update(float deltaTime) {
+  findEntities<Rising, Tapped>()->each([](Entity& entity) {
+    const auto speed = entity.get<Rising>()->speed;
+    entity.remove<Rising>();
+
+    auto falling = entity.add<Falling>();
+    falling->speed = speed;
+  });
+
   findEntities<Rising, Transform>()->each([deltaTime](const Entity& entity) {
     const auto rising = entity.get<Rising>();
     const auto transform = entity.get<Transform>();

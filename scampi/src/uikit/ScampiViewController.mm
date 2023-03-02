@@ -53,13 +53,11 @@
            withEvent:(nullable UIEvent *)event {
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
-    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x / _view.bounds.size.width),
-        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
-        .isActive = true
-    };
-
-    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+    _inputManager->onTouchBegan(
+        (uintptr_t)touch,
+        static_cast<float>(point.x / _view.bounds.size.width),
+        static_cast<float>(1.0f - point.y / _view.bounds.size.height)
+    );
   }
 }
 
@@ -67,13 +65,11 @@
            withEvent:(nullable UIEvent *)event {
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
-    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x / _view.bounds.size.width),
-        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
-        .isActive = true
-    };
-
-    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+    _inputManager->onTouchMoved(
+        (uintptr_t)touch,
+        static_cast<float>(point.x / _view.bounds.size.width),
+        static_cast<float>(1.0f - point.y / _view.bounds.size.height)
+    );
   }
 }
 
@@ -81,13 +77,11 @@
            withEvent:(nullable UIEvent *)event {
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
-    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x / _view.bounds.size.width),
-        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
-        .isActive = false
-    };
-
-    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+    _inputManager->onTouchEnded(
+        (uintptr_t)touch,
+        static_cast<float>(point.x / _view.bounds.size.width),
+        static_cast<float>(1.0f - point.y / _view.bounds.size.height)
+    );
   }
 }
 
@@ -95,13 +89,11 @@
                withEvent:(nullable UIEvent *)event {
   for (UITouch *touch in touches) {
     CGPoint point = [touch locationInView:touch.view];
-    linguine::scampi::IosInputManager::TouchEvent touchEvent = {
-        .x = static_cast<float>(point.x / _view.bounds.size.width),
-        .y = static_cast<float>(1.0f - point.y / _view.bounds.size.height),
-        .isActive = false
-    };
-
-    _inputManager->enqueue((uintptr_t)touch, touchEvent);
+    _inputManager->onTouchCanceled(
+        (uintptr_t)touch,
+        static_cast<float>(point.x / _view.bounds.size.width),
+        static_cast<float>(1.0f - point.y / _view.bounds.size.height)
+    );
   }
 }
 

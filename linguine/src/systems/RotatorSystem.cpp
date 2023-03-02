@@ -1,11 +1,17 @@
 #include "RotatorSystem.h"
 
 #include "components/Rotating.h"
+#include "components/Tapped.h"
 #include "components/Transform.h"
 
 namespace linguine {
 
 void RotatorSystem::update(float deltaTime) {
+  findEntities<Rotating, Tapped>()->each([](const Entity& entity) {
+    const auto rotating = entity.get<Rotating>();
+    rotating->speed = -rotating->speed;
+  });
+
   findEntities<Rotating, Transform>()->each([deltaTime](const Entity& entity) {
     const auto rotating = entity.get<Rotating>();
     const auto transform = entity.get<Transform>();

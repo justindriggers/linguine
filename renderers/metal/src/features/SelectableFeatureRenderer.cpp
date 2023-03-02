@@ -121,20 +121,20 @@ void SelectableFeatureRenderer::draw() {
     _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalSelectableFeature), MTL::ResourceStorageModeShared));
   }
 
-  for (int i = 0; i < renderables.size(); ++i) {
-    auto renderable = renderables[i];
+  auto valueBufferIndex = 0;
 
-    if (renderable && renderable->isEnabled()) {
-      auto feature = renderable->getFeature<SelectableFeature>();
+  for (const auto& renderable : renderables) {
+    if (renderable.second->isEnabled()) {
+      auto feature = renderable.second->getFeature<SelectableFeature>();
 
-      auto& mesh = _meshRegistry.get(feature->meshType);
+      auto& mesh = _meshRegistry.get(feature.meshType);
       mesh->bind(*commandEncoder);
 
-      auto valueBuffer = _valueBuffers[i];
+      auto valueBuffer = _valueBuffers[valueBufferIndex++];
       auto metalSelectableFeature = static_cast<MetalSelectableFeature*>(valueBuffer->contents());
 
-      memcpy(&metalSelectableFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
-      metalSelectableFeature->entityId = toUint2(feature->entityId);
+      memcpy(&metalSelectableFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
+      metalSelectableFeature->entityId = toUint2(feature.entityId);
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalSelectableFeature)));
 
       commandEncoder->setVertexBuffer(valueBuffer, 0, 2);

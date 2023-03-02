@@ -10,8 +10,10 @@ class Renderer;
 
 class Renderable {
   public:
-    Renderable(const uint64_t id, Renderer& renderer, std::shared_ptr<RenderFeature> feature)
+    Renderable(const uint64_t id, Renderer& renderer, std::unique_ptr<RenderFeature> feature)
         : _id(id), _renderer(renderer), _feature(std::move(feature)), _isEnabled(true) {}
+
+    void destroy();
 
     [[nodiscard]] uint64_t getId() const {
       return _id;
@@ -27,20 +29,20 @@ class Renderable {
 
     template<typename T>
     [[nodiscard]] bool hasFeature() const {
-      return std::dynamic_pointer_cast<T>(_feature) != nullptr;
+      return dynamic_cast<T*>(_feature.get()) != nullptr;
     }
 
     template<typename T>
-    [[nodiscard]] std::shared_ptr<T> getFeature() const {
-      return std::dynamic_pointer_cast<T>(_feature);
+    [[nodiscard]] T& getFeature() const {
+      return dynamic_cast<T&>(*_feature);
     }
 
-    void setFeature(std::shared_ptr<RenderFeature> feature);
+    void setFeature(std::unique_ptr<RenderFeature> feature);
 
   private:
     const uint64_t _id;
     Renderer& _renderer;
-    std::shared_ptr<RenderFeature> _feature;
+    std::unique_ptr<RenderFeature> _feature;
     bool _isEnabled;
 };
 

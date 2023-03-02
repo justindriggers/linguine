@@ -28,9 +28,9 @@ class MetalRendererImpl : public MetalRenderer {
 
       _meshRegistry = std::make_unique<MeshRegistry>(*_context.device);
 
-      _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, *getCamera(), *_meshRegistry);
+      _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, getCamera(), *_meshRegistry);
 
-      _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *getCamera(), *_meshRegistry));
+      _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, getCamera(), *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
       _features.shrink_to_fit();
     }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <vector>
 
 #include "renderer/Renderable.h"
 
@@ -13,6 +12,8 @@ class FeatureRenderer {
 
     void onFeatureChanged(Renderable& renderable);
 
+    void onDestroy(Renderable& renderable);
+
     virtual bool isRelevant(Renderable& renderable) = 0;
 
     virtual void draw() = 0;
@@ -20,13 +21,12 @@ class FeatureRenderer {
     virtual void resize(uint16_t width, uint16_t height) = 0;
 
   protected:
-    [[nodiscard]] const std::vector<Renderable*>& getRenderables() const {
+    [[nodiscard]] const std::unordered_map<uint64_t, Renderable*>& getRenderables() const {
       return _renderables;
     }
 
   private:
-    std::vector<Renderable*> _renderables;
-    std::unordered_map<uint64_t, size_t> _renderableIndices;
+    std::unordered_map<uint64_t, Renderable*> _renderables;
 };
 
 }  // namespace linguine

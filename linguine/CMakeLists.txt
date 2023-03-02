@@ -9,10 +9,12 @@ add_library(linguine
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
         src/systems/CameraSystem.cpp
+        src/systems/FallerSystem.cpp
         src/systems/FpsSystem.cpp
-        src/systems/InputTestSystem.cpp
+        src/systems/GestureRecognitionSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
+        src/systems/SelectionDestructionSystem.cpp
         src/systems/TransformationSystem.cpp
 )
 

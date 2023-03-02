@@ -4,7 +4,11 @@
 
 namespace linguine {
 
-void Renderable::setFeature(std::shared_ptr<RenderFeature> feature) {
+void Renderable::destroy() {
+  _renderer.onDestroy(*this);
+}
+
+void Renderable::setFeature(std::unique_ptr<RenderFeature> feature) {
   _feature = std::move(feature);
   _renderer.onFeatureChanged(*this);
 }

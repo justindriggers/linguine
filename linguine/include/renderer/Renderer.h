@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "renderer/Camera.h"
@@ -14,18 +15,18 @@ class Renderer {
   public:
     virtual ~Renderer() = default;
 
-    std::shared_ptr<Renderable> create(const std::shared_ptr<RenderFeature>& feature);
+    Renderable* create(std::unique_ptr<RenderFeature> feature);
 
-    [[nodiscard]] const std::shared_ptr<Camera>& getCamera() const;
+    [[nodiscard]] Camera& getCamera();
 
-    [[nodiscard]] const std::shared_ptr<Viewport>& getViewport() const;
+    [[nodiscard]] const Viewport& getViewport() const;
 
     virtual void draw() = 0;
 
     void resize(uint16_t width, uint16_t height) {
-      getViewport()->setSize(width, height);
+      _viewport.setSize(width, height);
 
-      for (const auto& feature : getFeatures()) {
+      for (auto& feature : getFeatures()) {
         feature->resize(width, height);
       }
     }
@@ -41,12 +42,16 @@ class Renderer {
     [[nodiscard]] virtual const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const = 0;
 
   private:
-    std::shared_ptr<Camera> _camera = std::make_shared<Camera>();
-    std::shared_ptr<Viewport> _viewport = std::make_shared<Viewport>();
+    Camera _camera;
+    Viewport _viewport;
 
     uint64_t _nextIndex = 0;
 
+    std::unordered_map<uint64_t, std::unique_ptr<Renderable>> _renderables;
+
     void onFeatureChanged(Renderable& renderable);
+
+    void onDestroy(Renderable& renderable);
 
     friend class Renderable;
 };

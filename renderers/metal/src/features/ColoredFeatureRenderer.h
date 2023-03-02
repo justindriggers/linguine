@@ -3,6 +3,7 @@
 #include "renderer/features/FeatureRenderer.h"
 
 #include <simd/simd.h>
+#include <vector>
 
 #include <Metal/Metal.hpp>
 

@@ -110,20 +110,20 @@ void ColoredFeatureRenderer::draw() {
     _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalColoredFeature), MTL::ResourceStorageModeShared));
   }
 
-  for (int i = 0; i < renderables.size(); ++i) {
-    auto renderable = renderables[i];
+  auto valueBufferIndex = 0;
 
-    if (renderable && renderable->isEnabled()) {
-      auto feature = renderable->getFeature<ColoredFeature>();
+  for (const auto& renderable : renderables) {
+    if (renderable.second->isEnabled()) {
+      auto feature = renderable.second->getFeature<ColoredFeature>();
 
-      auto& mesh = _meshRegistry.get(feature->meshType);
+      auto& mesh = _meshRegistry.get(feature.meshType);
       mesh->bind(*commandEncoder);
 
-      auto valueBuffer = _valueBuffers[i];
+      auto valueBuffer = _valueBuffers[valueBufferIndex++];
       auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
 
-      memcpy(&metalColoredFeature->modelMatrix, &feature->modelMatrix, sizeof(simd::float4x4));
-      memcpy(&metalColoredFeature->color, &feature->color, sizeof(simd::float3));
+      memcpy(&metalColoredFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
+      memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float3));
       valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalColoredFeature)));
 
       commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
