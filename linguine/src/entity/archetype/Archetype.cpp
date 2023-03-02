@@ -138,10 +138,10 @@ void Archetype::migrate(uint64_t entityId, Archetype& source, Archetype& destina
   const auto& sourceTypes = source.getTypes();
   const auto& destinationTypes = destination.getTypes();
 
-  const auto& typesToIterate = sourceTypes.size() < destinationTypes.size()
+  const auto& typesToMigrate = sourceTypes.size() < destinationTypes.size()
                                    ? sourceTypes : destinationTypes;
 
-  for (const auto& type : typesToIterate) {
+  for (const auto& type : typesToMigrate) {
     auto* src = source._store.get(srcIndex, type);
     auto* dst = destination._store.get(dstIndex, type);
     const auto size = destination._store.getSizeOf(type);

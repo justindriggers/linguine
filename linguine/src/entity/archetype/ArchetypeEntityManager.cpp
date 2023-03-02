@@ -12,15 +12,39 @@ ArchetypeEntityManager::ArchetypeEntityManager()
 }
 
 std::shared_ptr<Entity> ArchetypeEntityManager::create() {
-  const auto index = _entityArchetypes.size();
+  if (!_availableIndices.empty()) {
+    const auto index = _availableIndices.front();
+    _availableIndices.pop();
+    return std::make_shared<Entity>(*this, index);
+  }
+
+  const auto index = _entities.size();
   _rootArchetype->addEntity(index);
-  _entityArchetypes.emplace_back(*_rootArchetype);
+  _entities.push_back({_rootArchetype, {}});
 
   return std::make_shared<Entity>(*this, index);
 }
 
 std::shared_ptr<Entity> ArchetypeEntityManager::getById(uint64_t id) {
   return std::make_shared<Entity>(*this, id);
+}
+
+void ArchetypeEntityManager::destroy(uint64_t id) {
+  auto& entity = _entities[id];
+  auto currentArchetype = entity.currentArchetype;
+
+  for (const auto& type : currentArchetype->getTypes()) {
+    auto removalListener = entity.removalListeners.find(type);
+
+    if (removalListener != entity.removalListeners.end()) {
+      removalListener->second(Entity(*this, id));
+    }
+  }
+
+  Archetype::migrate(id, *currentArchetype, *_rootArchetype);
+  entity.currentArchetype = _rootArchetype;
+  entity.removalListeners.clear();
+  _availableIndices.push(id);
 }
 
 std::shared_ptr<Result> ArchetypeEntityManager::find(std::set<std::type_index> types) {
@@ -31,21 +55,22 @@ std::shared_ptr<Result> ArchetypeEntityManager::find(std::set<std::type_index> t
 }
 
 bool ArchetypeEntityManager::has(uint64_t id, const std::type_info& typeInfo) const {
-  const auto& archetype = _entityArchetypes[id].get();
-  return archetype.has(typeInfo);
+  const auto archetype = _entities[id].currentArchetype;
+  return archetype->has(typeInfo);
 }
 
 void* ArchetypeEntityManager::add(uint64_t id, const std::type_info& typeInfo, size_t size) {
-  auto& currentArchetype = _entityArchetypes[id].get();
+  auto& entity = _entities[id];
+  auto currentArchetype = entity.currentArchetype;
 
-  if (currentArchetype.has(typeInfo)) {
+  if (currentArchetype->has(typeInfo)) {
     return get(id, typeInfo);
   }
 
-  auto* newArchetype = currentArchetype.getChild(typeInfo);
+  auto* newArchetype = currentArchetype->getChild(typeInfo);
 
   if (!newArchetype) {
-    auto types = std::set<std::type_index>(currentArchetype.getTypes());
+    auto types = std::set<std::type_index>(currentArchetype->getTypes());
     types.insert(typeInfo);
 
     auto existingArchetype = _componentArchetypes.find(types);
@@ -53,31 +78,32 @@ void* ArchetypeEntityManager::add(uint64_t id, const std::type_info& typeInfo, s
     if (existingArchetype != _componentArchetypes.end()) {
       newArchetype = &existingArchetype->second;
     } else {
-      _componentArchetypes.insert({types, std::move(currentArchetype.branch(typeInfo, size))});
+      _componentArchetypes.insert({types, std::move(currentArchetype->branch(typeInfo, size))});
       newArchetype = &_componentArchetypes.at(types);
     }
 
-    currentArchetype.addChild(typeInfo, *newArchetype);
-    newArchetype->addParent(typeInfo, currentArchetype);
+    currentArchetype->addChild(typeInfo, *newArchetype);
+    newArchetype->addParent(typeInfo, *currentArchetype);
   }
 
-  Archetype::migrate(id, currentArchetype, *newArchetype);
-  _entityArchetypes[id] = *newArchetype;
+  Archetype::migrate(id, *currentArchetype, *newArchetype);
+  entity.currentArchetype = newArchetype;
 
   return newArchetype->getComponent(id, typeInfo);
 }
 
 void ArchetypeEntityManager::remove(uint64_t id, const std::type_info& typeInfo) {
-  auto& currentArchetype = _entityArchetypes[id].get();
+  auto& entity = _entities[id];
+  auto currentArchetype = entity.currentArchetype;
 
-  if (!currentArchetype.has(typeInfo)) {
+  if (!currentArchetype->has(typeInfo)) {
     return;
   }
 
-  auto* newArchetype = currentArchetype.getParent(typeInfo);
+  auto* newArchetype = currentArchetype->getParent(typeInfo);
 
   if (!newArchetype) {
-    auto types = std::set<std::type_index>(currentArchetype.getTypes());
+    auto types = std::set<std::type_index>(currentArchetype->getTypes());
     types.erase(typeInfo);
 
     auto existingArchetype = _componentArchetypes.find(types);
@@ -85,21 +111,34 @@ void ArchetypeEntityManager::remove(uint64_t id, const std::type_info& typeInfo)
     if (existingArchetype != _componentArchetypes.end()) {
       newArchetype = &existingArchetype->second;
     } else {
-      _componentArchetypes.insert({types, std::move(currentArchetype.trunk(typeInfo))});
+      _componentArchetypes.insert({types, std::move(currentArchetype->trunk(typeInfo))});
       newArchetype = &_componentArchetypes.at(types);
     }
 
-    currentArchetype.addParent(typeInfo, *newArchetype);
-    newArchetype->addChild(typeInfo, currentArchetype);
+    currentArchetype->addParent(typeInfo, *newArchetype);
+    newArchetype->addChild(typeInfo, *currentArchetype);
   }
 
-  Archetype::migrate(id, currentArchetype, *newArchetype);
-  _entityArchetypes[id] = *newArchetype;
+  auto removalListener = entity.removalListeners.find(typeInfo);
+
+  if (removalListener != entity.removalListeners.end()) {
+    removalListener->second(Entity(*this, id));
+  }
+
+  Archetype::migrate(id, *currentArchetype, *newArchetype);
+  entity.currentArchetype = newArchetype;
+  entity.removalListeners.erase(typeInfo);
 }
 
 void* ArchetypeEntityManager::get(uint64_t id, const std::type_info& typeInfo) const {
-  const auto& archetype = _entityArchetypes.at(id).get();
-  return archetype.getComponent(id, typeInfo);
+  const auto archetype = _entities[id].currentArchetype;
+  return archetype->getComponent(id, typeInfo);
+}
+
+void ArchetypeEntityManager::setRemovalListener(uint64_t id, const std::type_info& typeInfo,
+                                                std::function<void(const Entity)> function) {
+  auto& entity = _entities[id];
+  entity.removalListeners.insert({typeInfo, std::move(function)});
 }
 
 }  // namespace linguine::archetype

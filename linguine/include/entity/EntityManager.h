@@ -27,6 +27,8 @@ class EntityManager {
     friend class Component;
     friend class Entity;
 
+    virtual void destroy(uint64_t id) = 0;
+
     virtual std::shared_ptr<Result> find(std::set<std::type_index> types) = 0;
 
     [[nodiscard]] virtual bool has(uint64_t id, const std::type_info& typeInfo) const = 0;
@@ -36,6 +38,8 @@ class EntityManager {
     virtual void remove(uint64_t id, const std::type_info& typeInfo) = 0;
 
     [[nodiscard]] virtual void* get(uint64_t id, const std::type_info& typeInfo) const = 0;
+
+    virtual void setRemovalListener(uint64_t id, const std::type_info& typeInfo, std::function<void(const Entity)> function) = 0;
 };
 
 }  // namespace linguine

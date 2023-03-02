@@ -11,6 +11,10 @@ class Entity {
     Entity(EntityManager& entityManager, uint64_t id)
         : _entityManager(entityManager), _id(id) {}
 
+    inline void destroy() {
+      _entityManager.destroy(_id);
+    }
+
     [[nodiscard]] uint64_t getId() const {
       return _id;
     }
