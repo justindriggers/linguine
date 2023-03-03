@@ -7,7 +7,6 @@
 #include <unordered_map>
 
 #include "InputManager.h"
-#include "Logger.h"
 #include "renderer/Renderer.h"
 #include "TimeManager.h"
 

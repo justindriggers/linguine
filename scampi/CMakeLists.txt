@@ -25,6 +25,9 @@ set_target_properties(scampi PROPERTIES
         RESOURCE "${RESOURCES}"
 )
 
+set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
+set_xcode_property(scampi DEVELOPMENT_TEAM "$ENV{DEVELOPMENT_TEAM}" "All")
+
 target_link_libraries(scampi PRIVATE linguine metal)
 
 find_library(FOUNDATION_LIBRARY Foundation REQUIRED)

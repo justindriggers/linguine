@@ -101,7 +101,6 @@ void ColoredFeatureRenderer::draw() {
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
   memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
-  _cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalCamera)));
   commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
 
   const auto renderables = getRenderables();
@@ -124,7 +123,6 @@ void ColoredFeatureRenderer::draw() {
 
       memcpy(&metalColoredFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
       memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float3));
-      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalColoredFeature)));
 
       commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
       mesh->draw(*commandEncoder);

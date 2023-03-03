@@ -69,7 +69,7 @@ void GestureRecognitionSystem::onHoldEvent(uint64_t id, const InputManager::Touc
       } else if (duration >= _longPressThreshold) {
         const auto entityId = _renderer.getEntityIdAt(touch.x, touch.y);
 
-        if (entityId == gestureState.startEntityId) {
+        if (entityId && entityId == gestureState.startEntityId) {
           auto entity = getEntityById(entityId.value());
           entity->add<LongPressed>();
         }

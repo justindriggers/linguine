@@ -112,7 +112,6 @@ void SelectableFeatureRenderer::draw() {
 
   auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
   memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
-  _cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalCamera)));
   commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
 
   const auto renderables = getRenderables();
@@ -135,7 +134,6 @@ void SelectableFeatureRenderer::draw() {
 
       memcpy(&metalSelectableFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
       metalSelectableFeature->entityId = toUint2(feature.entityId);
-      valueBuffer->didModifyRange(NS::Range::Make(0, sizeof(MetalSelectableFeature)));
 
       commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
       mesh->draw(*commandEncoder);

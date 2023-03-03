@@ -19,6 +19,8 @@
   [super viewDidLoad];
 
   _view = (MTKView *)self.view;
+  _view.multipleTouchEnabled = true;
+  _view.preferredFramesPerSecond = 120;
 
   _view.device = MTLCreateSystemDefaultDevice();
   _view.backgroundColor = UIColor.blackColor;

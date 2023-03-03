@@ -15,7 +15,6 @@ TriangleMesh::TriangleMesh(MTL::Device& device) {
   _vertexPositionsBuffer = device.newBuffer(positionsBufferSize, MTL::ResourceStorageModeShared);
 
   memcpy(_vertexPositionsBuffer->contents(), positions, positionsBufferSize);
-  _vertexPositionsBuffer->didModifyRange(NS::Range::Make(0, positionsBufferSize));
 }
 
 TriangleMesh::~TriangleMesh() {
