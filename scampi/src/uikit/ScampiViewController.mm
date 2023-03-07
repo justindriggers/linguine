@@ -1,5 +1,8 @@
 #import "ScampiViewController.h"
 
+#import <AVFoundation/AVAudioSession.h>
+
+#import <AudioEngineAudioManager.h>
 #import <MetalRenderer.h>
 
 #import "../metalkit/ScampiViewDelegate.h"
@@ -35,14 +38,31 @@
   [_view setEnableSetNeedsDisplay:NO];
   [_view setPreferredFramesPerSecond:120];
 
+  auto audioSession = [AVAudioSession sharedInstance];
+
+  NSError* error;
+  if (![audioSession setCategory:AVAudioSessionCategoryPlayback
+                           error:&error]) {
+    NSLog(@"%@", [error localizedDescription]);
+    return;
+  }
+
+  if (![audioSession setActive:true
+                   withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                         error:&error]) {
+    NSLog(@"%@", [error localizedDescription]);
+    return;
+  }
+
   _inputManager = std::make_shared<linguine::scampi::IosInputManager>();
 
   auto logger = std::make_shared<linguine::scampi::NSLogger>();
+  auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>();
   auto lifecycleManager = std::make_shared<linguine::scampi::IosLifecycleManager>();
   auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true));
   auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
 
-  auto engine = std::make_shared<linguine::Engine>(logger, _inputManager, lifecycleManager, renderer, timeManager);
+  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, timeManager);
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
                                                     renderer:renderer];

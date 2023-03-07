@@ -4,6 +4,7 @@
 
 #include "entity/EntityManagerFactory.h"
 #include "renderer/Renderer.h"
+#include "AudioManager.h"
 #include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
@@ -16,6 +17,11 @@ class ServiceLocator {
     template<typename T>
     inline T& get() {
       static_assert(undefined_service<T>::value, "Service is undefined");
+    }
+
+    template<>
+    inline AudioManager& get<AudioManager>() {
+      return getAudioManager();
     }
 
     template<>
@@ -51,6 +57,8 @@ class ServiceLocator {
   private:
     template<typename>
     struct undefined_service : std::false_type {};
+
+    virtual AudioManager& getAudioManager() = 0;
 
     virtual EntityManagerFactory& getEntityManagerFactory() = 0;
 

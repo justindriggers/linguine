@@ -12,7 +12,17 @@ add_executable(alfredo
         src/platform/MacTimeManager.cpp
 )
 
-target_link_libraries(alfredo PRIVATE linguine metal)
+set(CMAKE_OBJC_FLAGS "-fobjc-arc")
+set(CMAKE_OBJCXX_FLAGS "-fobjc-arc")
+
+file(GLOB RESOURCE_FILES
+        ${CMAKE_SOURCE_DIR}/assets/**/*)
+
+foreach(RESOURCE_FILE IN LISTS RESOURCE_FILES)
+    configure_file(${RESOURCE_FILE} ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+endforeach()
+
+target_link_libraries(alfredo PRIVATE linguine audioengine metal)
 
 find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
 target_link_libraries(alfredo PRIVATE ${FOUNDATION_LIBRARY})

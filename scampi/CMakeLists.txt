@@ -2,9 +2,13 @@ project(scampi)
 
 enable_language(OBJCXX)
 
+file(GLOB RESOURCE_FILES
+        ${CMAKE_SOURCE_DIR}/assets/**/*)
+
 set(RESOURCES
         resources/LaunchScreen.storyboard
         resources/Main.storyboard
+        ${RESOURCE_FILES}
 )
 
 add_executable(scampi
@@ -28,7 +32,7 @@ set_target_properties(scampi PROPERTIES
 set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
 set_xcode_property(scampi DEVELOPMENT_TEAM "$ENV{DEVELOPMENT_TEAM}" "All")
 
-target_link_libraries(scampi PRIVATE linguine metal)
+target_link_libraries(scampi PRIVATE linguine audioengine metal)
 
 find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
 target_link_libraries(scampi PRIVATE ${FOUNDATION_LIBRARY})

@@ -2,6 +2,7 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import <AudioEngineAudioManager.h>
 #import <Engine.h>
 
 #import "appkit/AlfredoApplicationDelegate.h"
@@ -23,11 +24,12 @@ int main(int argc, const char *argv[]) {
     [app run];
 
     auto logger = std::make_shared<MacLogger>();
+    auto audioManager = std::make_shared<audio::AudioEngineAudioManager>();
     auto inputManager = std::make_shared<MacInputManager>();
     auto lifecycleManager = std::make_shared<MacLifecycleManager>();
     auto renderer = std::shared_ptr<Renderer>(appDelegate.metalRenderer);
     auto timeManager = std::make_shared<IosTimeManager>();
-    auto engine = Engine(logger, inputManager, lifecycleManager, renderer, timeManager);
+    auto engine = Engine(logger, audioManager, inputManager, lifecycleManager, renderer, timeManager);
 
     engine.run();
 

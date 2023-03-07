@@ -7,11 +7,13 @@ namespace linguine {
 
 Engine::Engine(
     const std::shared_ptr<Logger>& logger,
+    const std::shared_ptr<AudioManager>& audioManager,
     const std::shared_ptr<InputManager>& inputManager,
     const std::shared_ptr<LifecycleManager>& lifecycleManager,
     const std::shared_ptr<Renderer>& renderer,
     const std::shared_ptr<TimeManager>& timeManager)
     : _entityManagerFactory(std::make_unique<archetype::ArchetypeEntityManagerFactory>()),
+      _audioManager(audioManager),
       _inputManager(inputManager),
       _lifecycleManager(lifecycleManager),
       _logger(logger),

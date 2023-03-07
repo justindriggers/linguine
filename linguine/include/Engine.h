@@ -2,6 +2,7 @@
 
 #include "ServiceLocator.h"
 
+#include "AudioManager.h"
 #include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
@@ -15,10 +16,11 @@ namespace linguine {
 class Engine : public ServiceLocator {
   public:
     Engine(const std::shared_ptr<Logger>& logger,
-         const std::shared_ptr<InputManager>& inputManager,
-         const std::shared_ptr<LifecycleManager>& lifecycleManager,
-         const std::shared_ptr<Renderer>& renderer,
-         const std::shared_ptr<TimeManager>& timeManager);
+           const std::shared_ptr<AudioManager>& audioManager,
+           const std::shared_ptr<InputManager>& inputManager,
+           const std::shared_ptr<LifecycleManager>& lifecycleManager,
+           const std::shared_ptr<Renderer>& renderer,
+           const std::shared_ptr<TimeManager>& timeManager);
 
     void run();
 
@@ -27,6 +29,10 @@ class Engine : public ServiceLocator {
   private:
     EntityManagerFactory& getEntityManagerFactory() override {
       return *_entityManagerFactory;
+    }
+
+    AudioManager& getAudioManager() override {
+      return *_audioManager;
     }
 
     InputManager& getInputManager() override {
@@ -50,6 +56,7 @@ class Engine : public ServiceLocator {
     }
 
     const std::unique_ptr<EntityManagerFactory> _entityManagerFactory;
+    const std::shared_ptr<AudioManager> _audioManager;
     const std::shared_ptr<InputManager> _inputManager;
     const std::shared_ptr<LifecycleManager> _lifecycleManager;
     const std::shared_ptr<Logger> _logger;

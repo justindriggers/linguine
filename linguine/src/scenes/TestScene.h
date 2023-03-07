@@ -27,7 +27,7 @@ class TestScene : public Scene {
         : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<SelectionDestructionSystem>(getEntityManager()));
+      registerSystem(std::make_unique<SelectionDestructionSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<FallerSystem>(getEntityManager()));
       registerSystem(std::make_unique<RiserSystem>(getEntityManager()));
       registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));

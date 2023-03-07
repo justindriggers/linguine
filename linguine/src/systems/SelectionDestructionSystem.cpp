@@ -5,7 +5,8 @@
 namespace linguine {
 
 void SelectionDestructionSystem::update(float deltaTime) {
-  findEntities<LongPressed>()->each([](Entity& entity) {
+  findEntities<LongPressed>()->each([this](Entity& entity) {
+    _audioManager.play();
     entity.destroy();
   });
 }
