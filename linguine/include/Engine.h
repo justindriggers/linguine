@@ -2,12 +2,12 @@
 
 #include "ServiceLocator.h"
 
-#include "AudioManager.h"
 #include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
 #include "Scene.h"
 #include "TimeManager.h"
+#include "audio/AudioManager.h"
 #include "entity/EntityManagerFactory.h"
 #include "renderer/Renderer.h"
 

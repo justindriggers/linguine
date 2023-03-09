@@ -2,6 +2,7 @@ enable_language(OBJCXX)
 
 add_library(audioengine
         src/AudioEngineAudioManager.mm
+        src/AudioEngineFileLoader.mm
 )
 
 set(CMAKE_OBJC_FLAGS "-fobjc-arc")

@@ -29,8 +29,8 @@ class TestScene : public Scene {
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<SelectionDestructionSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<FallerSystem>(getEntityManager()));
-      registerSystem(std::make_unique<RiserSystem>(getEntityManager()));
-      registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
+      registerSystem(std::make_unique<RiserSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
+      registerSystem(std::make_unique<RotatorSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 

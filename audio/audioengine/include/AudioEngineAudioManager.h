@@ -1,6 +1,6 @@
 #pragma once
 
-#include <AudioManager.h>
+#include "audio/AudioManager.h"
 
 #include <mutex>
 #include <queue>
@@ -9,22 +9,23 @@
 #import <AVFoundation/AVAudioFile.h>
 #import <AVFoundation/AVAudioPlayerNode.h>
 
+#include "AudioEngineFileLoader.h"
+
 namespace linguine::audio {
 
 class AudioEngineAudioManager : public AudioManager {
   public:
-    AudioEngineAudioManager();
+    explicit AudioEngineAudioManager(std::unique_ptr<AudioEngineFileLoader> fileLoader);
 
     ~AudioEngineAudioManager() override;
 
-    void play() override;
+    void play(EffectType effectType) override;
 
   private:
     static constexpr uint8_t _maxChannels = 32;
 
+    std::unique_ptr<AudioEngineFileLoader> _fileLoader;
     AVAudioEngine* _audioEngine;
-    AVAudioFile* _fileToPlay;
-
     NSMutableArray<AVAudioPlayerNode*>* _playerNodes;
 
     std::queue<AVAudioPlayerNode*> _nodePool;

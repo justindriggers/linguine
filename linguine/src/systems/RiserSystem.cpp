@@ -8,12 +8,14 @@
 namespace linguine {
 
 void RiserSystem::update(float deltaTime) {
-  findEntities<Rising, Tapped>()->each([](Entity& entity) {
+  findEntities<Rising, Tapped>()->each([this](Entity& entity) {
     const auto speed = entity.get<Rising>()->speed;
     entity.remove<Rising>();
 
     auto falling = entity.add<Falling>();
     falling->speed = speed;
+
+    _audioManager.play(EffectType::Select);
   });
 
   findEntities<Rising, Transform>()->each([deltaTime](const Entity& entity) {

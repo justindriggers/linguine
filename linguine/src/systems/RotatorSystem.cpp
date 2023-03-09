@@ -7,9 +7,10 @@
 namespace linguine {
 
 void RotatorSystem::update(float deltaTime) {
-  findEntities<Rotating, Tapped>()->each([](const Entity& entity) {
+  findEntities<Rotating, Tapped>()->each([this](const Entity& entity) {
     const auto rotating = entity.get<Rotating>();
     rotating->speed = -rotating->speed;
+    _audioManager.play(EffectType::Select);
   });
 
   findEntities<Rotating, Transform>()->each([deltaTime](const Entity& entity) {

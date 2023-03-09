@@ -4,8 +4,9 @@
 
 namespace linguine::audio {
 
-AudioEngineAudioManager::AudioEngineAudioManager()
-    : _audioEngine([[AVAudioEngine alloc] init]),
+AudioEngineAudioManager::AudioEngineAudioManager(std::unique_ptr<AudioEngineFileLoader> fileLoader)
+    : _fileLoader(std::move(fileLoader)),
+      _audioEngine([[AVAudioEngine alloc] init]),
       _playerNodes([[NSMutableArray alloc] init]) {
   auto outputFormat = [_audioEngine.outputNode inputFormatForBus:0];
   auto inputFormat = [[AVAudioFormat alloc] initWithCommonFormat:outputFormat.commonFormat
@@ -30,7 +31,6 @@ AudioEngineAudioManager::AudioEngineAudioManager()
   }
 
   NSError* error;
-
   if (![_audioEngine startAndReturnError:&error]) {
     NSLog(@"%@", error.localizedDescription);
     return;
@@ -38,16 +38,6 @@ AudioEngineAudioManager::AudioEngineAudioManager()
 
   for (AVAudioPlayerNode* playerNode in _playerNodes) {
     [playerNode play];
-  }
-
-  auto url = [NSURL fileURLWithPath:@"Balloon Pop 1.wav"];
-  //auto url = [[NSBundle mainBundle] URLForResource:@"Balloon Pop 1" withExtension:@"wav"];
-  _fileToPlay = [[AVAudioFile alloc] initForReading:url
-                                              error:&error];
-
-  if (error) {
-    NSLog(@"%@", [error localizedDescription]);
-    return;
   }
 }
 
@@ -59,11 +49,13 @@ AudioEngineAudioManager::~AudioEngineAudioManager() {
   [_audioEngine stop];
 }
 
-void AudioEngineAudioManager::play() {
+void AudioEngineAudioManager::play(EffectType effectType) {
   auto playerNode = getPlayerNode();
 
   if (playerNode) {
-    [playerNode scheduleFile:_fileToPlay
+    auto file = _fileLoader->getAudioFileForEffect(effectType);
+
+    [playerNode scheduleFile:file
                         atTime:nil
         completionCallbackType:AVAudioPlayerNodeCompletionDataPlayedBack
              completionHandler:^(AVAudioPlayerNodeCompletionCallbackType callbackType) {

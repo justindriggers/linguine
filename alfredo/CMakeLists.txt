@@ -6,6 +6,7 @@ add_executable(alfredo
         src/main.mm
         src/appkit/AlfredoApplicationDelegate.mm
         src/metalkit/AlfredoViewDelegate.mm
+        src/platform/MacAudioEngineFileLoader.mm
         src/platform/MacInputManager.mm
         src/platform/MacLifecycleManager.mm
         src/platform/MacLogger.mm

@@ -15,6 +15,7 @@ add_executable(scampi
         MACOSX_BUNDLE
         src/main.mm
         src/metalkit/ScampiViewDelegate.mm
+        src/platform/IosAudioEngineFileLoader.mm
         src/platform/IosInputManager.cpp
         src/platform/IosLifecycleManager.cpp
         src/platform/IosTimeManager.cpp

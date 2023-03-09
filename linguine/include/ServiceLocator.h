@@ -2,13 +2,13 @@
 
 #include <stdexcept>
 
-#include "entity/EntityManagerFactory.h"
-#include "renderer/Renderer.h"
-#include "AudioManager.h"
 #include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
 #include "TimeManager.h"
+#include "audio/AudioManager.h"
+#include "entity/EntityManagerFactory.h"
+#include "renderer/Renderer.h"
 
 namespace linguine {
 

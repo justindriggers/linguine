@@ -6,6 +6,7 @@
 #import <Engine.h>
 
 #import "appkit/AlfredoApplicationDelegate.h"
+#import "platform/MacAudioEngineFileLoader.h"
 #import "platform/MacInputManager.h"
 #import "platform/MacLifecycleManager.h"
 #import "platform/MacLogger.h"
@@ -23,8 +24,10 @@ int main(int argc, const char *argv[]) {
 
     [app run];
 
+    auto audioFileLoader = std::make_unique<MacAudioEngineFileLoader>();
+
     auto logger = std::make_shared<MacLogger>();
-    auto audioManager = std::make_shared<audio::AudioEngineAudioManager>();
+    auto audioManager = std::make_shared<audio::AudioEngineAudioManager>(std::move(audioFileLoader));
     auto inputManager = std::make_shared<MacInputManager>();
     auto lifecycleManager = std::make_shared<MacLifecycleManager>();
     auto renderer = std::shared_ptr<Renderer>(appDelegate.metalRenderer);

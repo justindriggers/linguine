@@ -2,7 +2,7 @@
 
 #include "System.h"
 
-#include "AudioManager.h"
+#include "audio/AudioManager.h"
 
 namespace linguine {
 

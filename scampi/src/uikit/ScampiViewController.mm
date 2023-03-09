@@ -6,6 +6,7 @@
 #import <MetalRenderer.h>
 
 #import "../metalkit/ScampiViewDelegate.h"
+#import "../platform/IosAudioEngineFileLoader.h"
 #import "../platform/IosInputManager.h"
 #import "../platform/IosLifecycleManager.h"
 #import "../platform/IosTimeManager.h"
@@ -56,8 +57,10 @@
 
   _inputManager = std::make_shared<linguine::scampi::IosInputManager>();
 
+  auto audioFileLoader = std::make_unique<linguine::scampi::IosAudioEngineFileLoader>();
+
   auto logger = std::make_shared<linguine::scampi::NSLogger>();
-  auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>();
+  auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>(std::move(audioFileLoader));
   auto lifecycleManager = std::make_shared<linguine::scampi::IosLifecycleManager>();
   auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true));
   auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
