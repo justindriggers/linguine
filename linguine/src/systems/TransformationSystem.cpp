@@ -1,6 +1,7 @@
 #include "TransformationSystem.h"
 
 #include "components/Drawable.h"
+#include "components/Progressable.h"
 #include "components/Selectable.h"
 #include "components/Transform.h"
 
@@ -12,6 +13,14 @@ void TransformationSystem::update(float deltaTime) {
     const auto drawable = entity.get<Drawable>();
 
     drawable->feature->modelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
+                                     * glm::mat4_cast(transform->rotation);
+  });
+
+  findEntities<Transform, Progressable>()->each([](const Entity& entity) {
+    const auto transform = entity.get<Transform>();
+    const auto progressable = entity.get<Progressable>();
+
+    progressable->feature->modelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
                                      * glm::mat4_cast(transform->rotation);
   });
 

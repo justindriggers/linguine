@@ -10,6 +10,7 @@
 #include <renderer/features/FeatureRenderer.h>
 
 #include "features/ColoredFeatureRenderer.h"
+#include "features/ProgressFeatureRenderer.h"
 #include "features/SelectableFeatureRenderer.h"
 
 namespace linguine::render {
@@ -20,7 +21,7 @@ class MetalRendererImpl : public MetalRenderer {
         : _context{}, _view(view), _autoDraw(autoDraw) {
       _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
       _view.setDepthStencilPixelFormat(MTL::PixelFormatDepth32Float);
-      _view.setClearColor(MTL::ClearColor::Make(0.0f, 0.0f, 0.0f, 1.0f));
+      _view.setClearColor(MTL::ClearColor::Make(0.21f, 0.23f, 0.97f, 1.0f));
       _view.setClearDepth(1.0f);
 
       _context.device = _view.device();
@@ -31,6 +32,7 @@ class MetalRendererImpl : public MetalRenderer {
       _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, getCamera(), *_meshRegistry);
 
       _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, getCamera(), *_meshRegistry));
+      _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, getCamera(), *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
       _features.shrink_to_fit();
     }

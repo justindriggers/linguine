@@ -12,6 +12,7 @@ add_library(linguine
         src/systems/FallerSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
+        src/systems/ProgressTestSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/SelectionDestructionSystem.cpp

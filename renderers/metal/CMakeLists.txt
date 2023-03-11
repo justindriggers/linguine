@@ -1,6 +1,7 @@
 add_library(metal
         src/MetalRenderer.cpp
         src/features/ColoredFeatureRenderer.cpp
+        src/features/ProgressFeatureRenderer.cpp
         src/features/SelectableFeatureRenderer.cpp
         src/mesh/MeshRegistry.cpp
         src/mesh/QuadMesh.cpp
