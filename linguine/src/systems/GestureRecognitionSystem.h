@@ -27,7 +27,7 @@ class GestureRecognitionSystem : public System {
 
   private:
     constexpr static float _longPressThreshold = 0.5f;
-    constexpr static float _dragThreshold = 0.05f;
+    constexpr static float _tapDistanceThreshold = 0.05f;
 
     InputManager& _inputManager;
     Renderer& _renderer;
@@ -41,15 +41,12 @@ class GestureRecognitionSystem : public System {
     };
 
     std::unordered_map<uint64_t, GestureState> _gestureStates;
-    std::optional<uint64_t> _currentDragId;
 
     void onDownEvent(uint64_t id, const InputManager::Touch& touch);
 
-    void onHoldEvent(uint64_t id, const InputManager::Touch& touch, float deltaTime);
+    void onHoldEvent(uint64_t id, const InputManager::Touch& touch);
 
     void onUpEvent(uint64_t id, const InputManager::Touch& touch);
-
-    void updateCamera(glm::vec2 direction, float deltaTime);
 };
 
 }  // namespace linguine

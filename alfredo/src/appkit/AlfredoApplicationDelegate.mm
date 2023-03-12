@@ -47,7 +47,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   @autoreleasepool {
-    NSRect frame = CGRectMake(0.0, 0.0, 375.0, 667.0);
+    NSRect frame = CGRectMake(256.0, 256.0, 375.0, 667.0);
 
     self.window = [[NSWindow alloc]
         initWithContentRect:frame
@@ -71,7 +71,7 @@
 
     [self.window setContentView:view];
     [self.window setTitle:@"Alfredo"];
-    [self.window center];
+//    [self.window center];
     [self.window makeKeyAndOrderFront:nil];
 
     [NSApp activateIgnoringOtherApps:YES];

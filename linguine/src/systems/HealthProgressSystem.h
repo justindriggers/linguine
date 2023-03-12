@@ -4,9 +4,9 @@
 
 namespace linguine {
 
-class ProgressTestSystem : public System {
+class HealthProgressSystem : public System {
   public:
-    explicit ProgressTestSystem(EntityManager& entityManager)
+    explicit HealthProgressSystem(EntityManager& entityManager)
         : System(entityManager) {}
 
     void update(float deltaTime) override;

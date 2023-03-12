@@ -2,14 +2,23 @@
 
 #include "Scene.h"
 
+#include "components/Alive.h"
 #include "components/CameraFixture.h"
+#include "components/Friendly.h"
+#include "components/Health.h"
+#include "components/Hostile.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
 #include "components/Transform.h"
 #include "systems/CameraSystem.h"
+#include "systems/EnemyAttackSystem.h"
+#include "systems/EnemySpawnSystem.h"
 #include "systems/FpsSystem.h"
+#include "systems/FriendlyAttackSystem.h"
 #include "systems/GestureRecognitionSystem.h"
-#include "systems/ProgressTestSystem.h"
+#include "systems/HealthProgressSystem.h"
+#include "systems/LivenessSystem.h"
+#include "systems/PlayerControllerSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
@@ -20,7 +29,12 @@ class ProgressPrototypeScene : public Scene {
         : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<ProgressTestSystem>(getEntityManager()));
+      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
+      registerSystem(std::make_unique<EnemySpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager()));
+      registerSystem(std::make_unique<FriendlyAttackSystem>(getEntityManager()));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager()));
+      registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
@@ -30,8 +44,18 @@ class ProgressPrototypeScene : public Scene {
       cameraEntity->add<CameraFixture>();
       cameraEntity->add<Transform>();
 
+      createFriendly(renderer, glm::vec3(0.0f));
+      createFriendly(renderer, glm::vec3(-2.0f, 0.0f, 0.0f));
+      createFriendly(renderer, glm::vec3(2.0f, 0.0f, 0.0f));
+    }
+
+  private:
+    void createFriendly(Renderer& renderer, glm::vec3 location) {
       auto entity = createEntity();
-      entity->add<Transform>();
+      entity->add<Friendly>();
+
+      auto transform = entity->add<Transform>();
+      transform->position = location;
 
       auto progressable = entity->add<Progressable>();
       progressable->feature = new ProgressFeature();
@@ -49,6 +73,12 @@ class ProgressPrototypeScene : public Scene {
       selectable.setRemovalListener([selectable](const Entity e) {
         selectable->renderable->destroy();
       });
+
+      auto health = entity->add<Health>();
+      health->current = 1'000;
+      health->max = 1'000;
+
+      entity->add<Alive>();
     }
 };
 
