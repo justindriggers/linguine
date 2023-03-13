@@ -4,6 +4,7 @@
 
 #include "components/Alive.h"
 #include "components/CameraFixture.h"
+#include "components/Cooldown.h"
 #include "components/Friendly.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
@@ -11,6 +12,7 @@
 #include "components/Selectable.h"
 #include "components/Transform.h"
 #include "systems/CameraSystem.h"
+#include "systems/CooldownProgressSystem.h"
 #include "systems/EnemyAttackSystem.h"
 #include "systems/EnemySpawnSystem.h"
 #include "systems/FpsSystem.h"
@@ -35,6 +37,7 @@ class ProgressPrototypeScene : public Scene {
       registerSystem(std::make_unique<FriendlyAttackSystem>(getEntityManager()));
       registerSystem(std::make_unique<LivenessSystem>(getEntityManager()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
+      registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
@@ -47,6 +50,28 @@ class ProgressPrototypeScene : public Scene {
       createFriendly(renderer, glm::vec3(0.0f));
       createFriendly(renderer, glm::vec3(-2.0f, 0.0f, 0.0f));
       createFriendly(renderer, glm::vec3(2.0f, 0.0f, 0.0f));
+
+      {
+        // Global Cooldown Indicator
+        auto entity = createEntity();
+
+        auto transform = entity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -3.5f, 0.0f);
+
+        auto progressable = entity->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->meshType = Quad;
+        progressable->feature->color = glm::vec3(0.88f, 0.34f, 0.1f);
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature));
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+        progressable->renderable->setEnabled(false);
+
+        auto cooldown = entity->add<Cooldown>();
+        cooldown->elapsed = 1.5f;
+        cooldown->total = 1.5f;
+      }
     }
 
   private:

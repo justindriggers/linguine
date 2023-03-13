@@ -9,6 +9,7 @@ add_library(linguine
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
         src/systems/CameraSystem.cpp
+        src/systems/CooldownProgressSystem.cpp
         src/systems/EnemyAttackSystem.cpp
         src/systems/EnemySpawnSystem.cpp
         src/systems/FallerSystem.cpp
