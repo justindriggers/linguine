@@ -19,7 +19,7 @@ class EnemySpawnSystem : public System {
     void fixedUpdate(float fixedDeltaTime) override {}
 
   private:
-    int _wave = 0;
+    int _wave = 3;
 
     Renderer& _renderer;
 

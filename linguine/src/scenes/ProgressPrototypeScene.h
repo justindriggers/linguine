@@ -3,9 +3,11 @@
 #include "Scene.h"
 
 #include "components/Alive.h"
+#include "components/BigHeal.h"
 #include "components/CameraFixture.h"
 #include "components/Cooldown.h"
 #include "components/Friendly.h"
+#include "components/GlobalCooldown.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
 #include "components/Progressable.h"
@@ -68,9 +70,41 @@ class ProgressPrototypeScene : public Scene {
         });
         progressable->renderable->setEnabled(false);
 
+        auto globalCooldown = entity->add<GlobalCooldown>();
+        globalCooldown->elapsed = 1.5f;
+        globalCooldown->total = 1.5f;
+      }
+
+      {
+        // Big Heal
+        auto entity = createEntity();
+
+        auto transform = entity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -5.5f, 0.0f);
+
+        auto progressable = entity->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->meshType = Quad;
+        progressable->feature->color = glm::vec3(0.0f, 1.0f, 0.0f);
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature));
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+
+        auto selectable = entity->add<Selectable>();
+        selectable->feature = new SelectableFeature();
+        selectable->feature->entityId = entity->getId();
+        selectable->feature->meshType = Quad;
+        selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
+        selectable.setRemovalListener([selectable](const Entity e) {
+          selectable->renderable->destroy();
+        });
+
+        entity->add<BigHeal>();
+
         auto cooldown = entity->add<Cooldown>();
-        cooldown->elapsed = 1.5f;
-        cooldown->total = 1.5f;
+        cooldown->elapsed = 10.0f;
+        cooldown->total = 10.0f;
       }
     }
 
