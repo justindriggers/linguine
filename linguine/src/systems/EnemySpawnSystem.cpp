@@ -4,6 +4,7 @@
 #include "components/CircleCollider.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/PhysicalState.h"
 #include "components/Progressable.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
@@ -33,6 +34,10 @@ void EnemySpawnSystem::createEnemy(glm::vec3 location) {
 
   auto transform = enemy->add<Transform>();
   transform->position = location;
+
+  auto physicalState = enemy->add<PhysicalState>();
+  physicalState->previousPosition = glm::vec2(transform->position);
+  physicalState->currentPosition = physicalState->previousPosition;
 
   enemy->add<CircleCollider>();
 

@@ -19,7 +19,9 @@ add_library(linguine
         src/systems/GestureRecognitionSystem.cpp
         src/systems/HealthProgressSystem.cpp
         src/systems/LivenessSystem.cpp
+        src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp
+        src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/SelectionDestructionSystem.cpp

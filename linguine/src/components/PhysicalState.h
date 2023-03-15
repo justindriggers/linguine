@@ -4,8 +4,9 @@
 
 namespace linguine {
 
-struct Projectile {
-  glm::vec2 velocity = glm::vec2(0.0f, 1.0f);
+struct PhysicalState {
+  glm::vec2 previousPosition;
+  glm::vec2 currentPosition;
 };
 
 }  // namespace linguine

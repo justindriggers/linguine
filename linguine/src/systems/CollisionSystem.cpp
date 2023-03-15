@@ -2,6 +2,7 @@
 
 #include "components/CircleCollider.h"
 #include "components/Friendly.h"
+#include "components/Hit.h"
 #include "components/Hostile.h"
 #include "components/Projectile.h"
 #include "components/Transform.h"
@@ -10,19 +11,19 @@
 namespace linguine {
 
 void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
-  findEntities<Hostile, Projectile, Transform, CircleCollider>()->each([this](const Entity& a) {
-    findEntities<Friendly, Unit, Transform, CircleCollider>()->each([this, &a](const Entity& b) {
-      if (checkCollision(a, b)) {
-        _logger.log("Hostile Projectile " + std::to_string(a.getId()) + " is colliding with Friendly Unit " + std::to_string(b.getId()));
-      }
+  findEntities<Hit>()->each([](Entity& entity) {
+    entity.remove<Hit>();
+  });
+
+  findEntities<Hostile, Projectile, Transform, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Friendly, Unit, Transform, CircleCollider>()->each([&a](const Entity& b) {
+      detectHit(a, b);
     });
   });
 
-  findEntities<Friendly, Projectile, Transform, CircleCollider>()->each([this](const Entity& a) {
-    findEntities<Hostile, Unit, Transform, CircleCollider>()->each([this, &a](const Entity& b) {
-      if (checkCollision(a, b)) {
-        _logger.log("Friendly Projectile " + std::to_string(a.getId()) + " is colliding with Hostile Unit " + std::to_string(b.getId()));
-      }
+  findEntities<Friendly, Projectile, Transform, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Hostile, Unit, Transform, CircleCollider>()->each([&a](const Entity& b) {
+      detectHit(a, b);
     });
   });
 }
@@ -40,6 +41,16 @@ bool CollisionSystem::checkCollision(const Entity& a, const Entity& b) {
 
   auto distance = glm::distance(transformA->position, transformB->position);
   return distance <= colliderA->radius + colliderB->radius;
+}
+
+void CollisionSystem::detectHit(Entity& a, const Entity& b) {
+  if (checkCollision(a, b)) {
+    if (a.has<Hit>()) {
+      a.get<Hit>()->entityIds.push_back(b.getId());
+    } else {
+      a.add<Hit>()->entityIds = { b.getId() };
+    }
+  }
 }
 
 }  // namespace linguine

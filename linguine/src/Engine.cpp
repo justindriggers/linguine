@@ -37,9 +37,11 @@ void Engine::tick() {
   _currentTime = newTime;
   _accumulator += deltaTime;
 
-  while (_accumulator >= _fixedDeltaTime) {
-    fixedUpdate(_fixedDeltaTime);
-    _accumulator -= _fixedDeltaTime;
+  const auto fixedDeltaTime = _timeManager->getFixedTimeStep();
+
+  while (_accumulator >= fixedDeltaTime) {
+    fixedUpdate(fixedDeltaTime);
+    _accumulator -= fixedDeltaTime;
   }
 
   update(deltaTime);

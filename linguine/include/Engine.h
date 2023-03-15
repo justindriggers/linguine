@@ -69,8 +69,6 @@ class Engine : public ServiceLocator {
 
     void fixedUpdate(float fixedDeltaTime);
 
-    constexpr static float _fixedDeltaTime = 0.02f;
-
     time_t _currentTime = _timeManager->currentTime();
     float _accumulator = 0.0f;
 };

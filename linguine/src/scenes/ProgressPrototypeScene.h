@@ -12,6 +12,7 @@
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/PhysicalState.h"
 #include "components/Progressable.h"
 #include "components/Projectile.h"
 #include "components/Selectable.h"
@@ -27,7 +28,9 @@
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/HealthProgressSystem.h"
 #include "systems/LivenessSystem.h"
+#include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
+#include "systems/ProjectileSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
@@ -39,7 +42,9 @@ class ProgressPrototypeScene : public Scene {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
-      registerSystem(std::make_unique<CollisionSystem>(getEntityManager(), serviceLocator.get<Logger>()));
+      registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
+      registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+      registerSystem(std::make_unique<ProjectileSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<EnemySpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager()));
       registerSystem(std::make_unique<FriendlyAttackSystem>(getEntityManager()));
@@ -118,12 +123,16 @@ class ProgressPrototypeScene : public Scene {
       {
         // Collision Test
         auto entity = createEntity();
-        entity->add<Hostile>();
+        entity->add<Friendly>();
         entity->add<Projectile>();
 
         auto transform = entity->add<Transform>();
         transform->position = glm::vec3(-0.5f, 0.0f, 0.0f);
         transform->scale = glm::vec3(0.5f);
+
+        auto physicalState = entity->add<PhysicalState>();
+        physicalState->previousPosition = glm::vec2(transform->position);
+        physicalState->currentPosition = physicalState->previousPosition;
 
         auto collider = entity->add<CircleCollider>();
         collider->radius = 0.25f;
@@ -147,6 +156,10 @@ class ProgressPrototypeScene : public Scene {
 
       auto transform = entity->add<Transform>();
       transform->position = location;
+
+      auto physicalState = entity->add<PhysicalState>();
+      physicalState->previousPosition = glm::vec2(transform->position);
+      physicalState->currentPosition = physicalState->previousPosition;
 
       entity->add<CircleCollider>();
 
