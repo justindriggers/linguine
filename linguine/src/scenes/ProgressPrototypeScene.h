@@ -5,15 +5,20 @@
 #include "components/Alive.h"
 #include "components/BigHeal.h"
 #include "components/CameraFixture.h"
+#include "components/CircleCollider.h"
 #include "components/Cooldown.h"
+#include "components/Drawable.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
 #include "components/Progressable.h"
+#include "components/Projectile.h"
 #include "components/Selectable.h"
 #include "components/Transform.h"
+#include "components/Unit.h"
 #include "systems/CameraSystem.h"
+#include "systems/CollisionSystem.h"
 #include "systems/CooldownProgressSystem.h"
 #include "systems/EnemyAttackSystem.h"
 #include "systems/EnemySpawnSystem.h"
@@ -34,6 +39,7 @@ class ProgressPrototypeScene : public Scene {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
+      registerSystem(std::make_unique<CollisionSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<EnemySpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager()));
       registerSystem(std::make_unique<FriendlyAttackSystem>(getEntityManager()));
@@ -108,15 +114,41 @@ class ProgressPrototypeScene : public Scene {
         cooldown->elapsed = 10.0f;
         cooldown->total = 10.0f;
       }
+
+      {
+        // Collision Test
+        auto entity = createEntity();
+        entity->add<Hostile>();
+        entity->add<Projectile>();
+
+        auto transform = entity->add<Transform>();
+        transform->position = glm::vec3(-0.5f, 0.0f, 0.0f);
+        transform->scale = glm::vec3(0.5f);
+
+        auto collider = entity->add<CircleCollider>();
+        collider->radius = 0.25f;
+
+        auto drawable = entity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->feature->color = glm::vec3(1.0f, 1.0f, 0.0f);
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
+      }
     }
 
   private:
     void createFriendly(Renderer& renderer, glm::vec3 location) {
       auto entity = createEntity();
       entity->add<Friendly>();
+      entity->add<Unit>();
 
       auto transform = entity->add<Transform>();
       transform->position = location;
+
+      entity->add<CircleCollider>();
 
       auto progressable = entity->add<Progressable>();
       progressable->feature = new ProgressFeature();

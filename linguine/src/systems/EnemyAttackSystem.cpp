@@ -8,6 +8,7 @@
 #include "components/Friendly.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/Unit.h"
 
 namespace linguine {
 
@@ -21,20 +22,20 @@ void EnemyAttackSystem::update(float deltaTime) {
   auto random = std::random_device();
   auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(friendlies.size() - 1));
 
-  findEntities<Hostile, Alive>()->each([deltaTime, &friendlies, &random, &randomEntity](const Entity& entity) {
-    auto hostile = entity.get<Hostile>();
+  findEntities<Hostile, Unit, Alive>()->each([deltaTime, &friendlies, &random, &randomEntity](const Entity& entity) {
+    auto unit = entity.get<Unit>();
 
-    if (hostile->attackTimer >= hostile->attackSpeed) {
-      hostile->attackTimer -= hostile->attackSpeed;
+    if (unit->attackTimer >= unit->attackSpeed) {
+      unit->attackTimer -= unit->attackSpeed;
 
       auto index = randomEntity(random);
       auto target = friendlies[index];
       auto health = target->get<Health>();
 
-      health->current = glm::clamp<int32_t>(health->current - hostile->attackPower, 0, health->max);
+      health->current = glm::clamp<int32_t>(health->current - unit->attackPower, 0, health->max);
     }
 
-    hostile->attackTimer += deltaTime;
+    unit->attackTimer += deltaTime;
   });
 }
 

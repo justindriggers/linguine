@@ -1,10 +1,12 @@
 #include "EnemySpawnSystem.h"
 
 #include "components/Alive.h"
+#include "components/CircleCollider.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
 #include "components/Progressable.h"
 #include "components/Transform.h"
+#include "components/Unit.h"
 
 namespace linguine {
 
@@ -12,7 +14,7 @@ void EnemySpawnSystem::update(float deltaTime) {
   auto alive = findEntities<Hostile, Alive>()->get();
 
   if (alive.empty()) {
-    findEntities<Hostile>()->each([](Entity& entity) {
+    findEntities<Hostile, Unit>()->each([](Entity& entity) {
       entity.destroy();
     });
 
@@ -27,9 +29,12 @@ void EnemySpawnSystem::update(float deltaTime) {
 void EnemySpawnSystem::createEnemy(glm::vec3 location) {
   auto enemy = createEntity();
   enemy->add<Hostile>();
+  enemy->add<Unit>();
 
   auto transform = enemy->add<Transform>();
   transform->position = location;
+
+  enemy->add<CircleCollider>();
 
   auto progressable = enemy->add<Progressable>();
   progressable->feature = new ProgressFeature();

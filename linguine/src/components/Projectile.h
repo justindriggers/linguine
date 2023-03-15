@@ -2,6 +2,6 @@
 
 namespace linguine {
 
-struct Hostile {};
+struct Projectile {};
 
 }  // namespace linguine

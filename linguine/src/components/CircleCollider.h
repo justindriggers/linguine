@@ -2,6 +2,8 @@
 
 namespace linguine {
 
-struct Hostile {};
+struct CircleCollider {
+  float radius = 0.5f;
+};
 
 }  // namespace linguine
