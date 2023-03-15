@@ -81,6 +81,7 @@ class ProgressPrototypeScene : public Scene {
 
         auto transform = entity->add<Transform>();
         transform->position = glm::vec3(0.0f, -5.5f, 0.0f);
+        transform->scale = glm::vec3(1.25f);
 
         auto progressable = entity->add<Progressable>();
         progressable->feature = new ProgressFeature();
