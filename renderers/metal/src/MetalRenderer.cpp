@@ -21,8 +21,6 @@ class MetalRendererImpl : public MetalRenderer {
         : _context{}, _view(view), _autoDraw(autoDraw) {
       _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
       _view.setDepthStencilPixelFormat(MTL::PixelFormatDepth32Float);
-      _view.setClearColor(MTL::ClearColor::Make(0.21f, 0.23f, 0.97f, 1.0f));
-      _view.setClearDepth(1.0f);
 
       _context.device = _view.device();
       _context.commandQueue = _context.device->newCommandQueue();
@@ -75,11 +73,20 @@ void MetalRendererImpl::draw() {
 void MetalRendererImpl::doDraw() {
   auto pool = NS::AutoreleasePool::alloc()->init();
 
+  auto clearColor = getCamera().clearColor;
+  _view.setClearColor(MTL::ClearColor::Make(clearColor.r, clearColor.g, clearColor.b, 1.0f));
+  _view.setClearDepth(1.0f);
+
   _context.commandBuffer = _context.commandQueue->commandBuffer();
   _context.coloredRenderPassDescriptor = _view.currentRenderPassDescriptor();
 
   for (const auto& feature : getFeatures()) {
     feature->draw();
+
+    _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
+    _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
+    _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
+    _context.coloredRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionStore);
   }
 
   _context.commandBuffer->presentDrawable(_view.currentDrawable());

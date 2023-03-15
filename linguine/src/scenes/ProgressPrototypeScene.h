@@ -44,6 +44,7 @@ class ProgressPrototypeScene : public Scene {
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
       auto& renderer = serviceLocator.get<Renderer>();
+      renderer.getCamera().clearColor = glm::vec3(0.13f, 0.23f, 0.97f);
 
       auto cameraEntity = createEntity();
       cameraEntity->add<CameraFixture>();
