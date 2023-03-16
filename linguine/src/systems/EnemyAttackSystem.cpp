@@ -5,15 +5,19 @@
 #include <glm/common.hpp>
 
 #include "components/Alive.h"
+#include "components/CircleCollider.h"
+#include "components/Drawable.h"
 #include "components/Friendly.h"
-#include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/PhysicalState.h"
+#include "components/Projectile.h"
+#include "components/Transform.h"
 #include "components/Unit.h"
 
 namespace linguine {
 
 void EnemyAttackSystem::update(float deltaTime) {
-  auto friendlies = findEntities<Friendly, Health, Alive>()->get();
+  auto friendlies = findEntities<Friendly, Alive>()->get();
 
   if (friendlies.empty()) {
     return;
@@ -22,20 +26,53 @@ void EnemyAttackSystem::update(float deltaTime) {
   auto random = std::random_device();
   auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(friendlies.size() - 1));
 
-  findEntities<Hostile, Unit, Alive>()->each([deltaTime, &friendlies, &random, &randomEntity](const Entity& entity) {
+  findEntities<Hostile, Unit, Alive, Transform>()->each([this, deltaTime, &friendlies, &random, &randomEntity](const Entity& entity) {
     auto unit = entity.get<Unit>();
+    auto transform = entity.get<Transform>();
 
     if (unit->attackTimer >= unit->attackSpeed) {
       unit->attackTimer -= unit->attackSpeed;
 
       auto index = randomEntity(random);
       auto target = friendlies[index];
-      auto health = target->get<Health>();
+      auto targetTransform = target->get<Transform>();
 
-      health->current = glm::clamp<int32_t>(health->current - unit->attackPower, 0, health->max);
+      auto direction = glm::vec2(targetTransform->position) - glm::vec2(transform->position);
+      auto velocity = direction;
+
+      createProjectile(transform->position, velocity, unit->attackPower);
     }
 
     unit->attackTimer += deltaTime;
+  });
+}
+
+void EnemyAttackSystem::createProjectile(glm::vec2 location, glm::vec2 velocity, int32_t power) {
+  auto entity = createEntity();
+  entity->add<Hostile>();
+
+  auto projectile = entity->add<Projectile>();
+  projectile->velocity = velocity;
+  projectile->power = power;
+
+  auto transform = entity->add<Transform>();
+  transform->position = glm::vec3(location, 2.0f);
+  transform->scale = glm::vec3(0.25f);
+
+  auto physicalState = entity->add<PhysicalState>();
+  physicalState->previousPosition = glm::vec2(transform->position);
+  physicalState->currentPosition = physicalState->previousPosition;
+
+  auto collider = entity->add<CircleCollider>();
+  collider->radius = 0.125f;
+
+  auto drawable = entity->add<Drawable>();
+  drawable->feature = new ColoredFeature();
+  drawable->feature->meshType = Quad;
+  drawable->feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
+  drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+  drawable.setRemovalListener([drawable](const Entity e) {
+    drawable->renderable->destroy();
   });
 }
 

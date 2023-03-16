@@ -30,7 +30,9 @@ void EnemySpawnSystem::update(float deltaTime) {
 void EnemySpawnSystem::createEnemy(glm::vec3 location) {
   auto enemy = createEntity();
   enemy->add<Hostile>();
-  enemy->add<Unit>();
+
+  auto unit = enemy->add<Unit>();
+  unit->attackSpeed = 1.5f;
 
   auto transform = enemy->add<Transform>();
   transform->position = location;
