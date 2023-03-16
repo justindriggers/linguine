@@ -1,11 +1,13 @@
 #include "CollisionSystem.h"
 
+#include <glm/geometric.hpp>
+
 #include "components/CircleCollider.h"
 #include "components/Friendly.h"
 #include "components/Hit.h"
 #include "components/Hostile.h"
+#include "components/PhysicalState.h"
 #include "components/Projectile.h"
-#include "components/Transform.h"
 #include "components/Unit.h"
 
 namespace linguine {
@@ -15,14 +17,14 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
     entity.remove<Hit>();
   });
 
-  findEntities<Hostile, Projectile, Transform, CircleCollider>()->each([this](Entity& a) {
-    findEntities<Friendly, Unit, Transform, CircleCollider>()->each([&a](const Entity& b) {
+  findEntities<Hostile, Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Friendly, Unit, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
       detectHit(a, b);
     });
   });
 
-  findEntities<Friendly, Projectile, Transform, CircleCollider>()->each([this](Entity& a) {
-    findEntities<Hostile, Unit, Transform, CircleCollider>()->each([&a](const Entity& b) {
+  findEntities<Friendly, Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Hostile, Unit, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
       detectHit(a, b);
     });
   });
@@ -33,13 +35,13 @@ bool CollisionSystem::checkCollision(const Entity& a, const Entity& b) {
     return false;
   }
 
-  auto transformA = a.get<Transform>();
-  auto transformB = b.get<Transform>();
+  auto positionA = a.get<PhysicalState>()->currentPosition;
+  auto positionB = b.get<PhysicalState>()->currentPosition;
 
   auto colliderA = a.get<CircleCollider>();
   auto colliderB = b.get<CircleCollider>();
 
-  auto distance = glm::distance(transformA->position, transformB->position);
+  auto distance = glm::distance(positionA, positionB);
   return distance <= colliderA->radius + colliderB->radius;
 }
 
