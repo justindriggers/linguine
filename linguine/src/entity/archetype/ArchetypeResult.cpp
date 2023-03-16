@@ -3,11 +3,16 @@
 namespace linguine::archetype {
 
 void ArchetypeResult::each(const std::function<void(Entity&)>& function) const {
+  auto results = std::vector<Entity>();
+
   for (const auto* archetype : _archetypes) {
-    archetype->each([this, function](uint64_t id) {
-      auto entity = Entity(_entityManager, id);
-      function(entity);
+    archetype->each([this, &results](uint64_t id) {
+      results.emplace_back(_entityManager, id);
     });
+  }
+
+  for (auto& entity : results) {
+    function(entity);
   }
 }
 
