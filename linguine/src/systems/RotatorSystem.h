@@ -14,7 +14,7 @@ class RotatorSystem : public System {
 
     void update(float deltaTime) override;
 
-    void fixedUpdate(float fixedDeltaTime) override {}
+    void fixedUpdate(float fixedDeltaTime) override;
 
   private:
     AudioManager& _audioManager;

@@ -2,6 +2,7 @@
 
 #include <glm/geometric.hpp>
 
+#include "components/CameraFixture.h"
 #include "components/CircleCollider.h"
 #include "components/Friendly.h"
 #include "components/Hit.h"
@@ -26,6 +27,14 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
   findEntities<Friendly, Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
     findEntities<Hostile, Unit, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
       detectHit(a, b);
+    });
+  });
+
+  findEntities<Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
+    findEntities<CameraFixture, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
+      if (!checkCollision(a, b)) {
+        a.destroy();
+      }
     });
   });
 }

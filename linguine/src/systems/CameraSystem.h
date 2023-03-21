@@ -16,8 +16,6 @@ class CameraSystem : public System {
     void fixedUpdate(float fixedDeltaTime) override {}
 
   private:
-    constexpr static float _height = 15.0f;
-
     Renderer& _renderer;
 };
 

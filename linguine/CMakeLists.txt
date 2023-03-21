@@ -5,6 +5,7 @@ add_library(linguine
         src/entity/archetype/ArchetypeResult.cpp
         src/entity/archetype/Query.cpp
         src/entity/archetype/Store.cpp
+        src/factories/ProjectileFactory.cpp
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
@@ -22,6 +23,7 @@ add_library(linguine
         src/systems/PathTraversalSystem.cpp
         src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp
+        src/systems/ProjectileSpawnSystem.cpp
         src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
