@@ -9,9 +9,9 @@ class PathTraversalSystem : public System {
     explicit PathTraversalSystem(EntityManager& entityManager)
         : System(entityManager) {}
 
-    void update(float deltaTime) override;
+    void update(float deltaTime) override {}
 
-    void fixedUpdate(float fixedDeltaTime) override {}
+    void fixedUpdate(float fixedDeltaTime) override;
 };
 
 }  // namespace linguine

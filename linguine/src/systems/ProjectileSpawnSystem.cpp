@@ -23,7 +23,7 @@ void ProjectileSpawnSystem::fixedUpdate(float fixedDeltaTime) {
       for (auto i = 0; i < spawnPoint->count; ++i) {
         auto angle = glm::two_pi<float>() / static_cast<float>(spawnPoint->count) * static_cast<float>(i);
         auto newDirection = glm::angleAxis(angle, glm::vec3(0.0f, 0.0f, 1.0f)) * direction;
-        _projectileFactory.create(physicalState->currentPosition, glm::vec2(newDirection) * 1.0f, 0);
+        _projectileFactory.create(physicalState->currentPosition, glm::vec2(newDirection) * 1.0f, 20);
       }
     }
   });

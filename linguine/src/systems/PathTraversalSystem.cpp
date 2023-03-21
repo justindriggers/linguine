@@ -3,14 +3,14 @@
 #include <glm/gtx/compatibility.hpp>
 
 #include "components/Path.h"
-#include "components/Transform.h"
+#include "components/PhysicalState.h"
 
 namespace linguine {
 
-void PathTraversalSystem::update(float deltaTime) {
-  findEntities<Path, Transform>()->each([deltaTime](const Entity& entity) {
+void PathTraversalSystem::fixedUpdate(float fixedDeltaTime) {
+  findEntities<Path, PhysicalState>()->each([fixedDeltaTime](const Entity& entity) {
     auto path = entity.get<Path>();
-    path->t += path->speed * deltaTime;
+    path->t += path->speed * fixedDeltaTime;
 
     while (path->t >= 1.0f) {
       path->t -= 1.0f;
@@ -31,9 +31,8 @@ void PathTraversalSystem::update(float deltaTime) {
 
     auto position = glm::lerp(d, e, path->t) * path->scale;
 
-    auto transform = entity.get<Transform>();
-    transform->position.x = position.x;
-    transform->position.y = position.y;
+    auto physicalState = entity.get<PhysicalState>();
+    physicalState->currentPosition = position;
   });
 }
 

@@ -56,7 +56,7 @@ void FriendlyAttackSystem::createProjectile(glm::vec2 location, glm::vec2 veloci
   projectile->power = power;
 
   auto transform = entity->add<Transform>();
-  transform->position = glm::vec3(location, 2.0f);
+  transform->position = glm::vec3(location, 1.0f);
   transform->scale = glm::vec3(0.25f);
 
   auto physicalState = entity->add<PhysicalState>();
