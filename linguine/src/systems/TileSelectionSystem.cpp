@@ -3,10 +3,12 @@
 #include "components/Alive.h"
 #include "components/CircleCollider.h"
 #include "components/Friendly.h"
+#include "components/GridPosition.h"
 #include "components/Health.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
+#include "components/SpawnUnit.h"
 #include "components/Tapped.h"
 #include "components/Tile.h"
 #include "components/Transform.h"
@@ -15,7 +17,11 @@
 namespace linguine {
 
 void TileSelectionSystem::update(float deltaTime) {
-  findEntities<Tile, Transform, Tapped>()->each([this](Entity& entity) {
+  findEntities<Tile, Tapped>()->each([](Entity& entity) {
+    entity.add<SpawnUnit>();
+  });
+
+  findEntities<Transform, SpawnUnit>()->each([this](Entity& entity) {
     auto position = entity.get<Transform>()->position;
     entity.destroy();
 
@@ -23,7 +29,7 @@ void TileSelectionSystem::update(float deltaTime) {
     unitEntity->add<Friendly>();
 
     auto transform = unitEntity->add<Transform>();
-    transform->position = position;
+    transform->position = glm::vec3(position.x, position.y, 1.0f);
 
     auto unit = unitEntity->add<Unit>();
     unit->attackSpeed = 0.85f;
@@ -31,6 +37,11 @@ void TileSelectionSystem::update(float deltaTime) {
     auto physicalState = unitEntity->add<PhysicalState>();
     physicalState->previousPosition = glm::vec2(transform->position);
     physicalState->currentPosition = physicalState->previousPosition;
+
+    auto gridPosition = unitEntity->add<GridPosition>();
+    gridPosition->position = _grid.getGridPosition(position);
+
+    _grid.addObstruction(gridPosition->position);
 
     unitEntity->add<CircleCollider>();
 

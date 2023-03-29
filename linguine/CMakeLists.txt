@@ -1,5 +1,6 @@
 add_library(linguine
         src/Engine.cpp
+        src/data/Grid.cpp
         src/entity/archetype/Archetype.cpp
         src/entity/archetype/ArchetypeEntityManager.cpp
         src/entity/archetype/ArchetypeResult.cpp
@@ -13,11 +14,13 @@ add_library(linguine
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
         src/systems/EnemyAttackSystem.cpp
+        src/systems/EnemyTargetingSystem.cpp
         src/systems/EnemySpawnSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/FriendlyAttackSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
+        src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
         src/systems/LivenessSystem.cpp
         src/systems/PathTraversalSystem.cpp

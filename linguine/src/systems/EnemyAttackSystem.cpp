@@ -1,46 +1,38 @@
 #include "EnemyAttackSystem.h"
 
-#include <random>
-
 #include <glm/common.hpp>
 
 #include "components/Alive.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
-#include "components/Friendly.h"
 #include "components/Hostile.h"
 #include "components/PhysicalState.h"
 #include "components/Projectile.h"
+#include "components/Targeting.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
 
 namespace linguine {
 
 void EnemyAttackSystem::update(float deltaTime) {
-  auto friendlies = findEntities<Friendly, Alive>()->get();
-
-  if (friendlies.empty()) {
-    return;
-  }
-
-  auto random = std::random_device();
-  auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(friendlies.size() - 1));
-
-  findEntities<Hostile, Unit, Alive, Transform>()->each([this, deltaTime, &friendlies, &random, &randomEntity](const Entity& entity) {
+  findEntities<Hostile, Unit, Alive, PhysicalState, Targeting>()->each([this, deltaTime](const Entity& entity) {
     auto unit = entity.get<Unit>();
-    auto transform = entity.get<Transform>();
+    auto position = entity.get<PhysicalState>()->currentPosition;
 
     if (unit->attackTimer >= unit->attackSpeed) {
       unit->attackTimer -= unit->attackSpeed;
 
-      auto index = randomEntity(random);
-      auto target = friendlies[index];
-      auto targetTransform = target->get<Transform>();
+      auto targeting = entity.get<Targeting>();
 
-      auto direction = glm::vec2(targetTransform->position) - glm::vec2(transform->position);
-      auto velocity = direction;
+      if (targeting->current) {
+        auto target = getEntityById(*targeting->current);
+        auto targetPosition = target->get<PhysicalState>()->currentPosition;
 
-      createProjectile(transform->position, velocity, unit->attackPower);
+        auto direction = glm::normalize(glm::vec2(targetPosition) - glm::vec2(position));
+        auto velocity = direction;
+
+        createProjectile(position, velocity, unit->attackPower);
+      }
     }
 
     unit->attackTimer += deltaTime;

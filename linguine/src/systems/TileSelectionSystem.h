@@ -2,6 +2,7 @@
 
 #include "System.h"
 
+#include "data/Grid.h"
 #include "renderer/Renderer.h"
 
 namespace linguine {
@@ -9,8 +10,9 @@ namespace linguine {
 class TileSelectionSystem : public System {
   public:
     TileSelectionSystem(EntityManager& entityManager,
-                        Renderer& renderer)
-        : System(entityManager), _renderer(renderer) {}
+                        Renderer& renderer,
+                        Grid& grid)
+        : System(entityManager), _renderer(renderer), _grid(grid) {}
 
     void update(float deltaTime) override;
 
@@ -18,6 +20,7 @@ class TileSelectionSystem : public System {
 
   private:
     Renderer& _renderer;
+    Grid& _grid;
 };
 
 }  // namespace linguine
