@@ -37,13 +37,15 @@ void ArchetypeEntityManager::destroy(uint64_t id) {
     auto removalListener = entity.removalListeners.find(type);
 
     if (removalListener != entity.removalListeners.end()) {
-      removalListener->second(Entity(*this, id));
+      // Copy and erase prior to execution to prevent recursive execution
+      auto function = removalListener->second;
+      entity.removalListeners.erase(type);
+      function(Entity(*this, id));
     }
   }
 
   Archetype::migrate(id, *currentArchetype, *_rootArchetype);
   entity.currentArchetype = _rootArchetype;
-  entity.removalListeners.clear();
   _availableIndices.push(id);
 }
 
@@ -122,12 +124,14 @@ void ArchetypeEntityManager::remove(uint64_t id, const std::type_info& typeInfo)
   auto removalListener = entity.removalListeners.find(typeInfo);
 
   if (removalListener != entity.removalListeners.end()) {
-    removalListener->second(Entity(*this, id));
+    // Copy and erase prior to execution to prevent recursive execution
+    auto function = removalListener->second;
+    entity.removalListeners.erase(typeInfo);
+    function(Entity(*this, id));
   }
 
   Archetype::migrate(id, *currentArchetype, *newArchetype);
   entity.currentArchetype = newArchetype;
-  entity.removalListeners.erase(typeInfo);
 }
 
 void* ArchetypeEntityManager::get(uint64_t id, const std::type_info& typeInfo) const {
