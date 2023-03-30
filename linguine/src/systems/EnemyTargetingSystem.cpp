@@ -92,10 +92,15 @@ void EnemyTargetingSystem::moveTowardTarget(Component<Targeting>& targeting,
   auto target = getEntityById(targetId);
   auto targetPosition = target->get<GridPosition>()->position;
 
-  auto path = _grid.search(glm::round(gridPosition->position), targetPosition);
+  auto currentPosition = glm::round(gridPosition->position);
+  auto path = _grid.search(currentPosition, targetPosition);
 
   if (path.size() > 1) {
-    gridPosition->destination = *std::next(path.begin());
+    auto newPosition = *std::next(path.begin());
+    gridPosition->destination = newPosition;
+
+    _grid.removeObstruction(currentPosition);
+    _grid.addObstruction(newPosition);
   }
 }
 
