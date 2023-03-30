@@ -4,6 +4,7 @@
 #include "components/CircleCollider.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/MeleeAttack.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
 #include "components/Transform.h"
@@ -30,9 +31,10 @@ void EnemySpawnSystem::update(float deltaTime) {
 void EnemySpawnSystem::createEnemy(glm::vec3 location) {
   auto enemy = createEntity();
   enemy->add<Hostile>();
+  enemy->add<Unit>();
 
-  auto unit = enemy->add<Unit>();
-  unit->attackSpeed = 1.5f;
+  auto meleeAttack = enemy->add<MeleeAttack>();
+  meleeAttack->speed = 1.5f;
 
   auto transform = enemy->add<Transform>();
   transform->position = location;

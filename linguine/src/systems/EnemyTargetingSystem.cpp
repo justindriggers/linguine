@@ -24,11 +24,11 @@ void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
         return;
       }
 
-      if (!targeting->current) {
-        selectNewTarget(targeting, friendlies);
-      }
+      selectTarget(targeting, gridPosition, friendlies);
 
-      moveTowardTarget(targeting, gridPosition);
+      if (targeting->current) {
+        moveTowardTarget(targeting, gridPosition);
+      }
     }
   });
 }
@@ -42,15 +42,45 @@ void EnemyTargetingSystem::clearTargetIfDead(Component<Targeting>& targeting) {
   }
 }
 
-void EnemyTargetingSystem::selectNewTarget(Component<Targeting>& targeting,
-                                           const std::vector<std::shared_ptr<Entity>>& availableTargets) {
-  auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(availableTargets.size() - 1));
-
+void EnemyTargetingSystem::selectTarget(Component<Targeting>& targeting,
+                                        Component<GridPosition>& gridPosition,
+                                        const std::vector<std::shared_ptr<Entity>>& availableTargets) {
   switch (targeting->strategy) {
     case Targeting::Random: {
-      const auto targetIndex = randomEntity(_random);
-      const auto& target = availableTargets[targetIndex];
-      targeting->current = target->getId();
+      if (!targeting->current) {
+        auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(availableTargets.size() - 1));
+        const auto targetIndex = randomEntity(_random);
+        const auto& target = availableTargets[targetIndex];
+        targeting->current = target->getId();
+      }
+      break;
+    }
+    case Targeting::Nearest: {
+      auto nearest = INT_MAX;
+
+      if (targeting->current) {
+        auto target = getEntityById(*targeting->current);
+        auto targetPosition = target->get<GridPosition>()->position;
+        auto path = _grid.search(glm::round(gridPosition->position), targetPosition);
+
+        if (!path.empty()) {
+          nearest = static_cast<int>(path.size());
+        }
+      }
+
+      for (const auto& target : availableTargets) {
+        auto targetPosition = target->get<GridPosition>()->position;
+        auto path = _grid.search(glm::round(gridPosition->position), targetPosition);
+
+        if (!path.empty()) {
+          auto distance = static_cast<int>(path.size());
+
+          if (distance < nearest) {
+            nearest = distance;
+            targeting->current = target->getId();
+          }
+        }
+      }
       break;
     }
   }

@@ -6,9 +6,11 @@
 #include "components/CameraFixture.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
+#include "components/ExplosionAttack.h"
 #include "components/GridPosition.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/MeleeAttack.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
@@ -18,12 +20,11 @@
 #include "components/Transform.h"
 #include "components/Unit.h"
 #include "data/Grid.h"
+#include "systems/AttackSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
-#include "systems/EnemyAttackSystem.h"
 #include "systems/EnemyTargetingSystem.h"
 #include "systems/FpsSystem.h"
-#include "systems/FriendlyAttackSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/GridPositionSystem.h"
 #include "systems/HealthProgressSystem.h"
@@ -39,6 +40,8 @@ class TowerPrototypeScene : public Scene {
   public:
     explicit TowerPrototypeScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
+      _projectileFactory = std::make_unique<ProjectileFactory>(getEntityManager(), serviceLocator.get<Renderer>());
+
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<TileSelectionSystem>(getEntityManager(), serviceLocator.get<Renderer>(), *_grid));
@@ -46,9 +49,8 @@ class TowerPrototypeScene : public Scene {
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
-      registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
-      registerSystem(std::make_unique<FriendlyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<AttackSystem>(getEntityManager(), *_projectileFactory));
       registerSystem(std::make_unique<LivenessSystem>(getEntityManager()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
@@ -98,8 +100,14 @@ class TowerPrototypeScene : public Scene {
         auto enemy = createEntity();
         enemy->add<Hostile>();
 
-        auto unit = enemy->add<Unit>();
-        unit->attackSpeed = 1.5f;
+        enemy->add<Unit>();
+
+        auto meleeAttack = enemy->add<MeleeAttack>();
+        meleeAttack->speed = 1.5f;
+
+        auto explosionAttack = enemy->add<ExplosionAttack>();
+        explosionAttack->frequency = 3.0f;
+        explosionAttack->speed = 5.0f;
 
         auto transform = enemy->add<Transform>();
         transform->position = glm::vec3(_grid->getWorldPosition({2, 5}), 1.0f);
@@ -128,7 +136,9 @@ class TowerPrototypeScene : public Scene {
         health->max = 10'000;
 
         enemy->add<Alive>();
-        enemy->add<Targeting>();
+
+        auto targeting = enemy->add<Targeting>();
+        targeting->strategy = Targeting::Nearest;
       }
     }
 
@@ -138,6 +148,8 @@ class TowerPrototypeScene : public Scene {
     constexpr static float _scale = 1.25f;
 
     std::unique_ptr<Grid> _grid = std::make_unique<Grid>(_width, _height, _scale);
+
+    std::unique_ptr<ProjectileFactory> _projectileFactory;
 };
 
 }  // namespace linguine

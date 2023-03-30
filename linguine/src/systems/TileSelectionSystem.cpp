@@ -31,8 +31,7 @@ void TileSelectionSystem::update(float deltaTime) {
     auto transform = unitEntity->add<Transform>();
     transform->position = glm::vec3(position.x, position.y, 1.0f);
 
-    auto unit = unitEntity->add<Unit>();
-    unit->attackSpeed = 0.85f;
+    unitEntity->add<Unit>();
 
     auto physicalState = unitEntity->add<PhysicalState>();
     physicalState->previousPosition = glm::vec2(transform->position);

@@ -25,8 +25,9 @@ class EnemyTargetingSystem : public System {
 
     void clearTargetIfDead(Component<Targeting>& targeting);
 
-    void selectNewTarget(Component<Targeting>& targeting,
-                         const std::vector<std::shared_ptr<Entity>>& availableTargets);
+    void selectTarget(Component<Targeting>& targeting,
+                      Component<GridPosition>& gridPosition,
+                      const std::vector<std::shared_ptr<Entity>>& availableTargets);
 
     void moveTowardTarget(Component<Targeting>& targeting,
                           Component<GridPosition>& gridPosition);

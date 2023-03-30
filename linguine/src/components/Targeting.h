@@ -6,7 +6,8 @@ namespace linguine {
 
 struct Targeting {
   enum Strategy {
-    Random
+    Random,
+    Nearest
   };
 
   Strategy strategy = Random;

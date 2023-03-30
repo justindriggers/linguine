@@ -10,15 +10,14 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
+        src/systems/AttackSystem.cpp
         src/systems/CameraSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
-        src/systems/EnemyAttackSystem.cpp
         src/systems/EnemyTargetingSystem.cpp
         src/systems/EnemySpawnSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FpsSystem.cpp
-        src/systems/FriendlyAttackSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
         src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
