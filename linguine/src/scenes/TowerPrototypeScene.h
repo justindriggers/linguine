@@ -62,9 +62,16 @@ class TowerPrototypeScene : public Scene {
       auto& renderer = serviceLocator.get<Renderer>();
       renderer.getCamera().clearColor = glm::vec3(0.34f, 0.55f, 0.04f);
 
-      auto cameraEntity = createEntity();
-      cameraEntity->add<CameraFixture>();
-      cameraEntity->add<Transform>();
+      {
+        auto cameraEntity = createEntity();
+        cameraEntity->add<Transform>();
+        cameraEntity->add<PhysicalState>();
+
+        auto fixture = cameraEntity->add<CameraFixture>();
+
+        auto cameraCollider = cameraEntity->add<CircleCollider>();
+        cameraCollider->radius = fixture->height;
+      }
 
       for (auto x = 0; x < _width; ++x) {
         for (auto y = 0; y < _height; ++y) {
