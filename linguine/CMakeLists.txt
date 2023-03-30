@@ -16,6 +16,7 @@ add_library(linguine
         src/systems/CooldownProgressSystem.cpp
         src/systems/EnemyTargetingSystem.cpp
         src/systems/EnemySpawnSystem.cpp
+        src/systems/EventSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
