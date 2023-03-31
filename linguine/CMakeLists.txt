@@ -33,6 +33,7 @@ add_library(linguine
         src/systems/SelectionDestructionSystem.cpp
         src/systems/TileSelectionSystem.cpp
         src/systems/TransformationSystem.cpp
+        src/systems/UnitCreationSystem.cpp
 )
 
 target_include_directories(linguine PUBLIC

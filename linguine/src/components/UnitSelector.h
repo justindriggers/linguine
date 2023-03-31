@@ -4,8 +4,9 @@
 
 namespace linguine {
 
-struct SpawnUnit {
+struct UnitSelector {
   UnitType type = Default;
+  bool isSelected = false;
 };
 
 }  // namespace linguine
