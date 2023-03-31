@@ -1,7 +1,6 @@
 #include "EnemyTargetingSystem.h"
 
 #include "components/Alive.h"
-#include "components/Dead.h"
 #include "components/Friendly.h"
 #include "components/Hostile.h"
 #include "components/Unit.h"
@@ -37,7 +36,7 @@ void EnemyTargetingSystem::clearTargetIfDead(Component<Targeting>& targeting) {
   auto targetId = *targeting->current;
   auto target = getEntityById(targetId);
 
-  if (target->has<Dead>()) {
+  if (!target->has<Alive>()) {
     targeting->current = {};
   }
 }

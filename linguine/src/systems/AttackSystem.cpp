@@ -19,16 +19,19 @@ void AttackSystem::update(float deltaTime) {
 
     if (targeting->current) {
       auto target = getEntityById(*targeting->current);
-      auto targetPosition = target->get<GridPosition>()->position;
 
-      auto position = entity.get<GridPosition>()->position;
+      if (target->has<GridPosition>()) {
+        auto targetPosition = target->get<GridPosition>()->position;
 
-      if (glm::length2(targetPosition - position) <= 1.0f
-          && meleeAttack->elapsed >= meleeAttack->speed) {
-        meleeAttack->elapsed = 0.0f;
+        auto position = entity.get<GridPosition>()->position;
 
-        auto health = target->get<Health>();
-        health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
+        if (glm::length2(targetPosition - position) <= 1.0f
+            && meleeAttack->elapsed >= meleeAttack->speed) {
+          meleeAttack->elapsed = 0.0f;
+
+          auto health = target->get<Health>();
+          health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
+        }
       }
     }
   });

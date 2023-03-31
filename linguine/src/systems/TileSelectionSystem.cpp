@@ -50,7 +50,7 @@ void TileSelectionSystem::update(float deltaTime) {
     auto unitType = spawnUnit->type;
 
     auto position = entity.get<Transform>()->position;
-    entity.destroy();
+    entity.remove<SpawnUnit>();
 
     switch (unitType) {
       case Default: {
@@ -91,8 +91,8 @@ void TileSelectionSystem::update(float deltaTime) {
         });
 
         auto health = unitEntity->add<Health>();
-        health->current = 1'000;
-        health->max = 1'000;
+        health->current = 2'500;
+        health->max = 2'500;
 
         unitEntity->add<Alive>();
         break;

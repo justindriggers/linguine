@@ -63,7 +63,7 @@ class TowerPrototypeScene : public Scene {
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<AttackSystem>(getEntityManager(), *_projectileFactory));
       registerSystem(std::make_unique<UnitCreationSystem>(getEntityManager()));
-      registerSystem(std::make_unique<LivenessSystem>(getEntityManager()));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
