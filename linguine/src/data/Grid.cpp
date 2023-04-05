@@ -20,19 +20,61 @@ glm::vec2 Grid::getGridPosition(glm::vec2 worldPosition) const {
   };
 }
 
-void Grid::addObstruction(glm::ivec2 location) {
-  _obstructions.insert(location);
+void Grid::addObstruction(glm::ivec2 location, glm::ivec2 dimensions) {
+  auto obstruction = Obstruction{location, dimensions};
+  for (auto x = location.x; x < location.x + dimensions.x; ++x) {
+    for (auto y = location.y; y < location.y + dimensions.y; ++y) {
+      _obstructions.insert({{x, y}, obstruction});
+    }
+  }
 }
 
-void Grid::removeObstruction(glm::ivec2 location) {
-  _obstructions.erase(location);
+void Grid::removeObstruction(glm::ivec2 location, glm::ivec2 dimensions) {
+  for (auto x = location.x; x < location.x + dimensions.x; ++x) {
+    for (auto y = location.y; y < location.y + dimensions.y; ++y) {
+      _obstructions.erase({x, y});
+    }
+  }
+}
+
+bool Grid::isAdjacent(glm::ivec2 a, glm::ivec2 b) const {
+  auto obstructionAIt = _obstructions.find(a);
+  auto obstructionBIt = _obstructions.find(b);
+
+  if (obstructionAIt == _obstructions.end()
+      || obstructionBIt == _obstructions.end()) {
+    return false;
+  }
+
+  auto& obstructionA = obstructionAIt->second;
+  auto& obstructionB = obstructionBIt->second;
+
+  for (auto aX = obstructionA.position.x; aX < obstructionA.position.x + obstructionA.size.x; ++aX) {
+    for (auto aY = obstructionA.position.y; aY < obstructionA.position.y + obstructionA.size.y; ++aY) {
+      for (auto bX = obstructionB.position.x; bX < obstructionB.position.x + obstructionB.size.x; ++bX) {
+        for (auto bY = obstructionB.position.y; bY < obstructionB.position.y + obstructionB.size.y; ++bY) {
+          if (glm::distance(glm::vec2(aX, aY), glm::vec2(bX, bY)) <= 1.0f) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 std::list<glm::ivec2> Grid::search(glm::ivec2 start, glm::ivec2 goal) {
-  auto goalIsObstruction = _obstructions.find(goal) != _obstructions.end();
+  auto goalObstruction = std::optional<Obstruction>();
+  auto goalObstructionIt = _obstructions.find(goal);
 
-  if (goalIsObstruction) {
-    _obstructions.erase(goal);
+  if (goalObstructionIt != _obstructions.end()) {
+    goalObstruction = goalObstructionIt->second;
+    for (auto x = goalObstruction->position.x; x < goalObstruction->position.x + goalObstruction->size.x; ++x) {
+      for (auto y = goalObstruction->position.y; y < goalObstruction->position.y + goalObstruction->size.y; ++y) {
+        _obstructions.erase({x, y});
+      }
+    }
   }
 
   auto openSet = std::priority_queue<SearchNode, std::vector<SearchNode>, std::greater<>>();
@@ -58,9 +100,22 @@ std::list<glm::ivec2> Grid::search(glm::ivec2 start, glm::ivec2 goal) {
     if (current.position == goal) {
       auto result = reconstructPath(cameFrom, current.position);
 
-      if (goalIsObstruction) {
-        _obstructions.insert(goal);
-        result.erase(std::prev(result.end()));
+      if (goalObstruction) {
+        for (auto x = goalObstruction->position.x; x < goalObstruction->position.x + goalObstruction->size.x; ++x) {
+          for (auto y = goalObstruction->position.y; y < goalObstruction->position.y + goalObstruction->size.y; ++y) {
+            _obstructions.insert({{x, y}, *goalObstruction});
+          }
+        }
+
+        while (result.size() > 1) {
+          auto it = std::prev(result.end());
+
+          if (_obstructions.find(*it) == _obstructions.end()) {
+            break;
+          }
+
+          result.erase(it);
+        }
       }
 
       return result;
@@ -86,8 +141,12 @@ std::list<glm::ivec2> Grid::search(glm::ivec2 start, glm::ivec2 goal) {
     }
   }
 
-  if (goalIsObstruction) {
-    _obstructions.insert(goal);
+  if (goalObstruction) {
+    for (auto x = goalObstruction->position.x; x < goalObstruction->position.x + goalObstruction->size.x; ++x) {
+      for (auto y = goalObstruction->position.y; y < goalObstruction->position.y + goalObstruction->size.y; ++y) {
+        _obstructions.insert({{x, y}, *goalObstruction});
+      }
+    }
   }
 
   return {};

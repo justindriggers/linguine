@@ -61,7 +61,7 @@ class TowerPrototypeScene : public Scene {
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
-      registerSystem(std::make_unique<AttackSystem>(getEntityManager(), *_projectileFactory));
+      registerSystem(std::make_unique<AttackSystem>(getEntityManager(), *_grid, *_projectileFactory));
       registerSystem(std::make_unique<UnitCreationSystem>(getEntityManager()));
       registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
@@ -78,6 +78,7 @@ class TowerPrototypeScene : public Scene {
         cameraEntity->add<PhysicalState>();
 
         auto fixture = cameraEntity->add<CameraFixture>();
+        fixture->height = 30.0f;
 
         auto cameraCollider = cameraEntity->add<CircleCollider>();
         cameraCollider->radius = fixture->height;
@@ -147,6 +148,8 @@ class TowerPrototypeScene : public Scene {
 
           auto gridPosition = enemy->add<GridPosition>();
           gridPosition->position = {2, 5};
+
+          _grid->addObstruction(gridPosition->position, gridPosition->dimensions);
 
           enemy->add<CircleCollider>();
 
@@ -256,8 +259,8 @@ class TowerPrototypeScene : public Scene {
     }
 
   private:
-    constexpr static int _width = 5;
-    constexpr static int _height = 6;
+    constexpr static int _width = 12;
+    constexpr static int _height = 18;
     constexpr static float _scale = 1.25f;
 
     std::unique_ptr<Grid> _grid = std::make_unique<Grid>(_width, _height, _scale);

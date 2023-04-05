@@ -59,6 +59,7 @@ void TileSelectionSystem::update(float deltaTime) {
 
         auto transform = unitEntity->add<Transform>();
         transform->position = glm::vec3(position.x, position.y, 1.0f);
+        transform->scale = glm::vec3(2.0f);
 
         unitEntity->add<Unit>();
 
@@ -68,10 +69,12 @@ void TileSelectionSystem::update(float deltaTime) {
 
         auto gridPosition = unitEntity->add<GridPosition>();
         gridPosition->position = _grid.getGridPosition(position);
+        gridPosition->dimensions = { 2, 2 };
 
-        _grid.addObstruction(gridPosition->position);
+        _grid.addObstruction(gridPosition->position, gridPosition->dimensions);
 
-        unitEntity->add<CircleCollider>();
+        auto collider = unitEntity->add<CircleCollider>();
+        collider->radius = 1.0f;
 
         auto progressable = unitEntity->add<Progressable>();
         progressable->feature = new ProgressFeature();

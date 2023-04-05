@@ -25,7 +25,7 @@ void GridPositionSystem::fixedUpdate(float fixedDeltaTime) {
     }
 
     auto physicalState = entity.get<PhysicalState>();
-    physicalState->currentPosition = _grid.getWorldPosition(gridPosition->position);
+    physicalState->currentPosition = _grid.getWorldPosition(gridPosition->position + glm::vec2(gridPosition->dimensions) / 2.0f - 0.5f);
   });
 }
 

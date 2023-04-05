@@ -21,11 +21,7 @@ void AttackSystem::update(float deltaTime) {
       auto target = getEntityById(*targeting->current);
 
       if (target->has<GridPosition>()) {
-        auto targetPosition = target->get<GridPosition>()->position;
-
-        auto position = entity.get<GridPosition>()->position;
-
-        if (glm::length2(targetPosition - position) <= 1.0f
+        if (_grid.isAdjacent(target->get<GridPosition>()->position, entity.get<GridPosition>()->position)
             && meleeAttack->elapsed >= meleeAttack->speed) {
           meleeAttack->elapsed = 0.0f;
 

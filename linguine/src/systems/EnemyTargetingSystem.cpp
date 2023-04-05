@@ -98,8 +98,8 @@ void EnemyTargetingSystem::moveTowardTarget(Component<Targeting>& targeting,
     auto newPosition = *std::next(path.begin());
     gridPosition->destination = newPosition;
 
-    _grid.removeObstruction(currentPosition);
-    _grid.addObstruction(newPosition);
+    _grid.removeObstruction(currentPosition, gridPosition->dimensions);
+    _grid.addObstruction(newPosition, gridPosition->dimensions);
   }
 }
 

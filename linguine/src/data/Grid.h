@@ -2,7 +2,6 @@
 
 #include <list>
 #include <unordered_map>
-#include <unordered_set>
 
 #include <glm/gtx/hash.hpp>
 #include <glm/vec2.hpp>
@@ -18,9 +17,11 @@ class Grid {
 
     [[nodiscard]] glm::vec2 getGridPosition(glm::vec2 worldPosition) const;
 
-    void addObstruction(glm::ivec2 location);
+    void addObstruction(glm::ivec2 location, glm::ivec2 dimensions);
 
-    void removeObstruction(glm::ivec2 location);
+    void removeObstruction(glm::ivec2 location, glm::ivec2 dimensions);
+
+    bool isAdjacent(glm::ivec2 a, glm::ivec2 b) const;
 
     [[nodiscard]] std::list<glm::ivec2> search(glm::ivec2 start, glm::ivec2 goal);
 
@@ -34,11 +35,16 @@ class Grid {
       }
     };
 
+    struct Obstruction {
+      glm::ivec2 position;
+      glm::ivec2 size;
+    };
+
     int _width;
     int _height;
     float _scale;
 
-    std::unordered_set<glm::ivec2> _obstructions;
+    std::unordered_map<glm::ivec2, Obstruction> _obstructions;
 
     [[nodiscard]] std::vector<glm::ivec2> getNeighbors(glm::ivec2 location) const;
 
