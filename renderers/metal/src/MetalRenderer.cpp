@@ -80,13 +80,16 @@ void MetalRendererImpl::doDraw() {
   _context.commandBuffer = _context.commandQueue->commandBuffer();
   _context.coloredRenderPassDescriptor = _view.currentRenderPassDescriptor();
 
+  _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
+  _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
+  _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+  _context.coloredRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionStore);
+
   for (const auto& feature : getFeatures()) {
     feature->draw();
 
     _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
-    _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
     _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
-    _context.coloredRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionStore);
   }
 
   _context.commandBuffer->presentDrawable(_view.currentDrawable());
