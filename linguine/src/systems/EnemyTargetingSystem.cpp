@@ -14,7 +14,7 @@ void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
     auto targeting = entity.get<Targeting>();
     auto gridPosition = entity.get<GridPosition>();
 
-    if (!gridPosition->destination) {
+    if (!gridPosition->transientDestination) {
       if (targeting->current) {
         clearTargetIfDead(targeting);
       }
@@ -96,7 +96,7 @@ void EnemyTargetingSystem::moveTowardTarget(Component<Targeting>& targeting,
 
   if (path.size() > 1) {
     auto newPosition = *std::next(path.begin());
-    gridPosition->destination = newPosition;
+    gridPosition->transientDestination = newPosition;
 
     _grid.removeObstruction(currentPosition, gridPosition->dimensions);
     _grid.addObstruction(newPosition, gridPosition->dimensions);

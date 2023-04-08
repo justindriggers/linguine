@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 #include "entity/archetype/ArchetypeEntityManagerFactory.h"
-#include "scenes/TowerPrototypeScene.h"
+#include "scenes/PointAndClickPrototypeScene.h"
 
 namespace linguine {
 
@@ -19,7 +19,7 @@ Engine::Engine(
       _logger(logger),
       _renderer(renderer),
       _timeManager(timeManager),
-      _currentScene(std::make_unique<TowerPrototypeScene>(*this)) {}
+      _currentScene(std::make_unique<PointAndClickPrototypeScene>(*this)) {}
 
 void Engine::run() {
   _currentTime = _timeManager->currentTime();

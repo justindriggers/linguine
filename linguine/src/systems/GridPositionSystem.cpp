@@ -11,16 +11,31 @@ void GridPositionSystem::fixedUpdate(float fixedDeltaTime) {
   findEntities<GridPosition, PhysicalState>()->each([this, fixedDeltaTime](const Entity& entity) {
     auto gridPosition = entity.get<GridPosition>();
 
-    if (gridPosition->destination) {
-      auto difference = glm::vec2(*gridPosition->destination) - gridPosition->position;
+    if (gridPosition->transientDestination) {
+      auto difference = glm::vec2(*gridPosition->transientDestination) - gridPosition->position;
       auto frameDistance = gridPosition->speed * fixedDeltaTime;
 
       if (glm::length2(difference) <= frameDistance * frameDistance) {
-        gridPosition->position = *gridPosition->destination;
-        gridPosition->destination = {};
+        gridPosition->position = *gridPosition->transientDestination;
+        gridPosition->transientDestination = {};
       } else {
         auto direction = glm::normalize(difference);
         gridPosition->position += direction * frameDistance;
+      }
+    }
+
+    if (!gridPosition->transientDestination && gridPosition->finalDestination) {
+      auto currentPosition = glm::round(gridPosition->position);
+      auto path = _grid.search(gridPosition->position, *gridPosition->finalDestination);
+
+      if (path.size() > 1) {
+        auto newPosition = *std::next(path.begin());
+        gridPosition->transientDestination = newPosition;
+
+        _grid.removeObstruction(currentPosition, gridPosition->dimensions);
+        _grid.addObstruction(newPosition, gridPosition->dimensions);
+      } else {
+        gridPosition->finalDestination = {};
       }
     }
 

@@ -21,9 +21,17 @@ class Grid {
 
     void removeObstruction(glm::ivec2 location, glm::ivec2 dimensions);
 
-    bool isAdjacent(glm::ivec2 a, glm::ivec2 b) const;
+    [[nodiscard]] bool isAdjacent(glm::ivec2 a, glm::ivec2 b) const;
 
     [[nodiscard]] std::list<glm::ivec2> search(glm::ivec2 start, glm::ivec2 goal);
+
+    [[nodiscard]] int getWidth() const {
+      return _width;
+    }
+
+    [[nodiscard]] int getHeight() const {
+      return _height;
+    }
 
   private:
     struct SearchNode {

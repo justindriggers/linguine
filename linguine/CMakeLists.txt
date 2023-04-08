@@ -26,6 +26,7 @@ add_library(linguine
         src/systems/PathTraversalSystem.cpp
         src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp
+        src/systems/PointAndClickMovementSystem.cpp
         src/systems/ProjectileSpawnSystem.cpp
         src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
