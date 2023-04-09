@@ -31,7 +31,7 @@ int main(int argc, const char *argv[]) {
     auto inputManager = std::make_shared<MacInputManager>();
     auto lifecycleManager = std::make_shared<MacLifecycleManager>();
     auto renderer = std::shared_ptr<Renderer>(appDelegate.metalRenderer);
-    auto timeManager = std::make_shared<IosTimeManager>();
+    auto timeManager = std::make_shared<MacTimeManager>();
     auto engine = Engine(logger, audioManager, inputManager, lifecycleManager, renderer, timeManager);
 
     engine.run();
