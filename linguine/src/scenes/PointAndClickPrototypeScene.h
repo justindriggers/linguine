@@ -6,6 +6,7 @@
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
 #include "components/GridPosition.h"
+#include "components/Orbiter.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
 #include "components/Selectable.h"
@@ -17,6 +18,7 @@
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/GridPositionSystem.h"
+#include "systems/OrbitSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PointAndClickMovementSystem.h"
 #include "systems/TransformationSystem.h"
@@ -31,6 +33,7 @@ class PointAndClickPrototypeScene : public Scene {
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PointAndClickMovementSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
+      registerSystem(std::make_unique<OrbitSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
@@ -105,11 +108,29 @@ class PointAndClickPrototypeScene : public Scene {
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
         });
+
+        for (int i = 0; i < 10; ++i) {
+          auto orbiterEntity = createEntity();
+
+          auto orbiter = orbiterEntity->add<Orbiter>();
+          orbiter->centerId = playerEntity->getId();
+
+          auto orbiterTransform = orbiterEntity->add<Transform>();
+          orbiterTransform->scale = glm::vec3(0.25f);
+
+          auto orbiterDrawable = orbiterEntity->add<Drawable>();
+          orbiterDrawable->feature = new ColoredFeature();
+          orbiterDrawable->feature->meshType = Quad;
+          orbiterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(orbiterDrawable->feature));
+          orbiterDrawable.setRemovalListener([orbiterDrawable](const Entity e) {
+            orbiterDrawable->renderable->destroy();
+          });
+        }
       }
     }
 
   private:
-    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(7, 8, 1.25f);
+    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(7, 8, 1.0f);
 };
 
 }  // namespace linguine
