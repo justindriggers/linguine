@@ -1,5 +1,6 @@
 #include "OrbitSystem.h"
 
+#include "components/Alive.h"
 #include "components/Orbiter.h"
 #include "components/Transform.h"
 
@@ -19,17 +20,23 @@ void OrbitSystem::update(float deltaTime) {
 
       auto orbiter = orbiterEntity->get<Orbiter>();
       auto center = getEntityById(orbiter->centerId);
-      auto centerPosition = center->get<Transform>()->position;
 
-      auto angle = startAngle + spacing * static_cast<float>(i);
+      if (center->has<Alive>()) {
+        auto centerPosition = center->get<Transform>()->position;
 
-      auto transform = orbiterEntity->get<Transform>();
-      transform->position = centerPosition
-                            + glm::vec3(
-                                  glm::sin(angle) * orbiter->radius,
-                                  glm::cos(angle) * orbiter->radius,
-                                  0.0f
-                              );
+        auto angle = startAngle + spacing * static_cast<float>(i);
+
+        auto transform = orbiterEntity->get<Transform>();
+        auto z = transform->position.z;
+
+        transform->position = centerPosition
+                              + glm::vec3(
+                                    glm::sin(angle) * orbiter->radius,
+                                    glm::cos(angle) * orbiter->radius,
+                                    0.0f
+                                );
+        transform->position.z = z;
+      }
     }
   }
 }

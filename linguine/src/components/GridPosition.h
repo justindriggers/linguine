@@ -11,7 +11,7 @@ struct GridPosition {
   glm::vec2 position;
   std::optional<glm::ivec2> transientDestination;
   std::optional<glm::ivec2> finalDestination;
-  float speed = 2.0f;
+  float speed = 1.0f;
 };
 
 }  // namespace linguine

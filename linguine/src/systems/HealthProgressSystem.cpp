@@ -1,6 +1,7 @@
 #include "HealthProgressSystem.h"
 
 #include "components/Health.h"
+#include "components/HealthBar.h"
 #include "components/Progressable.h"
 
 namespace linguine {
@@ -15,6 +16,24 @@ void HealthProgressSystem::update(float deltaTime) {
         0.0f,
         1.0f
     );
+  });
+
+  findEntities<HealthBar, Progressable>()->each([this](Entity& healthBarEntity) {
+    auto healthBar = healthBarEntity.get<HealthBar>();
+    auto feature = healthBarEntity.get<Progressable>()->feature;
+    auto entity = getEntityById(healthBar->entityId);
+
+    if (entity->has<Health>()) {
+      auto health = entity->get<Health>();
+
+      feature->progress = glm::clamp(
+          static_cast<float>(health->current) / static_cast<float>(health->max),
+          0.0f,
+          1.0f
+      );
+    } else {
+      feature->progress = 0.0f;
+    }
   });
 }
 

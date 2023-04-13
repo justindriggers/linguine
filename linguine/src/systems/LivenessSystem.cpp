@@ -7,12 +7,15 @@
 namespace linguine {
 
 void LivenessSystem::update(float deltaTime) {
-  findEntities<Alive, Health, GridPosition>()->each([this](Entity& entity) {
+  findEntities<Alive, Health>()->each([this](Entity& entity) {
     auto health = entity.get<Health>();
 
     if (health->current <= 0) {
-      auto gridPosition = entity.get<GridPosition>();
-      _grid.removeObstruction(glm::round(gridPosition->position), gridPosition->dimensions);
+      if (entity.has<GridPosition>()) {
+        auto gridPosition = entity.get<GridPosition>();
+        _grid.removeObstruction(glm::round(gridPosition->position), gridPosition->dimensions);
+      }
+
       entity.destroy();
     }
   });
