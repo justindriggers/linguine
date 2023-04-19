@@ -4,6 +4,7 @@
 
 #include "components/GridPosition.h"
 #include "components/PhysicalState.h"
+#include "components/Targeting.h"
 
 namespace linguine {
 
@@ -41,6 +42,23 @@ void GridPositionSystem::fixedUpdate(float fixedDeltaTime) {
 
     auto physicalState = entity.get<PhysicalState>();
     physicalState->currentPosition = _grid.getWorldPosition(gridPosition->position + glm::vec2(gridPosition->dimensions) / 2.0f - 0.5f);
+
+    if (gridPosition->transientDestination) {
+      auto direction = glm::normalize(glm::vec2(*gridPosition->transientDestination) - gridPosition->position);
+      physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
+    } else if (entity.has<Targeting>()) {
+      auto target = entity.get<Targeting>();
+
+      if (target->current) {
+        auto targetEntity = getEntityById(*target->current);
+
+        if (targetEntity->has<GridPosition>()) {
+          auto targetGridPosition = targetEntity->get<GridPosition>();
+          auto direction = glm::normalize(targetGridPosition->position - gridPosition->position);
+          physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
+        }
+      }
+    }
   });
 }
 

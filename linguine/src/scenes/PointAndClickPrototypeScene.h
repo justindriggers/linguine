@@ -71,8 +71,12 @@ class PointAndClickPrototypeScene : public Scene {
 
       {
         auto cameraEntity = createEntity();
-        cameraEntity->add<Transform>();
-        cameraEntity->add<PhysicalState>();
+
+        auto transform = cameraEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        auto physicalState = cameraEntity->add<PhysicalState>();
+        physicalState->currentPosition = transform->position;
 
         auto fixture = cameraEntity->add<CameraFixture>();
         fixture->height = 20.0f;
@@ -84,29 +88,38 @@ class PointAndClickPrototypeScene : public Scene {
       for (auto x = 0; x < _grid->getWidth(); ++x) {
         for (auto y = 0; y < _grid->getHeight(); ++y) {
           auto entity = createEntity();
-          entity->add<Tile>();
+
+          auto gridPosition = glm::ivec2(x, y);
 
           auto transform = entity->add<Transform>();
-          transform->position = glm::vec3(_grid->getWorldPosition({x, y}), 5.0f);
-          transform->scale = glm::vec3(0.9f);
+          transform->position = glm::vec3(_grid->getWorldPosition(gridPosition), 5.0f);
 
           auto drawable = entity->add<Drawable>();
           drawable->feature = new ColoredFeature();
           drawable->feature->meshType = Quad;
-          drawable->feature->color = glm::vec3(0.06f, 0.06f, 0.06f);
           drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
           drawable.setRemovalListener([drawable](const Entity e) {
             drawable->renderable->destroy();
           });
 
-          auto selectable = entity->add<Selectable>();
-          selectable->feature = new SelectableFeature();
-          selectable->feature->entityId = entity->getId();
-          selectable->feature->meshType = Quad;
-          selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
-          selectable.setRemovalListener([selectable](const Entity e) {
-            selectable->renderable->destroy();
-          });
+          if ((x == 3 && y == 5) || (x == 4 && y == 4)) {
+            drawable->feature->color = glm::vec3(0.76f, 0.76f, 0.76f);
+            _grid->addObstruction(gridPosition, {1, 1});
+          } else {
+            transform->scale = glm::vec3(0.9f);
+            drawable->feature->color = glm::vec3(0.06f, 0.06f, 0.06f);
+
+            entity->add<Tile>();
+
+            auto selectable = entity->add<Selectable>();
+            selectable->feature = new SelectableFeature();
+            selectable->feature->entityId = entity->getId();
+            selectable->feature->meshType = Quad;
+            selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
+            selectable.setRemovalListener([selectable](const Entity e) {
+              selectable->renderable->destroy();
+            });
+          }
         }
       }
 
@@ -114,7 +127,10 @@ class PointAndClickPrototypeScene : public Scene {
         auto playerEntity = createEntity();
         playerEntity->add<Player>();
         playerEntity->add<Friendly>();
-        playerEntity->add<Targeting>();
+
+        auto targeting = playerEntity->add<Targeting>();
+        targeting->strategy = Targeting::Nearest;
+
         playerEntity->add<MeleeAttack>();
 
         auto health = playerEntity->add<Health>();
@@ -126,6 +142,7 @@ class PointAndClickPrototypeScene : public Scene {
         auto gridPosition = glm::vec2(2, 0);
 
         auto transform = playerEntity->add<Transform>();
+        transform->scale = glm::vec3(0.75f);
         transform->position = glm::vec3(_grid->getWorldPosition(gridPosition), 1.0f);
 
         auto physicalState = playerEntity->add<PhysicalState>();
@@ -135,8 +152,6 @@ class PointAndClickPrototypeScene : public Scene {
         auto gridPositionComponent = playerEntity->add<GridPosition>();
         gridPositionComponent->position = gridPosition;
         gridPositionComponent->speed = 2.0f;
-
-        _grid->addObstruction(gridPositionComponent->position, gridPositionComponent->dimensions);
 
         auto progressable = playerEntity->add<Progressable>();
         progressable->feature = new ProgressFeature();
@@ -201,22 +216,35 @@ class PointAndClickPrototypeScene : public Scene {
         }
       }
 
-      {
+      for (auto i = 0; i < 3; ++i) {
         auto enemyEntity = createEntity();
         enemyEntity->add<Hostile>();
         enemyEntity->add<Unit>();
-        enemyEntity->add<MeleeAttack>();
+
+        auto meleeAttack = enemyEntity->add<MeleeAttack>();
+        meleeAttack->power = 75;
 
         auto health = enemyEntity->add<Health>();
-        health->max = 5'000;
+        health->max = 1'000;
         health->current = health->max;
 
         enemyEntity->add<Alive>();
-        enemyEntity->add<Targeting>();
 
-        auto gridPosition = glm::vec2(3, 6);
+        auto targeting = enemyEntity->add<Targeting>();
+        targeting->strategy = Targeting::Adjacent;
+
+        glm::vec2 gridPosition;
+
+        if (i == 0) {
+          gridPosition = glm::vec2(0, 4);
+        } else if (i == 1) {
+          gridPosition = glm::vec2(3, 6);
+        } else {
+          gridPosition = glm::vec2(6, 5);
+        }
 
         auto transform = enemyEntity->add<Transform>();
+        transform->scale = glm::vec3(0.9f);
         transform->position = glm::vec3(_grid->getWorldPosition(gridPosition), 1.0f);
 
         auto physicalState = enemyEntity->add<PhysicalState>();
@@ -295,7 +323,7 @@ class PointAndClickPrototypeScene : public Scene {
     }
 
   private:
-    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(7, 8, 1.0f);
+    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(9, 7, 1.0f);
 };
 
 }  // namespace linguine

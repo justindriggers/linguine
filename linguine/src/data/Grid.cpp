@@ -38,30 +38,8 @@ void Grid::removeObstruction(glm::ivec2 location, glm::ivec2 dimensions) {
 }
 
 bool Grid::isAdjacent(glm::ivec2 a, glm::ivec2 b) const {
-  auto obstructionAIt = _obstructions.find(a);
-  auto obstructionBIt = _obstructions.find(b);
-
-  if (obstructionAIt == _obstructions.end()
-      || obstructionBIt == _obstructions.end()) {
-    return false;
-  }
-
-  auto& obstructionA = obstructionAIt->second;
-  auto& obstructionB = obstructionBIt->second;
-
-  for (auto aX = obstructionA.position.x; aX < obstructionA.position.x + obstructionA.size.x; ++aX) {
-    for (auto aY = obstructionA.position.y; aY < obstructionA.position.y + obstructionA.size.y; ++aY) {
-      for (auto bX = obstructionB.position.x; bX < obstructionB.position.x + obstructionB.size.x; ++bX) {
-        for (auto bY = obstructionB.position.y; bY < obstructionB.position.y + obstructionB.size.y; ++bY) {
-          if (glm::distance(glm::vec2(aX, aY), glm::vec2(bX, bY)) <= 1.0f) {
-            return true;
-          }
-        }
-      }
-    }
-  }
-
-  return false;
+  return (a.x == b.x || a.x == b.x + 1 || a.x == b.x - 1)
+         && (a.y == b.y || a.y == b.y + 1 || a.y == b.y - 1);
 }
 
 std::list<glm::ivec2> Grid::search(glm::ivec2 start, glm::ivec2 goal) {
@@ -177,6 +155,34 @@ std::vector<glm::ivec2> Grid::getNeighbors(glm::ivec2 location) const {
 
   if (location.y < _height - 1 && !hasObstruction(top)) {
     results.push_back(top);
+  }
+
+  auto bottomLeft = location + glm::ivec2(-1, -1);
+
+  if (location.x > 0 && location.y > 0 && !hasObstruction(bottomLeft)
+      && !hasObstruction(bottom) && !hasObstruction(left)) {
+    results.push_back(bottomLeft);
+  }
+
+  auto bottomRight = location + glm::ivec2(1, -1);
+
+  if (location.x < _width - 1 && location.y > 0 && !hasObstruction(bottomRight)
+      && !hasObstruction(bottom) && !hasObstruction(right)) {
+    results.push_back(bottomRight);
+  }
+
+  auto topLeft = location + glm::ivec2(-1, 1);
+
+  if (location.x > 0 && location.y < _height - 1 && !hasObstruction(topLeft)
+      && !hasObstruction(top) && !hasObstruction(left)) {
+    results.push_back(topLeft);
+  }
+
+  auto topRight = location + glm::ivec2(1, 1);
+
+  if (location.x < _width - 1 && location.y < _height - 1 && !hasObstruction(topRight)
+      && !hasObstruction(top) && !hasObstruction(right)) {
+    results.push_back(topRight);
   }
 
   return results;

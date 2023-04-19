@@ -75,6 +75,18 @@ void PlayerTargetingSystem::selectTarget(Component<Targeting>& targeting,
       }
       break;
     }
+    case Targeting::Adjacent: {
+      if (!targeting->current) {
+        for (const auto& target : availableTargets) {
+          auto targetPosition = target->get<GridPosition>()->position;
+
+          if (_grid.isAdjacent(glm::round(targetPosition), glm::round(gridPosition->position))) {
+            targeting->current = target->getId();
+          }
+        }
+      }
+      break;
+    }
   }
 }
 
