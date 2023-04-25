@@ -10,6 +10,7 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
+        src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
