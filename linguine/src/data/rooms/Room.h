@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 
+#include "RoomLayout.h"
 #include "ServiceLocator.h"
 #include "components/Selectable.h"
 #include "components/Tile.h"
@@ -43,14 +44,32 @@ class Room {
       return _westDoor;
     }
 
-    void layout(EntityManager& entityManager,
+    bool layout(EntityManager& entityManager,
                 ServiceLocator& serviceLocator,
                 Grid& grid,
+                RoomLayout& roomLayout,
                 glm::ivec2 origin) const {
+      for (auto x = -1; x < getWidth() + 1; ++x) {
+        for (auto y = -1; y < getHeight() + 1; ++y) {
+          auto gridPosition = glm::ivec2(origin.x + x, origin.y + y);
+
+          if (roomLayout.isOccupied(gridPosition)) {
+            return false;
+          }
+        }
+      }
+
       auto& renderer = serviceLocator.get<Renderer>();
 
       for (auto x = -1; x < getWidth() + 1; ++x) {
         for (auto y = -1; y < getHeight() + 1; ++y) {
+          auto location = glm::ivec2(x, y);
+
+          if ((x == -1 || x == getWidth() || y == -1 || y == getHeight())
+              && (location != getNorthDoor() && location != getSouthDoor() && location != getEastDoor() && location != getWestDoor())) {
+            continue;
+          }
+
           auto entity = entityManager.create();
           entity->add<Tile>();
 
@@ -63,37 +82,74 @@ class Room {
           auto drawable = entity->add<Drawable>();
           drawable->feature = new ColoredFeature();
           drawable->feature->meshType = Quad;
+          drawable->feature->color = glm::vec3(0.06f, 0.06f, 0.06f);
           drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
           drawable.setRemovalListener([drawable](const Entity e) {
             drawable->renderable->destroy();
           });
 
-          auto location = glm::ivec2(x, y);
-
-          if ((x == -1 || x == getWidth() || y == -1 || y == getHeight())
-              && location != getNorthDoor() && location != getSouthDoor()
-              && location != getEastDoor() && location != getWestDoor()) {
-            grid.addObstruction({origin.x + x, origin.y + y}, {1, 1});
-            drawable->feature->color = glm::vec3(0.26f, 0.26f, 0.26f);
-          } else {
-            drawable->feature->color = glm::vec3(0.06f, 0.06f, 0.06f);
-
-            auto selectable = entity->add<Selectable>();
-            selectable->feature = new SelectableFeature();
-            selectable->feature->meshType = Quad;
-            selectable->feature->entityId = entity->getId();
-            selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
-            selectable.setRemovalListener([selectable](const Entity e) {
-              selectable->renderable->destroy();
-            });
-          }
+          auto selectable = entity->add<Selectable>();
+          selectable->feature = new SelectableFeature();
+          selectable->feature->meshType = Quad;
+          selectable->feature->entityId = entity->getId();
+          selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
+          selectable.setRemovalListener([selectable](const Entity e) {
+            selectable->renderable->destroy();
+          });
         }
       }
 
-      drawDoor(entityManager, renderer, grid, origin, _northDoor);
-      drawDoor(entityManager, renderer, grid, origin, _southDoor);
-      drawDoor(entityManager, renderer, grid, origin, _eastDoor);
-      drawDoor(entityManager, renderer, grid, origin, _westDoor);
+      roomLayout.add(origin, {getWidth(), getHeight()});
+      roomLayout.add(origin + getNorthDoor(), {1, 1});
+      roomLayout.add(origin + getSouthDoor(), {1, 1});
+      roomLayout.add(origin + getEastDoor(), {1, 1});
+      roomLayout.add(origin + getWestDoor(), {1, 1});
+      return true;
+    }
+
+    void enclose(EntityManager& entityManager,
+                 ServiceLocator& serviceLocator,
+                 Grid& grid,
+                 RoomLayout& roomLayout,
+                 glm::ivec2 origin) const {
+      auto& renderer = serviceLocator.get<Renderer>();
+
+      for (auto x = -1; x < getWidth() + 1; ++x) {
+        for (auto y = -1; y < getHeight() + 1; ++y) {
+          if (x == -1 || x == getWidth() || y == -1 || y == getHeight()) {
+            auto location = glm::ivec2(x, y);
+
+            auto shouldClose = (location != getNorthDoor() && location != getSouthDoor() && location != getEastDoor() && location != getWestDoor())
+                               || (location == getNorthDoor() && !roomLayout.isOccupied(origin + location + glm::ivec2(0, 1)))
+                               || (location == getSouthDoor() && !roomLayout.isOccupied(origin + location - glm::ivec2(0, 1)))
+                               || (location == getEastDoor() && !roomLayout.isOccupied(origin + location + glm::ivec2(1, 0)))
+                               || (location == getWestDoor() && !roomLayout.isOccupied(origin + location - glm::ivec2(1, 0)));
+
+            if (shouldClose) {
+              grid.addObstruction({origin.x + x, origin.y + y}, {1, 1});
+              roomLayout.remove({origin.x + x, origin.y + y}, {1, 1});
+
+              auto entity = entityManager.create();
+              entity->add<Tile>();
+
+              auto gridPosition = glm::ivec2(origin.x + x, origin.y + y);
+
+              auto transform = entity->add<Transform>();
+              transform->position = glm::vec3(grid.getWorldPosition(gridPosition), 4.0f);
+              transform->scale = glm::vec3(0.95f);
+
+              auto drawable = entity->add<Drawable>();
+              drawable->feature = new ColoredFeature();
+              drawable->feature->meshType = Quad;
+              drawable->feature->color = glm::vec3(0.26f, 0.26f, 0.26f);
+              drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+              drawable.setRemovalListener([drawable](const Entity e) {
+                drawable->renderable->destroy();
+              });
+            }
+          }
+        }
+      }
     }
 
   private:
@@ -104,27 +160,6 @@ class Room {
     glm::ivec2 _southDoor;
     glm::ivec2 _eastDoor;
     glm::ivec2 _westDoor;
-
-    static void drawDoor(EntityManager& entityManager, Renderer& renderer,
-                         Grid& grid, glm::ivec2 origin,
-                         glm::ivec2 doorPosition) {
-      auto doorEntity = entityManager.create();
-
-      auto gridPosition = glm::ivec2(origin.x + doorPosition.x, origin.y + doorPosition.y);
-
-      auto doorTransform = doorEntity->add<Transform>();
-      doorTransform->position = glm::vec3(grid.getWorldPosition(gridPosition), 4.0f);
-      doorTransform->scale = glm::vec3(0.8f);
-
-      auto doorDrawable = doorEntity->add<Drawable>();
-      doorDrawable->feature = new ColoredFeature();
-      doorDrawable->feature->meshType = Quad;
-      doorDrawable->feature->color = glm::vec3(0.46f, 0.46f, 0.46f);
-      doorDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(doorDrawable->feature));
-      doorDrawable.setRemovalListener([doorDrawable](const Entity e) {
-        doorDrawable->renderable->destroy();
-      });
-    }
 };
 
 }  // namespace linguine

@@ -3,6 +3,7 @@
 #include "Scene.h"
 
 #include <random>
+#include <utility>
 
 #include "components/CameraFixture.h"
 #include "components/Drawable.h"
@@ -15,6 +16,8 @@
 #include "data/rooms/RoomA.h"
 #include "data/rooms/RoomB.h"
 #include "data/rooms/RoomC.h"
+#include "data/rooms/RoomLayout.h"
+#include "data/rooms/SpawnRoom.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
@@ -56,92 +59,93 @@ class ProceduralPrototypeScene : public Scene {
         physicalState->currentPosition = transform->position;
 
         auto fixture = cameraEntity->add<CameraFixture>();
-        fixture->height = 10.0f;
+        fixture->height = 20.0f;
       }
+
+      auto roomLayout = RoomLayout();
+
+      std::unique_ptr<Room> previousRoom = std::make_unique<SpawnRoom>();
+
+      auto origin = glm::ivec2(250, 250);
+      previousRoom->layout(getEntityManager(), serviceLocator, *_grid, roomLayout, origin);
+
+      auto playerStartPosition = origin + glm::ivec2(previousRoom->getWidth(), previousRoom->getHeight()) / 2;
 
       auto rand = std::random_device();
-
       auto randomRoom = std::uniform_int_distribution(0, 2);
-
-      std::unique_ptr<Room> room1;
-
-      switch (randomRoom(rand)) {
-        case 0:
-          room1 = std::make_unique<RoomA>();
-          break;
-        case 1:
-          room1 = std::make_unique<RoomB>();
-          break;
-        case 2:
-          room1 = std::make_unique<RoomC>();
-          break;
-        default:
-          throw std::runtime_error("Unexpected RNG value");
-      }
-
-      std::unique_ptr<Room> room2;
-
-      switch (randomRoom(rand)) {
-        case 0:
-          room2 = std::make_unique<RoomA>();
-          break;
-        case 1:
-          room2 = std::make_unique<RoomB>();
-          break;
-        case 2:
-          room2 = std::make_unique<RoomC>();
-          break;
-        default:
-          throw std::runtime_error("Unexpected RNG value");
-      }
-
       auto randomDirection = std::uniform_int_distribution(0, 3);
 
-      auto origin = glm::ivec2(25, 25);
-      room1->layout(getEntityManager(), serviceLocator, *_grid, origin);
+      auto roomCount = 0;
 
-      auto direction = randomDirection(rand);
+      do {
+          std::unique_ptr<Room> currentRoom;
 
-      switch (direction) {
-        case 0:
-          origin += room1->getNorthDoor();
-          origin -= room2->getSouthDoor();
-          break;
-        case 1:
-          origin += room1->getSouthDoor();
-          origin -= room2->getNorthDoor();
-          break;
-        case 2:
-          origin += room1->getEastDoor();
-          origin -= room2->getWestDoor();
-          break;
-        case 3:
-          origin += room1->getWestDoor();
-          origin -= room2->getEastDoor();
-          break;
-        default:
-          throw std::runtime_error("Unexpected RNG value");
-      }
+          switch (randomRoom(rand)) {
+            case 0:
+              currentRoom = std::make_unique<RoomA>();
+              break;
+            case 1:
+              currentRoom = std::make_unique<RoomB>();
+              break;
+            case 2:
+              currentRoom = std::make_unique<RoomC>();
+              break;
+            default:
+              throw std::runtime_error("Unexpected RNG value");
+          }
 
-      room2->layout(getEntityManager(), serviceLocator, *_grid, origin);
+          auto newOrigin = origin;
+
+          switch (randomDirection(rand)) {
+            case 0:
+              newOrigin += previousRoom->getNorthDoor();
+              newOrigin -= currentRoom->getSouthDoor();
+              newOrigin += glm::ivec2(0, 1);
+              break;
+            case 1:
+              newOrigin += previousRoom->getSouthDoor();
+              newOrigin -= currentRoom->getNorthDoor();
+              newOrigin -= glm::ivec2(0, 1);
+              break;
+            case 2:
+              newOrigin += previousRoom->getEastDoor();
+              newOrigin -= currentRoom->getWestDoor();
+              newOrigin += glm::ivec2(1, 0);
+              break;
+            case 3:
+              newOrigin += previousRoom->getWestDoor();
+              newOrigin -= currentRoom->getEastDoor();
+              newOrigin -= glm::ivec2(1, 0);
+              break;
+            default:
+              throw std::runtime_error("Unexpected RNG value");
+          }
+
+          if (currentRoom->layout(getEntityManager(), serviceLocator, *_grid, roomLayout, newOrigin)) {
+            previousRoom->enclose(getEntityManager(), serviceLocator, *_grid, roomLayout, origin);
+            previousRoom = std::move(currentRoom);
+            origin = newOrigin;
+            ++roomCount;
+          }
+      } while (roomCount < 16);
+
+      previousRoom->enclose(getEntityManager(), serviceLocator, *_grid, roomLayout, origin);
 
       {
         auto playerEntity = createEntity();
         playerEntity->add<Player>();
         playerEntity->add<Friendly>();
 
-        auto gridPosition = origin + glm::ivec2(room1->getHeight(), room2->getHeight()) / 2;
-
         auto transform = playerEntity->add<Transform>();
         transform->scale = glm::vec3(0.75f);
-        transform->position = glm::vec3(_grid->getWorldPosition(gridPosition), 1.0f);
+        transform->position = glm::vec3(_grid->getWorldPosition(playerStartPosition), 1.0f);
 
         auto physicalState = playerEntity->add<PhysicalState>();
         physicalState->previousPosition = glm::vec2(transform->position);
         physicalState->currentPosition = physicalState->previousPosition;
 
         auto gridPositionComponent = playerEntity->add<GridPosition>();
-        gridPositionComponent->position = gridPosition;
+        gridPositionComponent->position = playerStartPosition;
         gridPositionComponent->speed = 2.0f;
 
         auto drawable = playerEntity->add<Drawable>();
@@ -155,7 +159,7 @@ class ProceduralPrototypeScene : public Scene {
     }
 
   private:
-    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(50, 50, 1.0f);
+    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(500, 500, 1.0f);
 };
 
 }  // namespace linguine

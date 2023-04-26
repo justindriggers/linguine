@@ -17,6 +17,8 @@ class Grid {
 
     [[nodiscard]] glm::vec2 getGridPosition(glm::vec2 worldPosition) const;
 
+    [[nodiscard]] bool hasObstruction(glm::ivec2 location) const;
+
     void addObstruction(glm::ivec2 location, glm::ivec2 dimensions);
 
     void removeObstruction(glm::ivec2 location, glm::ivec2 dimensions);
@@ -55,8 +57,6 @@ class Grid {
     std::unordered_map<glm::ivec2, Obstruction> _obstructions;
 
     [[nodiscard]] std::vector<glm::ivec2> getNeighbors(glm::ivec2 location) const;
-
-    [[nodiscard]] inline bool hasObstruction(glm::ivec2 location) const;
 
     static inline int heuristic(glm::ivec2 a, glm::ivec2 b);
 
