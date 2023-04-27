@@ -6,7 +6,7 @@ namespace linguine {
 
 class RoomA : public Room {
   public:
-    RoomA() : Room(7, 9, {2, 9}, {2, -1}, {7, 3}, {-1, 4}) {}
+    RoomA() : Room(9, 11, {2, 11}, {2, -1}, {9, 3}, {-1, 4}, true) {}
 };
 
 }  // namespace linguine

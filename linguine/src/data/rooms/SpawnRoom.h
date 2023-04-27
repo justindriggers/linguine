@@ -6,7 +6,7 @@ namespace linguine {
 
 class SpawnRoom : public Room {
 public:
-  SpawnRoom() : Room(3, 3, {1, 3}, {1, -1}, {3, 1}, {-1, 1}) {}
+  SpawnRoom() : Room(5, 5, {2, 5}, {2, -1}, {5, 2}, {-1, 2}, false) {}
 };
 
 }  // namespace linguine

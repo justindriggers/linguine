@@ -14,9 +14,10 @@ namespace linguine {
 class Room {
   public:
     Room(int width, int height, glm::ivec2 northDoor, glm::ivec2 southDoor,
-         glm::ivec2 eastDoor, glm::ivec2 westDoor)
+         glm::ivec2 eastDoor, glm::ivec2 westDoor, bool hasEnemies)
         : _width(width), _height(height), _northDoor(northDoor),
-          _southDoor(southDoor), _eastDoor(eastDoor), _westDoor(westDoor) {}
+          _southDoor(southDoor), _eastDoor(eastDoor), _westDoor(westDoor),
+          _hasEnemies(hasEnemies) {}
 
     virtual ~Room() = default;
 
@@ -104,6 +105,52 @@ class Room {
       roomLayout.add(origin + getSouthDoor(), {1, 1});
       roomLayout.add(origin + getEastDoor(), {1, 1});
       roomLayout.add(origin + getWestDoor(), {1, 1});
+
+      if (_hasEnemies) {
+        auto rand = std::random_device();
+        auto randomEnemyCount = std::uniform_int_distribution(1, 4);
+        auto randomPositionX = std::uniform_int_distribution(1, getWidth() - 2);
+        auto randomPositionY = std::uniform_int_distribution(1, getHeight() - 2);
+
+        auto enemyCount = randomEnemyCount(rand);
+
+        while (enemyCount > 0) {
+          auto x = randomPositionX(rand);
+          auto y = randomPositionY(rand);
+
+          auto gridPosition = origin + glm::ivec2(x, y);
+
+          if (!grid.hasObstruction(gridPosition)) {
+            auto enemyEntity = entityManager.create();
+
+            auto transform = enemyEntity->add<Transform>();
+            transform->scale = glm::vec3(0.9f);
+            transform->position = glm::vec3(grid.getWorldPosition(gridPosition), 1.0f);
+
+            auto physicalState = enemyEntity->add<PhysicalState>();
+            physicalState->previousPosition = glm::vec2(transform->position);
+            physicalState->currentPosition = physicalState->previousPosition;
+
+            auto gridPositionComponent = enemyEntity->add<GridPosition>();
+            gridPositionComponent->position = gridPosition;
+            gridPositionComponent->speed = 1.5f;
+
+            grid.addObstruction(gridPositionComponent->position, gridPositionComponent->dimensions);
+
+            auto drawable = enemyEntity->add<Drawable>();
+            drawable->feature = new ColoredFeature();
+            drawable->feature->meshType = Triangle;
+            drawable->feature->color = glm::vec3(1.0f, 0.0f, 0.0f);
+            drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+            drawable.setRemovalListener([drawable](const Entity e) {
+              drawable->renderable->destroy();
+            });
+
+            --enemyCount;
+          }
+        }
+      }
+
       return true;
     }
 
@@ -160,6 +207,8 @@ class Room {
     glm::ivec2 _southDoor;
     glm::ivec2 _eastDoor;
     glm::ivec2 _westDoor;
+
+    bool _hasEnemies;
 };
 
 }  // namespace linguine
