@@ -5,11 +5,8 @@
 namespace linguine::render {
 
 SelectableFeatureRenderer::SelectableFeatureRenderer(MetalRenderContext& context,
-                                                     Camera& camera,
                                                      MeshRegistry& meshRegistry)
-    : _context(context), _camera(camera), _meshRegistry(meshRegistry) {
-  _cameraBuffer = context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-
+    : _context(context), _meshRegistry(meshRegistry) {
   const auto shaderSourceCode = R"(
       struct MetalCamera {
         metal::float4x4 viewProjectionMatrix;
@@ -73,11 +70,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MetalRenderContext& context
   }
 
   _selectableRenderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-  _selectableRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
-  _selectableRenderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(UINT32_MAX, UINT32_MAX, 0, 0));
   _selectableRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
-  _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
-  _selectableRenderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
   _selectableRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionDontCare);
 
   depthStencilDescriptor->release();
@@ -88,11 +81,16 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MetalRenderContext& context
 }
 
 SelectableFeatureRenderer::~SelectableFeatureRenderer() {
-  for (const auto& valueBuffer : _valueBuffers) {
-    valueBuffer->release();
+  for (const auto& cameraValueBuffers : _valueBuffers) {
+    for (const auto& valueBuffer : cameraValueBuffers) {
+      valueBuffer->release();
+    }
   }
 
-  _cameraBuffer->release();
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer->release();
+  }
+
   _pipelineState->release();
   _depthState->release();
   _selectableRenderPassDescriptor->release();
@@ -104,40 +102,59 @@ bool SelectableFeatureRenderer::isRelevant(Renderable& renderable) {
   return renderable.hasFeature<SelectableFeature>();
 }
 
-void SelectableFeatureRenderer::draw() {
+void SelectableFeatureRenderer::draw(Camera& camera) {
+  if (camera.getId() == 0) {
+    _selectableRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
+    _selectableRenderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(UINT32_MAX, UINT32_MAX, 0, 0));
+    _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+    _selectableRenderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
+  } else {
+    _selectableRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
+    _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
+  }
+
   auto commandEncoder = _context.commandBuffer->renderCommandEncoder(_selectableRenderPassDescriptor);
 
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
-  memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
-  commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
+  ensureCameraBuffersCapacity(camera.getId());
 
-  const auto renderables = getRenderables();
+  auto cameraBuffer = _cameraBuffers[camera.getId()];
+  auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
+  memcpy(&metalCamera->viewProjectionMatrix, &camera.viewProjectionMatrix, sizeof(simd::float4x4));
+  commandEncoder->setVertexBuffer(cameraBuffer, 0, 1);
 
-  while (_valueBuffers.size() < renderables.size()) {
-    _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalSelectableFeature), MTL::ResourceStorageModeShared));
+  auto filteredRenderables = std::vector<Renderable*>();
+
+  for (const auto& renderable : getRenderables()) {
+    if (renderable.second->getLayer() == camera.layer && renderable.second->isEnabled()) {
+      filteredRenderables.push_back(renderable.second);
+    }
+  }
+
+  auto& valueBuffers = _valueBuffers[camera.getId()];
+
+  while (valueBuffers.size() < filteredRenderables.size()) {
+    valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalSelectableFeature), MTL::ResourceStorageModeShared));
   }
 
   auto valueBufferIndex = 0;
 
-  for (const auto& renderable : renderables) {
-    if (renderable.second->isEnabled()) {
-      auto feature = renderable.second->getFeature<SelectableFeature>();
+  for (const auto& renderable : filteredRenderables) {
+    auto feature = renderable->getFeature<SelectableFeature>();
 
-      auto& mesh = _meshRegistry.get(feature.meshType);
-      mesh->bind(*commandEncoder);
+    auto& mesh = _meshRegistry.get(feature.meshType);
+    mesh->bind(*commandEncoder);
 
-      auto valueBuffer = _valueBuffers[valueBufferIndex++];
-      auto metalSelectableFeature = static_cast<MetalSelectableFeature*>(valueBuffer->contents());
+    auto valueBuffer = valueBuffers[valueBufferIndex++];
+    auto metalSelectableFeature = static_cast<MetalSelectableFeature*>(valueBuffer->contents());
 
-      memcpy(&metalSelectableFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
-      metalSelectableFeature->entityId = toUint2(feature.entityId);
+    memcpy(&metalSelectableFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
+    metalSelectableFeature->entityId = toUint2(feature.entityId);
 
-      commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
-      mesh->draw(*commandEncoder);
-    }
+    commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
+    mesh->draw(*commandEncoder);
   }
 
   commandEncoder->endEncoding();
@@ -195,6 +212,14 @@ std::optional<uint64_t> SelectableFeatureRenderer::getEntityIdAt(float x, float 
   }
 
   return {};
+}
+
+void SelectableFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
+  while (_cameraBuffers.size() < maxId + 1) {
+    auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
+    _cameraBuffers.push_back(cameraBuffer);
+    _valueBuffers.emplace_back();
+  }
 }
 
 }  // namespace linguine::render

@@ -7,8 +7,6 @@
 
 #include <Metal/Metal.hpp>
 
-#include <renderer/Camera.h>
-
 #include "mesh/MeshRegistry.h"
 #include "MetalRenderContext.h"
 
@@ -16,27 +14,26 @@ namespace linguine::render {
 
 class ColoredFeatureRenderer : public FeatureRenderer {
   public:
-    ColoredFeatureRenderer(MetalRenderContext& context, Camera& camera,
+    ColoredFeatureRenderer(MetalRenderContext& context,
                            MeshRegistry& meshRegistry);
 
     ~ColoredFeatureRenderer() override;
 
     bool isRelevant(Renderable& renderable) override;
 
-    void draw() override;
+    void draw(Camera& camera) override;
 
     void resize(uint16_t width, uint16_t height) override {}
 
   private:
     MetalRenderContext& _context;
-    Camera& _camera;
     MeshRegistry& _meshRegistry;
 
-    MTL::Buffer* _cameraBuffer = nullptr;
+    std::vector<MTL::Buffer*> _cameraBuffers;
     MTL::RenderPipelineState* _pipelineState = nullptr;
     MTL::DepthStencilState* _depthState = nullptr;
 
-    std::vector<MTL::Buffer*> _valueBuffers;
+    std::vector<std::vector<MTL::Buffer*>> _valueBuffers;
 
     struct MetalCamera {
       simd::float4x4 viewProjectionMatrix{};
@@ -46,6 +43,8 @@ class ColoredFeatureRenderer : public FeatureRenderer {
       simd::float4x4 modelMatrix{};
       simd::float3 color{};
     };
+
+    void ensureCameraBuffersCapacity(uint64_t maxId);
 };
 
 }  // namespace linguine::render

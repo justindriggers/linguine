@@ -7,8 +7,6 @@
 
 #include <Metal/Metal.hpp>
 
-#include <renderer/Camera.h>
-
 #include "mesh/MeshRegistry.h"
 #include "MetalRenderContext.h"
 
@@ -16,14 +14,14 @@ namespace linguine::render {
 
 class SelectableFeatureRenderer : public FeatureRenderer {
   public:
-    SelectableFeatureRenderer(MetalRenderContext& context, Camera& camera,
+    SelectableFeatureRenderer(MetalRenderContext& context,
                               MeshRegistry& meshRegistry);
 
     ~SelectableFeatureRenderer() override;
 
     bool isRelevant(Renderable& renderable) override;
 
-    void draw() override;
+    void draw(Camera& camera) override;
 
     void resize(uint16_t width, uint16_t height) override;
 
@@ -48,17 +46,16 @@ class SelectableFeatureRenderer : public FeatureRenderer {
 
   private:
     MetalRenderContext& _context;
-    Camera& _camera;
     MeshRegistry& _meshRegistry;
 
-    MTL::Buffer* _cameraBuffer = nullptr;
+    std::vector<MTL::Buffer*> _cameraBuffers;
     MTL::RenderPipelineState* _pipelineState = nullptr;
     MTL::DepthStencilState* _depthState = nullptr;
     MTL::Texture* _selectableTexture = nullptr;
     MTL::Texture* _selectableDepthTexture = nullptr;
     MTL::RenderPassDescriptor* _selectableRenderPassDescriptor = nullptr;
 
-    std::vector<MTL::Buffer*> _valueBuffers;
+    std::vector<std::vector<MTL::Buffer*>> _valueBuffers;
 
     struct MetalCamera {
       simd::float4x4 viewProjectionMatrix{};
@@ -68,6 +65,8 @@ class SelectableFeatureRenderer : public FeatureRenderer {
       simd::float4x4 modelMatrix{};
       simd::uint2 entityId{};
     };
+
+    void ensureCameraBuffersCapacity(uint64_t maxId);
 };
 
 }  // namespace linguine::render

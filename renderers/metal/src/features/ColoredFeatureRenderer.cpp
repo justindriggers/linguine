@@ -5,11 +5,8 @@
 namespace linguine::render {
 
 ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
-                                               Camera& camera,
                                                MeshRegistry& meshRegistry)
-    : _context(context), _camera(camera), _meshRegistry(meshRegistry) {
-  _cameraBuffer = context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-
+    : _context(context), _meshRegistry(meshRegistry) {
   const auto shaderSourceCode = R"(
       struct MetalCamera {
         metal::float4x4 viewProjectionMatrix;
@@ -80,11 +77,16 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
 }
 
 ColoredFeatureRenderer::~ColoredFeatureRenderer() {
-  for (const auto& valueBuffer : _valueBuffers) {
-    valueBuffer->release();
+  for (const auto& cameraValueBuffers : _valueBuffers) {
+    for (const auto& valueBuffer : cameraValueBuffers) {
+      valueBuffer->release();
+    }
   }
 
-  _cameraBuffer->release();
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer->release();
+  }
+
   _pipelineState->release();
   _depthState->release();
 }
@@ -93,43 +95,60 @@ bool ColoredFeatureRenderer::isRelevant(Renderable& renderable) {
   return renderable.hasFeature<ColoredFeature>();
 }
 
-void ColoredFeatureRenderer::draw() {
+void ColoredFeatureRenderer::draw(Camera& camera) {
   auto commandEncoder = _context.commandBuffer->renderCommandEncoder(_context.coloredRenderPassDescriptor);
 
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
-  memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
-  commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
+  ensureCameraBuffersCapacity(camera.getId());
 
-  const auto renderables = getRenderables();
+  auto cameraBuffer = _cameraBuffers[camera.getId()];
+  auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
+  memcpy(&metalCamera->viewProjectionMatrix, &camera.viewProjectionMatrix, sizeof(simd::float4x4));
+  commandEncoder->setVertexBuffer(cameraBuffer, 0, 1);
 
-  while (_valueBuffers.size() < renderables.size()) {
-    _valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalColoredFeature), MTL::ResourceStorageModeShared));
+  auto filteredRenderables = std::vector<Renderable*>();
+
+  for (const auto& renderable : getRenderables()) {
+    if (renderable.second->getLayer() == camera.layer && renderable.second->isEnabled()) {
+      filteredRenderables.push_back(renderable.second);
+    }
+  }
+
+  auto& valueBuffers = _valueBuffers[camera.getId()];
+
+  while (valueBuffers.size() < filteredRenderables.size()) {
+    valueBuffers.push_back(_context.device->newBuffer(sizeof(MetalColoredFeature), MTL::ResourceStorageModeShared));
   }
 
   auto valueBufferIndex = 0;
 
-  for (const auto& renderable : renderables) {
-    if (renderable.second->isEnabled()) {
-      auto feature = renderable.second->getFeature<ColoredFeature>();
+  for (const auto& renderable : filteredRenderables) {
+    auto feature = renderable->getFeature<ColoredFeature>();
 
-      auto& mesh = _meshRegistry.get(feature.meshType);
-      mesh->bind(*commandEncoder);
+    auto& mesh = _meshRegistry.get(feature.meshType);
+    mesh->bind(*commandEncoder);
 
-      auto valueBuffer = _valueBuffers[valueBufferIndex++];
-      auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
+    auto valueBuffer = valueBuffers[valueBufferIndex++];
+    auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
 
-      memcpy(&metalColoredFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
-      memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float3));
+    memcpy(&metalColoredFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
+    memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float3));
 
-      commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
-      mesh->draw(*commandEncoder);
-    }
+    commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
+    mesh->draw(*commandEncoder);
   }
 
   commandEncoder->endEncoding();
+}
+
+void ColoredFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
+  while (_cameraBuffers.size() < maxId + 1) {
+    auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
+    _cameraBuffers.push_back(cameraBuffer);
+    _valueBuffers.emplace_back();
+  }
 }
 
 }  // namespace linguine::render

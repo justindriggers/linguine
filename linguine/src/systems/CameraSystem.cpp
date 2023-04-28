@@ -7,17 +7,16 @@ namespace linguine {
 
 void CameraSystem::update(float deltaTime) {
   const auto& viewport = _renderer.getViewport();
-  auto& camera = _renderer.getCamera();
 
-  findEntities<Transform, CameraFixture>()->each([&viewport, &camera](const Entity& entity) {
+  findEntities<Transform, CameraFixture>()->each([&viewport](const Entity& entity) {
     const auto transform = entity.get<Transform>();
     const auto cameraFixture = entity.get<CameraFixture>();
 
     auto cameraModelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
                              * glm::mat4_cast(transform->rotation);
 
-    camera.viewMatrix = glm::inverse(cameraModelMatrix);
-    camera.projectionMatrix = glm::ortho(
+    cameraFixture->camera->viewMatrix = glm::inverse(cameraModelMatrix);
+    cameraFixture->camera->projectionMatrix = glm::ortho(
         -cameraFixture->height / 2.0f * viewport.getAspectRatio(),
         cameraFixture->height / 2.0f * viewport.getAspectRatio(),
         -cameraFixture->height / 2.0f,
@@ -26,7 +25,7 @@ void CameraSystem::update(float deltaTime) {
         10.0f
     );
 
-    camera.viewProjectionMatrix = camera.projectionMatrix * camera.viewMatrix;
+    cameraFixture->camera->viewProjectionMatrix = cameraFixture->camera->projectionMatrix * cameraFixture->camera->viewMatrix;
   });
 }
 

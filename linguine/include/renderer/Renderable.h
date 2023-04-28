@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Layer.h"
 #include "renderer/features/RenderFeature.h"
 
 namespace linguine {
@@ -10,8 +11,8 @@ class Renderer;
 
 class Renderable {
   public:
-    Renderable(const uint64_t id, Renderer& renderer, std::unique_ptr<RenderFeature> feature)
-        : _id(id), _renderer(renderer), _feature(std::move(feature)), _isEnabled(true) {}
+    Renderable(const uint64_t id, Renderer& renderer, std::unique_ptr<RenderFeature> feature, Layer layer)
+        : _id(id), _renderer(renderer), _feature(std::move(feature)), _isEnabled(true), _layer(layer) {}
 
     void destroy();
 
@@ -39,11 +40,20 @@ class Renderable {
 
     void setFeature(std::unique_ptr<RenderFeature> feature);
 
+    [[nodiscard]] Layer getLayer() const {
+      return _layer;
+    }
+
+    void setLayer(Layer layer) {
+      _layer = layer;
+    }
+
   private:
     const uint64_t _id;
     Renderer& _renderer;
     std::unique_ptr<RenderFeature> _feature;
     bool _isEnabled;
+    Layer _layer;
 };
 
 }  // namespace linguine

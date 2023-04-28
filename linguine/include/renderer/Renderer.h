@@ -15,9 +15,9 @@ class Renderer {
   public:
     virtual ~Renderer() = default;
 
-    Renderable* create(std::unique_ptr<RenderFeature> feature);
+    Renderable* create(std::unique_ptr<RenderFeature> feature, Layer layer = World);
 
-    [[nodiscard]] Camera& getCamera();
+    Camera* createCamera();
 
     [[nodiscard]] const Viewport& getViewport() const;
 
@@ -39,14 +39,18 @@ class Renderer {
     [[nodiscard]] virtual std::optional<uint64_t> getEntityIdAt(float x, float y) const = 0;
 
   protected:
+    [[nodiscard]] const std::vector<std::unique_ptr<Camera>>& getCameras() const {
+      return _cameras;
+    }
+
     [[nodiscard]] virtual const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const = 0;
 
   private:
-    Camera _camera;
     Viewport _viewport;
 
     uint64_t _nextIndex = 0;
 
+    std::vector<std::unique_ptr<Camera>> _cameras;
     std::unordered_map<uint64_t, std::unique_ptr<Renderable>> _renderables;
 
     void onFeatureChanged(Renderable& renderable);

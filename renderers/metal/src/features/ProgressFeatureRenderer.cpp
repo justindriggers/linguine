@@ -5,11 +5,8 @@
 namespace linguine::render {
 
 ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
-                                                 Camera& camera,
                                                  MeshRegistry& meshRegistry)
-    : _context(context), _camera(camera), _meshRegistry(meshRegistry) {
-  _cameraBuffer = context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-
+    : _context(context), _meshRegistry(meshRegistry) {
   const auto shaderSourceCode = R"(
       struct MetalCamera {
         metal::float4x4 viewProjectionMatrix;
@@ -85,15 +82,22 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
 }
 
 ProgressFeatureRenderer::~ProgressFeatureRenderer() {
-  for (const auto& vertexFeatureBuffer : _vertexFeatureBuffers) {
-    vertexFeatureBuffer->release();
+  for (const auto& cameraVertexFeatureBuffers : _vertexFeatureBuffers) {
+    for (const auto& vertexFeatureBuffer : cameraVertexFeatureBuffers) {
+      vertexFeatureBuffer->release();
+    }
   }
 
-  for (const auto& fragmentFeatureBuffer : _fragmentFeatureBuffers) {
-    fragmentFeatureBuffer->release();
+  for (const auto& cameraFragmentFeatureBuffers : _fragmentFeatureBuffers) {
+    for (const auto& fragmentFeatureBuffer : cameraFragmentFeatureBuffers) {
+      fragmentFeatureBuffer->release();
+    }
   }
 
-  _cameraBuffer->release();
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer->release();
+  }
+
   _pipelineState->release();
   _depthState->release();
 }
@@ -102,54 +106,74 @@ bool ProgressFeatureRenderer::isRelevant(Renderable& renderable) {
   return renderable.hasFeature<ProgressFeature>();
 }
 
-void ProgressFeatureRenderer::draw() {
+void ProgressFeatureRenderer::draw(Camera& camera) {
   auto commandEncoder = _context.commandBuffer->renderCommandEncoder(_context.coloredRenderPassDescriptor);
 
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  auto metalCamera = static_cast<MetalCamera*>(_cameraBuffer->contents());
-  memcpy(&metalCamera->viewProjectionMatrix, &_camera.viewProjectionMatrix, sizeof(simd::float4x4));
-  commandEncoder->setVertexBuffer(_cameraBuffer, 0, 1);
+  ensureCameraBuffersCapacity(camera.getId());
 
-  const auto renderables = getRenderables();
+  auto cameraBuffer = _cameraBuffers[camera.getId()];
+  auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
+  memcpy(&metalCamera->viewProjectionMatrix, &camera.viewProjectionMatrix, sizeof(simd::float4x4));
+  commandEncoder->setVertexBuffer(cameraBuffer, 0, 1);
 
-  while (_vertexFeatureBuffers.size() < renderables.size()) {
-    _vertexFeatureBuffers.push_back(_context.device->newBuffer(sizeof(MetalProgressVertexFeature), MTL::ResourceStorageModeShared));
+  auto filteredRenderables = std::vector<Renderable*>();
+
+  for (const auto& renderable : getRenderables()) {
+    if (renderable.second->getLayer() == camera.layer && renderable.second->isEnabled()) {
+      filteredRenderables.push_back(renderable.second);
+    }
   }
 
-  while (_fragmentFeatureBuffers.size() < renderables.size()) {
-    _fragmentFeatureBuffers.push_back(_context.device->newBuffer(sizeof(MetalProgressFragmentFeature), MTL::ResourceStorageModeShared));
+  auto& vertexFeatureBuffers = _vertexFeatureBuffers[camera.getId()];
+
+  while (vertexFeatureBuffers.size() < filteredRenderables.size()) {
+    vertexFeatureBuffers.push_back(_context.device->newBuffer(sizeof(MetalProgressVertexFeature), MTL::ResourceStorageModeShared));
+  }
+
+  auto& fragmentFeatureBuffers = _fragmentFeatureBuffers[camera.getId()];
+
+  while (fragmentFeatureBuffers.size() < filteredRenderables.size()) {
+    fragmentFeatureBuffers.push_back(_context.device->newBuffer(sizeof(MetalProgressFragmentFeature), MTL::ResourceStorageModeShared));
   }
 
   auto valueBufferIndex = 0;
 
-  for (const auto& renderable : renderables) {
-    if (renderable.second->isEnabled()) {
-      auto feature = renderable.second->getFeature<ProgressFeature>();
+  for (const auto& renderable : filteredRenderables) {
+    auto feature = renderable->getFeature<ProgressFeature>();
 
-      auto& mesh = _meshRegistry.get(feature.meshType);
-      mesh->bind(*commandEncoder);
+    auto& mesh = _meshRegistry.get(feature.meshType);
+    mesh->bind(*commandEncoder);
 
-      auto vertexFeatureBuffer = _vertexFeatureBuffers[valueBufferIndex];
-      auto metalVertexProgressFeature = static_cast<MetalProgressVertexFeature*>(vertexFeatureBuffer->contents());
-      memcpy(&metalVertexProgressFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
+    auto vertexFeatureBuffer = vertexFeatureBuffers[valueBufferIndex];
+    auto metalVertexProgressFeature = static_cast<MetalProgressVertexFeature*>(vertexFeatureBuffer->contents());
+    memcpy(&metalVertexProgressFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
 
-      auto fragmentFeatureBuffer = _fragmentFeatureBuffers[valueBufferIndex];
-      auto metalFragmentProgressFeature = static_cast<MetalProgressFragmentFeature*>(fragmentFeatureBuffer->contents());
+    auto fragmentFeatureBuffer = fragmentFeatureBuffers[valueBufferIndex];
+    auto metalFragmentProgressFeature = static_cast<MetalProgressFragmentFeature*>(fragmentFeatureBuffer->contents());
 
-      memcpy(&metalFragmentProgressFeature->color, &feature.color, sizeof(simd::float3));
-      metalFragmentProgressFeature->progress = feature.progress;
+    memcpy(&metalFragmentProgressFeature->color, &feature.color, sizeof(simd::float3));
+    metalFragmentProgressFeature->progress = feature.progress;
 
-      commandEncoder->setVertexBuffer(vertexFeatureBuffer, 0, 2);
-      commandEncoder->setFragmentBuffer(fragmentFeatureBuffer, 0, 0);
-      mesh->draw(*commandEncoder);
+    commandEncoder->setVertexBuffer(vertexFeatureBuffer, 0, 2);
+    commandEncoder->setFragmentBuffer(fragmentFeatureBuffer, 0, 0);
+    mesh->draw(*commandEncoder);
 
-      valueBufferIndex++;
-    }
+    valueBufferIndex++;
   }
 
   commandEncoder->endEncoding();
+}
+
+void ProgressFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
+  while (_cameraBuffers.size() < maxId + 1) {
+    auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
+    _cameraBuffers.push_back(cameraBuffer);
+    _vertexFeatureBuffers.emplace_back();
+    _fragmentFeatureBuffers.emplace_back();
+  }
 }
 
 }  // namespace linguine::render

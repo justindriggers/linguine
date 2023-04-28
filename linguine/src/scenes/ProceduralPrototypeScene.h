@@ -54,7 +54,6 @@ class ProceduralPrototypeScene : public Scene {
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
       auto& renderer = serviceLocator.get<Renderer>();
-      renderer.getCamera().clearColor = glm::vec3(0.64f, 0.65f, 0.11f);
 
       {
         auto cameraEntity = createEntity();
@@ -67,6 +66,36 @@ class ProceduralPrototypeScene : public Scene {
 
         auto fixture = cameraEntity->add<CameraFixture>();
         fixture->height = 20.0f;
+        fixture->camera = renderer.createCamera();
+        fixture->camera->clearColor = glm::vec3(0.64f, 0.65f, 0.11f);
+      }
+
+      {
+        auto uiCameraEntity = createEntity();
+
+        auto transform = uiCameraEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        auto fixture = uiCameraEntity->add<CameraFixture>();
+        fixture->height = 10.0f;
+        fixture->camera = renderer.createCamera();
+        fixture->camera->clearColor = {};
+        fixture->camera->layer = UI;
+      }
+
+      {
+        auto uiTestEntity = createEntity();
+
+        auto transform = uiTestEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -3.0f, 0.0f);
+
+        auto drawable = uiTestEntity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
       }
 
       auto roomLayout = RoomLayout();

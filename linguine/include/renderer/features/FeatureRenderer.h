@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "renderer/Camera.h"
 #include "renderer/Renderable.h"
 
 namespace linguine {
@@ -16,7 +17,7 @@ class FeatureRenderer {
 
     virtual bool isRelevant(Renderable& renderable) = 0;
 
-    virtual void draw() = 0;
+    virtual void draw(Camera& camera) = 0;
 
     virtual void resize(uint16_t width, uint16_t height) = 0;
 

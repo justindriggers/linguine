@@ -4,9 +4,9 @@
 
 namespace linguine {
 
-Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature) {
+Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature, Layer layer) {
   const auto id = _nextIndex++;
-  _renderables.insert({id, std::make_unique<Renderable>(id, *this, std::move(feature))});
+  _renderables.insert({id, std::make_unique<Renderable>(id, *this, std::move(feature), layer)});
 
   auto& renderable = _renderables[id];
   onFeatureChanged(*renderable);
@@ -14,8 +14,11 @@ Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature) {
   return renderable.get();
 }
 
-Camera& Renderer::getCamera() {
-  return _camera;
+Camera* Renderer::createCamera() {
+  const auto id = _cameras.size();
+  _cameras.push_back(std::make_unique<Camera>(id));
+
+  return _cameras[id].get();
 }
 
 const Viewport& Renderer::getViewport() const {

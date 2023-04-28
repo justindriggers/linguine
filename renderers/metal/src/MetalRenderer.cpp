@@ -27,10 +27,10 @@ class MetalRendererImpl : public MetalRenderer {
 
       _meshRegistry = std::make_unique<MeshRegistry>(*_context.device);
 
-      _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, getCamera(), *_meshRegistry);
+      _selectableFeatureRenderer = new SelectableFeatureRenderer(_context, *_meshRegistry);
 
-      _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, getCamera(), *_meshRegistry));
-      _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, getCamera(), *_meshRegistry));
+      _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *_meshRegistry));
+      _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
       _features.shrink_to_fit();
     }
@@ -73,23 +73,30 @@ void MetalRendererImpl::draw() {
 void MetalRendererImpl::doDraw() {
   auto pool = NS::AutoreleasePool::alloc()->init();
 
-  auto clearColor = getCamera().clearColor;
-  _view.setClearColor(MTL::ClearColor::Make(clearColor.r, clearColor.g, clearColor.b, 1.0f));
-  _view.setClearDepth(1.0f);
-
   _context.commandBuffer = _context.commandQueue->commandBuffer();
   _context.coloredRenderPassDescriptor = _view.currentRenderPassDescriptor();
 
-  _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
-  _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
-  _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
-  _context.coloredRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionStore);
+  for (const auto& camera : getCameras()) {
+    if (camera->clearColor) {
+      auto clearColor = *camera->clearColor;
+      _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
+      _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(clearColor.r, clearColor.g, clearColor.b, 1.0f));
+    } else {
+      _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
+    }
 
-  for (const auto& feature : getFeatures()) {
-    feature->draw();
+    _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
 
-    _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
-    _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
+    _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+    _context.coloredRenderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
+    _context.coloredRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionStore);
+
+    for (const auto& feature : getFeatures()) {
+      feature->draw(*camera);
+
+      _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
+      _context.coloredRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
+    }
   }
 
   _context.commandBuffer->presentDrawable(_view.currentDrawable());
