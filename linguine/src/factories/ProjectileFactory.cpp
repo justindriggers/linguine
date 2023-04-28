@@ -10,12 +10,12 @@
 
 namespace linguine {
 
-void ProjectileFactory::create(glm::vec2 location, glm::vec2 velocity, int32_t power) {
+void ProjectileFactory::create(glm::vec2 location, float speed, int32_t power) {
   auto entity = _entityManager.create();
   entity->add<Hostile>();
 
   auto projectile = entity->add<Projectile>();
-  projectile->velocity = velocity;
+  projectile->speed = speed;
   projectile->power = power;
 
   auto transform = entity->add<Transform>();

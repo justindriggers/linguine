@@ -5,6 +5,7 @@
 #include <random>
 
 #include "components/GridPosition.h"
+#include "components/PhysicalState.h"
 #include "components/Targeting.h"
 #include "data/Grid.h"
 
@@ -24,6 +25,9 @@ class EnemyTargetingSystem : public System {
     std::random_device _random;
 
     void clearTargetIfDead(Component<Targeting>& targeting);
+
+    void clearTargetIfOutOfRange(Component<Targeting>& targeting,
+                                 Component<PhysicalState>& physicalState);
 
     void selectTarget(Component<Targeting>& targeting,
                       Component<GridPosition>& gridPosition,

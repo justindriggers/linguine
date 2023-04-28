@@ -4,8 +4,13 @@
 
 #include "RoomLayout.h"
 #include "ServiceLocator.h"
+#include "components/Alive.h"
+#include "components/Hostile.h"
+#include "components/ProjectileAttack.h"
 #include "components/Selectable.h"
+#include "components/Targeting.h"
 #include "components/Tile.h"
+#include "components/Unit.h"
 #include "entity/Entity.h"
 #include "entity/EntityManager.h"
 
@@ -122,6 +127,18 @@ class Room {
 
           if (!grid.hasObstruction(gridPosition)) {
             auto enemyEntity = entityManager.create();
+            enemyEntity->add<Hostile>();
+            enemyEntity->add<Unit>();
+            enemyEntity->add<Alive>();
+
+            auto targeting = enemyEntity->add<Targeting>();
+            targeting->strategy = Targeting::Nearest;
+            targeting->range = 10.0f;
+
+            auto projectileAttack = enemyEntity->add<ProjectileAttack>();
+            projectileAttack->speed = 7.5f;
+            projectileAttack->frequency = 5.0f;
+            projectileAttack->range = 5.0f;
 
             auto transform = enemyEntity->add<Transform>();
             transform->scale = glm::vec3(0.9f);
@@ -133,7 +150,7 @@ class Room {
 
             auto gridPositionComponent = enemyEntity->add<GridPosition>();
             gridPositionComponent->position = gridPosition;
-            gridPositionComponent->speed = 1.5f;
+            gridPositionComponent->speed = 0.75f;
 
             grid.addObstruction(gridPositionComponent->position, gridPositionComponent->dimensions);
 

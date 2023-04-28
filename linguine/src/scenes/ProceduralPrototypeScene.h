@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "components/CameraFixture.h"
+#include "components/CircleCollider.h"
 #include "components/Drawable.h"
 #include "components/Friendly.h"
 #include "components/GridPosition.h"
@@ -21,12 +22,15 @@
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
+#include "systems/EnemyAttackSystem.h"
+#include "systems/EnemyTargetingSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/GridPositionSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/PointAndClickMovementSystem.h"
+#include "systems/ProjectileSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
@@ -41,7 +45,10 @@ class ProceduralPrototypeScene : public Scene {
       registerSystem(std::make_unique<PointAndClickMovementSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+      registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
+      registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
+      registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>(), *_grid));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -135,6 +142,8 @@ class ProceduralPrototypeScene : public Scene {
         auto playerEntity = createEntity();
         playerEntity->add<Player>();
         playerEntity->add<Friendly>();
+        playerEntity->add<Unit>();
+        playerEntity->add<Alive>();
 
         auto transform = playerEntity->add<Transform>();
         transform->scale = glm::vec3(0.75f);
@@ -143,6 +152,9 @@ class ProceduralPrototypeScene : public Scene {
         auto physicalState = playerEntity->add<PhysicalState>();
         physicalState->previousPosition = glm::vec2(transform->position);
         physicalState->currentPosition = physicalState->previousPosition;
+
+        auto circleCollider = playerEntity->add<CircleCollider>();
+        circleCollider->radius = 0.375f;
 
         auto gridPositionComponent = playerEntity->add<GridPosition>();
         gridPositionComponent->position = playerStartPosition;

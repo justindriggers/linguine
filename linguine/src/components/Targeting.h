@@ -12,6 +12,7 @@ struct Targeting {
   };
 
   Strategy strategy = Random;
+  float range = 10.0f;
   std::optional<uint64_t> current = {};
 };
 

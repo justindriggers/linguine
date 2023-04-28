@@ -10,7 +10,7 @@ class ProjectileFactory {
     ProjectileFactory(EntityManager& entityManager, Renderer& renderer)
         : _entityManager(entityManager), _renderer(renderer) {}
 
-    void create(glm::vec2 location, glm::vec2 velocity, int32_t power);
+    void create(glm::vec2 location, float speed, int32_t power);
 
   private:
     EntityManager& _entityManager;

@@ -8,22 +8,30 @@
 namespace linguine {
 
 void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
-  auto friendlies = findEntities<Friendly, Alive, GridPosition>()->get();
+  auto friendlies = findEntities<Friendly, Alive, GridPosition, PhysicalState>()->get();
 
-  findEntities<Hostile, Unit, Alive, GridPosition, Targeting>()->each([this, &friendlies](const Entity& entity) {
+  findEntities<Hostile, Unit, Alive, GridPosition, PhysicalState, Targeting>()->each([this, &friendlies](const Entity& entity) {
     auto targeting = entity.get<Targeting>();
     auto gridPosition = entity.get<GridPosition>();
+    auto physicalState = entity.get<PhysicalState>();
 
     if (!gridPosition->transientDestination) {
       if (targeting->current) {
         clearTargetIfDead(targeting);
+        clearTargetIfOutOfRange(targeting, physicalState);
       }
 
-      if (friendlies.empty()) {
+      auto friendliesInRange = std::vector<std::shared_ptr<Entity>>();
+      std::copy_if(friendlies.begin(), friendlies.end(), std::back_inserter(friendliesInRange), [&targeting, &physicalState](const std::shared_ptr<Entity>& friendly) {
+        auto targetPhysicalState = friendly->get<PhysicalState>();
+        return glm::distance(targetPhysicalState->currentPosition, physicalState->currentPosition) <= targeting->range;
+      });
+
+      if (friendliesInRange.empty()) {
         return;
       }
 
-      selectTarget(targeting, gridPosition, friendlies);
+      selectTarget(targeting, gridPosition, friendliesInRange);
 
       if (targeting->current) {
         moveTowardTarget(targeting, gridPosition);
@@ -37,6 +45,17 @@ void EnemyTargetingSystem::clearTargetIfDead(Component<Targeting>& targeting) {
   auto target = getEntityById(targetId);
 
   if (!target->has<Alive>()) {
+    targeting->current = {};
+  }
+}
+
+void EnemyTargetingSystem::clearTargetIfOutOfRange(Component<Targeting>& targeting,
+                                                   Component<PhysicalState>& physicalState) {
+  auto targetId = *targeting->current;
+  auto target = getEntityById(targetId);
+  auto targetPhysicalState = target->get<PhysicalState>();
+
+  if (glm::distance(targetPhysicalState->currentPosition, physicalState->currentPosition) > targeting->range) {
     targeting->current = {};
   }
 }
