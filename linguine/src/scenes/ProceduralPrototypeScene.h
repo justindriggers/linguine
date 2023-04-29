@@ -77,24 +77,35 @@ class ProceduralPrototypeScene : public Scene {
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
         auto fixture = uiCameraEntity->add<CameraFixture>();
-        fixture->height = 10.0f;
+        fixture->height = 1.0f;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = {};
         fixture->camera->layer = UI;
       }
 
       {
-        auto uiTestEntity = createEntity();
+        auto uiBackgroundEntity = createEntity();
 
-        auto transform = uiTestEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -3.0f, 0.0f);
+        auto transform = uiBackgroundEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -0.35f, 0.0f);
+        transform->scale = glm::vec3(1.0f, 0.3f, 0.0f);
 
-        auto drawable = uiTestEntity->add<Drawable>();
+        auto drawable = uiBackgroundEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
         drawable->feature->meshType = Quad;
+        drawable->feature->color = glm::vec3(0.0f);
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
+        });
+
+        auto selectable = uiBackgroundEntity->add<Selectable>();
+        selectable->feature = new SelectableFeature();
+        selectable->feature->meshType = Quad;
+        selectable->feature->entityId = uiBackgroundEntity->getId();
+        selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature), UI);
+        selectable.setRemovalListener([selectable](const Entity e) {
+          selectable->renderable->destroy();
         });
       }
 

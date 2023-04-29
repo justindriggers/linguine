@@ -71,6 +71,8 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MetalRenderContext& context
 
   _selectableRenderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
   _selectableRenderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
+  _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+  _selectableRenderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
   _selectableRenderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionDontCare);
 
   depthStencilDescriptor->release();
@@ -106,11 +108,8 @@ void SelectableFeatureRenderer::draw(Camera& camera) {
   if (camera.getId() == 0) {
     _selectableRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
     _selectableRenderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(UINT32_MAX, UINT32_MAX, 0, 0));
-    _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
-    _selectableRenderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
   } else {
     _selectableRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionLoad);
-    _selectableRenderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionLoad);
   }
 
   auto commandEncoder = _context.commandBuffer->renderCommandEncoder(_selectableRenderPassDescriptor);
