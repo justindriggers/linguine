@@ -3,6 +3,7 @@
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 
+#include "components/Friendly.h"
 #include "components/Health.h"
 #include "components/Hit.h"
 #include "components/PhysicalState.h"
@@ -19,6 +20,21 @@ void ProjectileSystem::fixedUpdate(float fixedDeltaTime) {
     for (const auto entityId : hit->entityIds) {
       if (entityId == projectile->target) {
         auto target = getEntityById(entityId);
+
+        if (target->has<Friendly>()) {
+          auto friendlies = findEntities<Friendly, Health>()->get();
+
+          if (!friendlies.empty()) {
+            auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(friendlies.size() - 1));
+            const auto targetIndex = randomEntity(_random);
+            auto health = friendlies[targetIndex]->get<Health>();
+            health->current = glm::clamp<int32_t>(health->current - projectile->power, 0, health->max);
+          }
+        } else {
+          auto health = target->get<Health>();
+          health->current = glm::clamp<int32_t>(health->current - projectile->power, 0, health->max);
+        }
+
         entity.destroy();
       }
     }

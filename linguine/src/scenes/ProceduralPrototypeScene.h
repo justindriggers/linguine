@@ -5,13 +5,19 @@
 #include <random>
 #include <utility>
 
+#include "components/BigHeal.h"
 #include "components/CameraFixture.h"
 #include "components/CircleCollider.h"
+#include "components/Cooldown.h"
 #include "components/Drawable.h"
 #include "components/Friendly.h"
+#include "components/GlobalCooldown.h"
 #include "components/GridPosition.h"
+#include "components/Health.h"
+#include "components/HealthBar.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
+#include "components/Progressable.h"
 #include "components/Transform.h"
 #include "data/Grid.h"
 #include "data/rooms/RoomA.h"
@@ -22,11 +28,14 @@
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
+#include "systems/CooldownProgressSystem.h"
 #include "systems/EnemyAttackSystem.h"
 #include "systems/EnemyTargetingSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/GridPositionSystem.h"
+#include "systems/HealthProgressSystem.h"
+#include "systems/LivenessSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/PointAndClickMovementSystem.h"
@@ -49,6 +58,9 @@ class ProceduralPrototypeScene : public Scene {
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>(), *_grid));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), *_grid));
+      registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
+      registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -87,13 +99,13 @@ class ProceduralPrototypeScene : public Scene {
         auto uiBackgroundEntity = createEntity();
 
         auto transform = uiBackgroundEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -0.35f, 0.0f);
+        transform->position = glm::vec3(0.0f, -0.35f, 10.0f);
         transform->scale = glm::vec3(1.0f, 0.3f, 0.0f);
 
         auto drawable = uiBackgroundEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
         drawable->feature->meshType = Quad;
-        drawable->feature->color = glm::vec3(0.0f);
+        drawable->feature->color = glm::vec3(0.15f);
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
@@ -207,6 +219,101 @@ class ProceduralPrototypeScene : public Scene {
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
         });
+
+        const auto count = 5;
+
+        for (int i = 0; i < count; ++i) {
+          auto orbiterEntity = createEntity();
+          orbiterEntity->add<Friendly>();
+
+          auto orbiterHealth = orbiterEntity->add<Health>();
+          orbiterHealth->max = 500;
+          orbiterHealth->current = orbiterHealth->max;
+
+          orbiterEntity->add<Alive>();
+
+          {
+            auto healthEntity = createEntity();
+
+            auto healthBar = healthEntity->add<HealthBar>();
+            healthBar->entityId = orbiterEntity->getId();
+
+            auto healthTransform = healthEntity->add<Transform>();
+            healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 0.08f, -0.3f, 0.0f);
+            healthTransform->scale = glm::vec3(0.075f, 0.075f, 0.0f);
+
+            auto healthProgressable = healthEntity->add<Progressable>();
+            healthProgressable->feature = new ProgressFeature();
+            healthProgressable->feature->meshType = Quad;
+            healthProgressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
+            healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
+              healthProgressable->renderable->destroy();
+            });
+
+            auto healthSelectable = healthEntity->add<Selectable>();
+            healthSelectable->feature = new SelectableFeature();
+            healthSelectable->feature->meshType = Quad;
+            healthSelectable->feature->entityId = healthEntity->getId();
+            healthSelectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(healthSelectable->feature), UI);
+            healthSelectable.setRemovalListener([healthSelectable](const Entity e) {
+              healthSelectable->renderable->destroy();
+            });
+          }
+        }
+      }
+
+      {
+        auto gcdEntity = createEntity();
+
+        auto transform = gcdEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -0.225f, 0.0f);
+        transform->scale = glm::vec3(0.25f, 0.025f, 1.0f);
+
+        auto progressable = gcdEntity->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->meshType = Quad;
+        progressable->feature->color = glm::vec3(0.88f, 0.34f, 0.1f);
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+        progressable->renderable->setEnabled(false);
+
+        auto globalCooldown = gcdEntity->add<GlobalCooldown>();
+        globalCooldown->elapsed = 1.5f;
+        globalCooldown->total = 1.5f;
+      }
+
+      {
+        auto bigHealEntity = createEntity();
+
+        auto transform = bigHealEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -0.425f, 0.0f);
+        transform->scale = glm::vec3(0.09f);
+
+        auto progressable = bigHealEntity->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->meshType = Quad;
+        progressable->feature->color = glm::vec3(0.0f, 1.0f, 0.0f);
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+
+        auto selectable = bigHealEntity->add<Selectable>();
+        selectable->feature = new SelectableFeature();
+        selectable->feature->entityId = bigHealEntity->getId();
+        selectable->feature->meshType = Quad;
+        selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature), UI);
+        selectable.setRemovalListener([selectable](const Entity e) {
+          selectable->renderable->destroy();
+        });
+
+        bigHealEntity->add<BigHeal>();
+
+        auto cooldown = bigHealEntity->add<Cooldown>();
+        cooldown->elapsed = 10.0f;
+        cooldown->total = 10.0f;
       }
     }
 

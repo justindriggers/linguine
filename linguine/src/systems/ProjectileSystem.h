@@ -2,6 +2,8 @@
 
 #include "System.h"
 
+#include <random>
+
 namespace linguine {
 
 class ProjectileSystem : public System {
@@ -12,6 +14,9 @@ class ProjectileSystem : public System {
     void update(float deltaTime) override {}
 
     void fixedUpdate(float fixedDeltaTime) override;
+
+  private:
+    std::random_device _random;
 };
 
 }  // namespace linguine
