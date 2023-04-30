@@ -17,7 +17,9 @@
 #include "components/HealthBar.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
+#include "components/PlayerTarget.h"
 #include "components/Progressable.h"
+#include "components/Rotating.h"
 #include "components/Transform.h"
 #include "data/Grid.h"
 #include "data/rooms/RoomA.h"
@@ -38,8 +40,10 @@
 #include "systems/LivenessSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
+#include "systems/PlayerTargetingSystem.h"
 #include "systems/PointAndClickMovementSystem.h"
 #include "systems/ProjectileSystem.h"
+#include "systems/RotatorSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
@@ -51,9 +55,11 @@ class ProceduralPrototypeScene : public Scene {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
+      registerSystem(std::make_unique<PlayerTargetingSystem>(getEntityManager()));
       registerSystem(std::make_unique<PointAndClickMovementSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+      registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
@@ -259,6 +265,28 @@ class ProceduralPrototypeScene : public Scene {
               healthSelectable->renderable->destroy();
             });
           }
+        }
+
+        {
+          auto playerTargetEntity = createEntity();
+          playerTargetEntity->add<PlayerTarget>();
+
+          auto playerTargetRotating = playerTargetEntity->add<Rotating>();
+          playerTargetRotating->speed = 0.5f;
+
+          auto playerTargetTransform = playerTargetEntity->add<Transform>();
+          playerTargetTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+          playerTargetTransform->scale = glm::vec3(0.25f);
+
+          auto playerTargetDrawable = playerTargetEntity->add<Drawable>();
+          playerTargetDrawable->feature = new ColoredFeature();
+          playerTargetDrawable->feature->meshType = Quad;
+          playerTargetDrawable->feature->color = glm::vec3(1.0f);
+          playerTargetDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(playerTargetDrawable->feature));
+          playerTargetDrawable.setRemovalListener([playerTargetDrawable](const Entity e) {
+            playerTargetDrawable->renderable->destroy();
+          });
+          playerTargetDrawable->renderable->setEnabled(false);
         }
       }
 

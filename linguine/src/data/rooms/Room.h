@@ -163,6 +163,15 @@ class Room {
               drawable->renderable->destroy();
             });
 
+            auto selectable = enemyEntity->add<Selectable>();
+            selectable->feature = new SelectableFeature();
+            selectable->feature->meshType = Quad;
+            selectable->feature->entityId = enemyEntity->getId();
+            selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature));
+            selectable.setRemovalListener([selectable](const Entity e) {
+              selectable->renderable->destroy();
+            });
+
             --enemyCount;
           }
         }

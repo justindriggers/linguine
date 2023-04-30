@@ -63,6 +63,7 @@ void EnemyAttackSystem::update(float deltaTime) {
         entity->add<Hostile>();
 
         auto projectile = entity->add<Projectile>();
+        projectile->actor = enemyEntity.getId();
         projectile->speed = projectileAttack->speed;
         projectile->power = projectileAttack->power;
         projectile->target = *targeting->current;

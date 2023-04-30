@@ -2,26 +2,17 @@
 
 #include <glm/gtc/constants.hpp>
 
-#include "components/PhysicalState.h"
 #include "components/Rotating.h"
-#include "components/Tapped.h"
+#include "components/Transform.h"
 
 namespace linguine {
 
 void RotatorSystem::update(float deltaTime) {
-  findEntities<Rotating, Tapped>()->each([this](const Entity& entity) {
+  findEntities<Rotating, Transform>()->each([deltaTime](const Entity& entity) {
     const auto rotating = entity.get<Rotating>();
-    rotating->speed = -rotating->speed;
-    _audioManager.play(EffectType::Select);
-  });
-}
+    const auto transform = entity.get<Transform>();
 
-void RotatorSystem::fixedUpdate(float fixedDeltaTime) {
-  findEntities<Rotating, PhysicalState>()->each([fixedDeltaTime](const Entity& entity) {
-    const auto rotating = entity.get<Rotating>();
-    const auto physicalState = entity.get<PhysicalState>();
-
-    physicalState->currentRotation += glm::two_pi<float>() * rotating->speed * fixedDeltaTime;
+    transform->rotation *= glm::angleAxis(glm::two_pi<float>() * rotating->speed * deltaTime, glm::vec3(0.0f, 0.0f, 1.0f));
   });
 }
 
