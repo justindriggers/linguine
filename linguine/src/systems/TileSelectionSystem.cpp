@@ -93,10 +93,7 @@ void TileSelectionSystem::update(float deltaTime) {
           selectable->renderable->destroy();
         });
 
-        auto health = unitEntity->add<Health>();
-        health->current = 2'500;
-        health->max = 2'500;
-
+        unitEntity->add<Health>(2'500);
         unitEntity->add<Alive>();
         break;
       }

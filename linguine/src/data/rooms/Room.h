@@ -131,6 +131,8 @@ class Room {
             enemyEntity->add<Unit>();
             enemyEntity->add<Alive>();
 
+            enemyEntity->add<Health>(250);
+
             auto targeting = enemyEntity->add<Targeting>();
             targeting->strategy = Targeting::Nearest;
             targeting->range = 10.0f;
@@ -147,6 +149,9 @@ class Room {
             auto physicalState = enemyEntity->add<PhysicalState>();
             physicalState->previousPosition = glm::vec2(transform->position);
             physicalState->currentPosition = physicalState->previousPosition;
+
+            auto collider = enemyEntity->add<CircleCollider>();
+            collider->radius = 0.45f;
 
             auto gridPositionComponent = enemyEntity->add<GridPosition>();
             gridPositionComponent->position = gridPosition;

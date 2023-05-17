@@ -19,7 +19,7 @@ void ProjectileSystem::fixedUpdate(float fixedDeltaTime) {
     auto hit = entity.get<Hit>();
 
     for (const auto entityId : hit->entityIds) {
-      if (entityId == projectile->target) {
+      if (entity.has<Projectile>() && entityId == projectile->target) {
         auto target = getEntityById(entityId);
 
         if (target->has<Friendly>()) {

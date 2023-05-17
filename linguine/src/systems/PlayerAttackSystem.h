@@ -2,22 +2,22 @@
 
 #include "System.h"
 
-#include "data/Grid.h"
+#include "renderer/Renderer.h"
 
 namespace linguine {
 
 class PlayerAttackSystem : public System {
   public:
     PlayerAttackSystem(EntityManager& entityManager,
-                       Grid& grid)
-        : System(entityManager), _grid(grid) {}
+                       Renderer& renderer)
+        : System(entityManager), _renderer(renderer) {}
 
     void update(float deltaTime) override;
 
     void fixedUpdate(float fixedDeltaTime) override {}
 
   private:
-    Grid& _grid;
+    Renderer& _renderer;
 };
 
 }  // namespace linguine

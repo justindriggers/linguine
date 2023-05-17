@@ -39,6 +39,7 @@
 #include "systems/HealthProgressSystem.h"
 #include "systems/LivenessSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
+#include "systems/PlayerAttackSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/PlayerTargetingSystem.h"
 #include "systems/PointAndClickMovementSystem.h"
@@ -64,6 +65,7 @@ class ProceduralPrototypeScene : public Scene {
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>(), *_grid));
+      registerSystem(std::make_unique<PlayerAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
@@ -226,16 +228,18 @@ class ProceduralPrototypeScene : public Scene {
           drawable->renderable->destroy();
         });
 
+        auto projectileAttack = playerEntity->add<ProjectileAttack>();
+        projectileAttack->speed = 5.0f;
+        projectileAttack->power = 100;
+        projectileAttack->frequency = 1.5f;
+
         const auto count = 5;
 
         for (int i = 0; i < count; ++i) {
           auto orbiterEntity = createEntity();
           orbiterEntity->add<Friendly>();
 
-          auto orbiterHealth = orbiterEntity->add<Health>();
-          orbiterHealth->max = 500;
-          orbiterHealth->current = orbiterHealth->max;
-
+          orbiterEntity->add<Health>(500);
           orbiterEntity->add<Alive>();
 
           {

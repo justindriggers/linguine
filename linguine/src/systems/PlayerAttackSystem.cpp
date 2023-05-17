@@ -1,32 +1,65 @@
 #include "PlayerAttackSystem.h"
 
-#include "components/GridPosition.h"
-#include "components/Health.h"
-#include "components/MeleeAttack.h"
+#include "components/CircleCollider.h"
+#include "components/Drawable.h"
+#include "components/Friendly.h"
+#include "components/PhysicalState.h"
 #include "components/Player.h"
-#include "components/Targeting.h"
+#include "components/PlayerTarget.h"
+#include "components/Projectile.h"
+#include "components/ProjectileAttack.h"
+#include "components/Transform.h"
 
 namespace linguine {
 
 void PlayerAttackSystem::update(float deltaTime) {
-  findEntities<Player, MeleeAttack, Targeting, GridPosition>()->each([this, deltaTime](const Entity& entity) {
-    auto targeting = entity.get<Targeting>();
-    auto meleeAttack = entity.get<MeleeAttack>();
-    meleeAttack->elapsed += deltaTime;
+  findEntities<Player, ProjectileAttack, PhysicalState>()->each([this, deltaTime](const Entity& playerEntity) {
+    auto projectileAttack = playerEntity.get<ProjectileAttack>();
+    projectileAttack->elapsed += deltaTime;
 
-    if (targeting->current) {
-      auto target = getEntityById(*targeting->current);
+    findEntities<PlayerTarget>()->each([this, &playerEntity, &projectileAttack](const Entity& playerTargetEntity) {
+      auto playerTarget = playerTargetEntity.get<PlayerTarget>();
 
-      if (target->has<GridPosition>()) {
-        if (_grid.isAdjacent(target->get<GridPosition>()->position, entity.get<GridPosition>()->position)
-            && meleeAttack->elapsed >= meleeAttack->speed) {
-          meleeAttack->elapsed = 0.0f;
+      if (playerTarget->entityId) {
+        auto target = getEntityById(*playerTarget->entityId);
+        auto targetPhysicalState = target->get<PhysicalState>();
+        auto playerPhysicalState = playerEntity.get<PhysicalState>();
 
-          auto health = target->get<Health>();
-          health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
+        if (projectileAttack->elapsed >= projectileAttack->frequency
+            && glm::distance(playerPhysicalState->currentPosition, targetPhysicalState->currentPosition) <= projectileAttack->range) {
+          projectileAttack->elapsed = 0.0f;
+
+          auto entity = createEntity();
+          entity->add<Friendly>();
+
+          auto projectile = entity->add<Projectile>();
+          projectile->actor = playerEntity.getId();
+          projectile->speed = projectileAttack->speed;
+          projectile->power = projectileAttack->power;
+          projectile->target = target->getId();
+
+          auto transform = entity->add<Transform>();
+          transform->position = glm::vec3(playerPhysicalState->currentPosition, 2.0f);
+          transform->scale = glm::vec3(0.25f);
+
+          auto physicalState = entity->add<PhysicalState>();
+          physicalState->previousPosition = glm::vec2(transform->position);
+          physicalState->currentPosition = physicalState->previousPosition;
+
+          auto collider = entity->add<CircleCollider>();
+          collider->radius = 0.125f;
+
+          auto drawable = entity->add<Drawable>();
+          drawable->feature = new ColoredFeature();
+          drawable->feature->meshType = Quad;
+          drawable->feature->color = glm::vec3(0.0f, 1.0f, 0.0f);
+          drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+          drawable.setRemovalListener([drawable](const Entity e) {
+            drawable->renderable->destroy();
+          });
         }
       }
-    }
+    });
   });
 }
 

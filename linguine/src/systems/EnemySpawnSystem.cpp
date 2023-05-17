@@ -54,10 +54,7 @@ void EnemySpawnSystem::createEnemy(glm::vec3 location) {
     progressable->renderable->destroy();
   });
 
-  auto health = enemy->add<Health>();
-  health->current = 10'000;
-  health->max = 10'000;
-
+  enemy->add<Health>(10'000);
   enemy->add<Alive>();
 }
 

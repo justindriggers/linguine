@@ -13,7 +13,12 @@ void LivenessSystem::update(float deltaTime) {
     if (health->current <= 0) {
       if (entity.has<GridPosition>()) {
         auto gridPosition = entity.get<GridPosition>();
-        _grid.removeObstruction(glm::round(gridPosition->position), gridPosition->dimensions);
+
+        if (gridPosition->transientDestination) {
+          _grid.removeObstruction(*gridPosition->transientDestination, gridPosition->dimensions);
+        } else {
+          _grid.removeObstruction(glm::round(gridPosition->position), gridPosition->dimensions);
+        }
       }
 
       entity.destroy();
