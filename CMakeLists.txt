@@ -20,6 +20,8 @@ if (APPLE)
 
     add_subdirectory("${AUDIO_DIR}/audioengine")
     add_subdirectory("${RENDERERS_DIR}/metal")
+elseif (EMSCRIPTEN)
+    add_subdirectory(pesto)
 endif()
 
 add_subdirectory(linguine)
