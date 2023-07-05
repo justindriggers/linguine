@@ -8,7 +8,7 @@ add_executable(pesto
         src/platform/WebTimeManager.cpp
 )
 
-target_link_libraries(pesto PRIVATE linguine)
+target_link_libraries(pesto PRIVATE linguine opengl)
 
 add_custom_target(pesto-run
         COMMAND emrun --browser chrome pesto.html
