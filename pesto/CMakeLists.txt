@@ -10,6 +10,8 @@ add_executable(pesto
 
 target_link_libraries(pesto PRIVATE linguine opengl)
 
+set_target_properties(pesto PROPERTIES LINK_FLAGS "-sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sALLOW_MEMORY_GROWTH")
+
 add_custom_target(pesto-run
         COMMAND emrun --browser chrome pesto.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pesto

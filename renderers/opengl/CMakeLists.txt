@@ -1,5 +1,9 @@
 add_library(opengl
         src/OpenGLRenderer.cpp
+        src/features/ColoredFeatureRenderer.cpp
+        src/mesh/MeshRegistry.cpp
+        src/mesh/QuadMesh.cpp
+        src/mesh/TriangleMesh.cpp
 )
 
 target_include_directories(opengl PUBLIC include)

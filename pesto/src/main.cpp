@@ -10,26 +10,22 @@
 #include "platform/WebLogger.h"
 #include "platform/WebTimeManager.h"
 
-namespace linguine::pesto {
+using namespace linguine;
+using namespace linguine::pesto;
+using namespace linguine::render;
 
-auto logger = std::make_shared<WebLogger>();
-auto audioManager = std::make_shared<WebAudioManager>();
-auto inputManager = std::make_shared<WebInputManager>();
-auto lifecycleManager = std::make_shared<WebLifecycleManager>();
-auto renderer = std::make_shared<linguine::render::OpenGLRenderer>();
-auto timeManager = std::make_shared<WebTimeManager>();
-
-Engine engine = Engine(logger, audioManager, inputManager, lifecycleManager,
-                       renderer, timeManager);
+std::unique_ptr<Engine> engine;
 
 inline void tick() {
-  engine.tick();
+  engine->tick();
 }
 
-}  // namespace linguine::pesto
-
 int main() {
-  auto& logger = linguine::pesto::engine.get<linguine::Logger>();
+  auto logger = std::make_shared<WebLogger>();
+  auto audioManager = std::make_shared<WebAudioManager>();
+  auto inputManager = std::make_shared<WebInputManager>();
+  auto lifecycleManager = std::make_shared<WebLifecycleManager>();
+  auto timeManager = std::make_shared<WebTimeManager>();
 
   EmscriptenWebGLContextAttributes attributes;
   emscripten_webgl_init_context_attributes(&attributes);
@@ -37,15 +33,23 @@ int main() {
   attributes.majorVersion = 2;
   attributes.minorVersion = 0;
 
+  emscripten_set_canvas_element_size("canvas", 1024, 768);
+
   auto contextHandle = emscripten_webgl_create_context("canvas", &attributes);
 
   if (contextHandle < 0) {
-    logger.log("Error " + std::to_string(contextHandle) + " when creating WebGL context");
+    logger->log("Error " + std::to_string(contextHandle) + " when creating WebGL context");
     return -1;
   }
 
   emscripten_webgl_make_context_current(contextHandle);
 
-  emscripten_set_main_loop(linguine::pesto::tick, 0, false);
+  auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create());
+  renderer->resize(1024, 768);
+
+  engine = std::make_unique<Engine>(logger, audioManager, inputManager,
+                                    lifecycleManager, renderer, timeManager);
+
+  emscripten_set_main_loop(tick, 0, false);
   return 0;
 }
