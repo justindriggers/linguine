@@ -3,6 +3,7 @@
 #include <GLES3/gl3.h>
 
 #include "features/ColoredFeatureRenderer.h"
+#include "features/ProgressFeatureRenderer.h"
 
 namespace linguine::render {
 
@@ -30,6 +31,7 @@ class OpenGLRendererImpl : public OpenGLRenderer {
 
 OpenGLRendererImpl::OpenGLRendererImpl() {
   _features.push_back(std::make_unique<ColoredFeatureRenderer>(_meshRegistry));
+  _features.push_back(std::make_unique<ProgressFeatureRenderer>(_meshRegistry));
   _features.shrink_to_fit();
 
   glFrontFace(GL_CCW);

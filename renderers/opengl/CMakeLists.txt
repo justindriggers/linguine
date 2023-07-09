@@ -1,6 +1,7 @@
 add_library(opengl
         src/OpenGLRenderer.cpp
         src/features/ColoredFeatureRenderer.cpp
+        src/features/ProgressFeatureRenderer.cpp
         src/mesh/MeshRegistry.cpp
         src/mesh/QuadMesh.cpp
         src/mesh/TriangleMesh.cpp
