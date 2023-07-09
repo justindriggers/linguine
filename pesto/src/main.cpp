@@ -33,7 +33,7 @@ int main() {
   attributes.majorVersion = 2;
   attributes.minorVersion = 0;
 
-  emscripten_set_canvas_element_size("canvas", 1024, 768);
+  emscripten_set_canvas_element_size("canvas", 1440, 768);
 
   auto contextHandle = emscripten_webgl_create_context("canvas", &attributes);
 
@@ -45,7 +45,7 @@ int main() {
   emscripten_webgl_make_context_current(contextHandle);
 
   auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create());
-  renderer->resize(1024, 768);
+  renderer->resize(1440, 768);
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
                                     lifecycleManager, renderer, timeManager);

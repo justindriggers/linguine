@@ -54,7 +54,7 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MeshRegistry &meshRegistry)
     auto fragmentShaderCode =
         R"(#version 300 es
 
-           precision mediump float;
+           precision highp float;
 
            uniform vec3 color;
 
