@@ -22,6 +22,8 @@ class Engine : public ServiceLocator {
            const std::shared_ptr<Renderer>& renderer,
            const std::shared_ptr<TimeManager>& timeManager);
 
+    virtual ~Engine() = default;
+
     void run();
 
     void tick();
