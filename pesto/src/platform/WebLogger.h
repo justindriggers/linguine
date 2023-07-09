@@ -9,9 +9,6 @@ class WebLogger : public Logger {
     ~WebLogger() override = default;
 
     void log(const std::string& log) const override;
-
-    template<class T>
-    void log(T log) const {}
 };
 
 }  // namespace linguine::pesto
