@@ -30,7 +30,7 @@ class TestScene : public Scene {
       registerSystem(std::make_unique<SelectionDestructionSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<FallerSystem>(getEntityManager()));
       registerSystem(std::make_unique<RiserSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
-      registerSystem(std::make_unique<RotatorSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
+      registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
@@ -38,7 +38,8 @@ class TestScene : public Scene {
 
       // Camera
       auto cameraEntity = createEntity();
-      cameraEntity->add<CameraFixture>();
+      auto fixture = cameraEntity->add<CameraFixture>();
+      fixture->camera = renderer.createCamera();
 
       auto cameraTransform = cameraEntity->add<Transform>();
       cameraTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
