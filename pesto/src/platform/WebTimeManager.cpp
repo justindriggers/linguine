@@ -1,12 +1,15 @@
 #include "WebTimeManager.h"
 
-#include <chrono>
+#include <emscripten/emscripten.h>
 
-time_t linguine::pesto::WebTimeManager::currentTime() const {
-  auto now = std::chrono::system_clock::now();
-  return std::chrono::system_clock::to_time_t(now);
+namespace linguine::pesto {
+
+time_t WebTimeManager::currentTime() const {
+  return static_cast<time_t>(emscripten_get_now() * 1'000'000.0f);
 }
 
-float linguine::pesto::WebTimeManager::durationInSeconds(time_t from, time_t to) const {
-  return difftime(to, from);
+float WebTimeManager::durationInSeconds(time_t from, time_t to) const {
+  return static_cast<float>(to - from) / 1'000'000'000.0f;
 }
+
+}  // namespace linguine::pesto
