@@ -120,9 +120,7 @@ ColoredFeatureRenderer::~ColoredFeatureRenderer() {
 }
 
 bool ColoredFeatureRenderer::isRelevant(Renderable& renderable) {
-  auto result = renderable.hasFeature<ColoredFeature>();
-  printf("%llu: %b\n", renderable.getId(), result);
-  return result;
+  return renderable.hasFeature<ColoredFeature>();
 }
 
 void ColoredFeatureRenderer::draw(Camera& camera) {
