@@ -4,6 +4,7 @@
 
 #include "features/ColoredFeatureRenderer.h"
 #include "features/ProgressFeatureRenderer.h"
+#include "features/SelectableFeatureRenderer.h"
 
 namespace linguine::render {
 
@@ -15,9 +16,7 @@ class OpenGLRendererImpl : public OpenGLRenderer {
 
     void draw() override;
 
-    [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const override {
-      return {};
-    }
+    [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const override;
 
   protected:
     [[nodiscard]] const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const override {
@@ -26,12 +25,15 @@ class OpenGLRendererImpl : public OpenGLRenderer {
 
   private:
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
+    SelectableFeatureRenderer* _selectableFeatureRenderer;
     MeshRegistry _meshRegistry;
 };
 
-OpenGLRendererImpl::OpenGLRendererImpl() {
+OpenGLRendererImpl::OpenGLRendererImpl()
+    : _selectableFeatureRenderer(new SelectableFeatureRenderer(_meshRegistry)) {
   _features.push_back(std::make_unique<ColoredFeatureRenderer>(_meshRegistry));
   _features.push_back(std::make_unique<ProgressFeatureRenderer>(_meshRegistry));
+  _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
   _features.shrink_to_fit();
 
   glFrontFace(GL_CCW);
@@ -57,6 +59,10 @@ void OpenGLRendererImpl::draw() {
       feature->draw(*camera);
     }
   }
+}
+
+std::optional<uint64_t> OpenGLRendererImpl::getEntityIdAt(float x, float y) const {
+  return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
 OpenGLRenderer* OpenGLRenderer::create() {

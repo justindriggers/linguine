@@ -4,6 +4,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 add_executable(pesto
         src/main.cpp
+        src/platform/WebInputManager.cpp
         src/platform/WebLogger.cpp
         src/platform/WebTimeManager.cpp
 )

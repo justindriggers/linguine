@@ -23,7 +23,6 @@ inline void tick() {
 int main() {
   auto logger = std::make_shared<WebLogger>();
   auto audioManager = std::make_shared<WebAudioManager>();
-  auto inputManager = std::make_shared<WebInputManager>();
   auto lifecycleManager = std::make_shared<WebLifecycleManager>();
   auto timeManager = std::make_shared<WebTimeManager>();
 
@@ -46,6 +45,8 @@ int main() {
 
   auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create());
   renderer->resize(1440, 768);
+
+  auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport());
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
                                     lifecycleManager, renderer, timeManager);
