@@ -2,12 +2,13 @@
 #include <emscripten/html5.h>
 
 #include <Engine.h>
+#include <OpenALAudioManager.h>
 #include <OpenGLRenderer.h>
 
-#include "platform/WebAudioManager.h"
 #include "platform/WebInputManager.h"
 #include "platform/WebLifecycleManager.h"
 #include "platform/WebLogger.h"
+#include "platform/WebOpenALFileLoader.h"
 #include "platform/WebTimeManager.h"
 
 using namespace linguine;
@@ -22,7 +23,8 @@ inline void tick() {
 
 int main() {
   auto logger = std::make_shared<WebLogger>();
-  auto audioManager = std::make_shared<WebAudioManager>();
+  auto audioManager = std::make_shared<audio::OpenALAudioManager>(
+      std::make_unique<WebOpenALFileLoader>());
   auto lifecycleManager = std::make_shared<WebLifecycleManager>();
   auto timeManager = std::make_shared<WebTimeManager>();
 

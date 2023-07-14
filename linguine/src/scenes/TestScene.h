@@ -53,7 +53,7 @@ class TestScene : public Scene {
 
       auto componentDist = std::uniform_int_distribution(0, 1);
 
-      for (int i = 0; i < 10'000; ++i) {
+      for (int i = 0; i < 1'000; ++i) {
         auto entity = createEntity();
 
         auto transform = entity->add<Transform>();
