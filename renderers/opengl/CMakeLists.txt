@@ -5,7 +5,9 @@ add_library(opengl
         src/features/SelectableFeatureRenderer.cpp
         src/mesh/MeshRegistry.cpp
         src/mesh/QuadMesh.cpp
+        src/mesh/ScreenMesh.cpp
         src/mesh/TriangleMesh.cpp
+        src/postprocessing/GammaCorrection.cpp
 )
 
 target_include_directories(opengl PUBLIC include)

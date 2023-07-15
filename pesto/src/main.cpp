@@ -33,6 +33,7 @@ int main() {
 
   attributes.majorVersion = 2;
   attributes.minorVersion = 0;
+  attributes.depth = false;
 
   emscripten_set_canvas_element_size("canvas", 1440, 768);
 

@@ -23,7 +23,7 @@ class Renderer {
 
     virtual void draw() = 0;
 
-    void resize(uint16_t width, uint16_t height) {
+    virtual void resize(uint16_t width, uint16_t height) {
       _viewport.setSize(width, height);
 
       for (auto& feature : getFeatures()) {
