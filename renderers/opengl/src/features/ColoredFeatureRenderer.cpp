@@ -77,7 +77,7 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MeshRegistry &meshRegistry)
       auto error = std::string();
       error.reserve(logLength + 1);
 
-      glGetShaderInfoLog(vertexShaderId, logLength, NULL, error.data());
+      glGetShaderInfoLog(fragmentShaderId, logLength, NULL, error.data());
 
       printf("Fragment shader error: %s\n", error.c_str());
       throw std::runtime_error(error);
