@@ -19,8 +19,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
       - name: Install ghp-import
-        run: sudo apt install ghp-import
+        run: pip install ghp-import
     
       - id: cache-system-libraries
         uses: actions/cache@v3
