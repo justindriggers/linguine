@@ -19,6 +19,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install ghp-import
+        run: sudo apt install ghp-import
     
       - id: cache-system-libraries
         uses: actions/cache@v3
@@ -36,12 +38,6 @@ jobs:
       - name: Build
         run: cmake --build ${{github.workspace}}/build --target pesto -j2
 
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Install ghp-import
-        run: sudo apt install ghp-import
       - name: Prepare
         run: mkdir ${{github.workspace}}/build/pesto/deploy && mv ${{github.workspace}}/build/pesto/pesto.* ${{github.workspace}}/build/pesto/deploy/
       - name: Push
