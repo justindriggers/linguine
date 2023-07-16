@@ -19,11 +19,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - name: Install ghp-import
-        run: pip install ghp-import
     
       - id: cache-system-libraries
         uses: actions/cache@v3
@@ -42,6 +37,6 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --target pesto -j2
 
       - name: Prepare
-        run: mkdir ${{github.workspace}}/build/pesto/deploy && mv ${{github.workspace}}/build/pesto/pesto.* ${{github.workspace}}/build/pesto/deploy/
+        run: mkdir "${{github.workspace}}/$(git rev-parse HEAD)" && mv ${{github.workspace}}/build/pesto/pesto.* "${{github.workspace}}/$(git rev-parse HEAD)/"
       - name: Push
-        run: ghp-import -m "Update Pesto" -x "$(git rev-parse HEAD)" -o -p ${{github.workspace}}/build/pesto/deploy/
+        run: git fetch && git checkout gh-pages && git add "${{github.workspace}}/$(git rev-parse HEAD)" && git commit -m "$(git log -1 --pretty=%B)" && git push
