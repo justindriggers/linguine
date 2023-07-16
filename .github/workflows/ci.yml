@@ -37,6 +37,6 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --target pesto -j2
 
       - name: Prepare
-        run: mkdir "${{github.workspace}}/$(git rev-parse HEAD)" && mv ${{github.workspace}}/build/pesto/pesto.* "${{github.workspace}}/$(git rev-parse HEAD)/"
+        run: export DESTINATION_DIR="${{github.workspace}}/$(git rev-parse HEAD)" && mkdir $DESTINATION_DIR && mv ${{github.workspace}}/build/pesto/pesto.* $DESTINATION_DIR
       - name: Push
-        run: git fetch && git checkout gh-pages && git add "${{github.workspace}}/$(git rev-parse HEAD)" && git commit -m "$(git log -1 --pretty=%B)" && git push
+        run: git fetch && git checkout gh-pages && git add $DESTINATION_DIR && git commit -m "$(git log -1 --pretty=%B)" && git push
