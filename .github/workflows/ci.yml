@@ -5,6 +5,9 @@ on:
     branches:
       - "main"
 
+permissions:
+  contents: write
+
 env:
   BUILD_TYPE: Release
   EM_CACHE_FOLDER: emsdk-cache
@@ -32,3 +35,14 @@ jobs:
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --target pesto -j2
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install ghp-import
+        run: sudo apt install ghp-import
+      - name: Prepare
+        run: mkdir ${{github.workspace}}/build/pesto/deploy && mv ${{github.workspace}}/build/pesto/pesto.* ${{github.workspace}}/build/pesto/deploy/
+      - name: Push
+        run: ghp-import -x "$(git rev-parse HEAD)" -p ${{github.workspace}}/build/pesto/deploy/
