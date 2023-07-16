@@ -44,4 +44,4 @@ jobs:
       - name: Prepare
         run: mkdir ${{github.workspace}}/build/pesto/deploy && mv ${{github.workspace}}/build/pesto/pesto.* ${{github.workspace}}/build/pesto/deploy/
       - name: Push
-        run: ghp-import -m "$(git log -1 --pretty=%B)" -x "$(git rev-parse HEAD)" -p ${{github.workspace}}/build/pesto/deploy/
+        run: ghp-import -m "Update Pesto" -x "$(git rev-parse HEAD)" -o -p ${{github.workspace}}/build/pesto/deploy/
