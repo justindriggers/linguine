@@ -45,7 +45,7 @@ class TestScene : public Scene {
       cameraTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
       auto random = std::random_device();
-      auto xDist = std::uniform_real_distribution(-2.55f, 2.5f);
+      auto xDist = std::uniform_real_distribution(-10.0f, 10.0f);
       auto yDist = std::uniform_real_distribution(-5.0f, 5.0f);
       auto zDist = std::uniform_real_distribution(0.0f, 10.0f);
       auto normalDist = std::uniform_real_distribution(0.0f, 1.0f);
