@@ -39,4 +39,4 @@ jobs:
       - name: Prepare
         run: mkdir $GITHUB_SHA && mv build/pesto/pesto.* $GITHUB_SHA/
       - name: Push
-        run: git fetch && git checkout gh-pages && git add $GITHUB_SHA/ && git config user.email "justin@justindriggers.com" && git config user.name "Justin Driggers" && git commit -m "$(git log -1 --pretty=%B)" && git push
+        run: export COMMIT_MSG="$(git log -1 --pretty=%B)" && git fetch && git checkout gh-pages && git add $GITHUB_SHA/ && git config user.email "justin@justindriggers.com" && git config user.name "Justin Driggers" && git commit -m "$COMMIT_MSG" && git push
