@@ -31,12 +31,12 @@ jobs:
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
 
       - name: Configure CMake
-        run: emcmake cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: emcmake cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build --target pesto -j2
+        run: cmake --build build --target pesto -j2
 
       - name: Prepare
-        run: export DESTINATION_DIR="${{github.workspace}}/$(git rev-parse HEAD)" && mkdir $DESTINATION_DIR && mv ${{github.workspace}}/build/pesto/pesto.* $DESTINATION_DIR
+        run: mkdir $GITHUB_SHA && mv build/pesto/pesto.* $GITHUB_SHA/
       - name: Push
-        run: git fetch && git checkout gh-pages && git add $DESTINATION_DIR && git commit -m "$(git log -1 --pretty=%B)" && git push
+        run: git fetch && git checkout gh-pages && git add $GITHUB_SHA/ && git config user.email "justin@justindriggers.com" && git config user.name "Justin Driggers" && git commit -m "$(git log -1 --pretty=%B)" && git push
