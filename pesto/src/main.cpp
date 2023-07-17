@@ -35,7 +35,15 @@ int main() {
   attributes.minorVersion = 0;
   attributes.depth = false;
 
-  emscripten_set_canvas_element_size("canvas", 1440, 768);
+  int width, height;
+  emscripten_get_canvas_element_size("canvas", &width, &height);
+
+  if (width == 300 && height == 150) {
+    width = 1440;
+    height = 768;
+
+    emscripten_set_canvas_element_size("canvas", width, height);
+  }
 
   auto contextHandle = emscripten_webgl_create_context("canvas", &attributes);
 
@@ -47,7 +55,7 @@ int main() {
   emscripten_webgl_make_context_current(contextHandle);
 
   auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create());
-  renderer->resize(1440, 768);
+  renderer->resize(width, height);
 
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport());
 
