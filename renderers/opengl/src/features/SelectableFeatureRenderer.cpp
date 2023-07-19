@@ -199,6 +199,8 @@ void SelectableFeatureRenderer::draw(linguine::Camera& camera) {
 }
 
 std::optional<uint64_t> SelectableFeatureRenderer::getEntityIdAt(float x, float y) const {
+  glFinish();
+
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
   glm::uvec4 data;
