@@ -12,17 +12,15 @@ namespace linguine {
 class EnemyAttackSystem : public System {
   public:
     EnemyAttackSystem(EntityManager& entityManager,
-                      Renderer& renderer,
-                      Grid& grid)
-        : System(entityManager), _renderer(renderer), _grid(grid) {}
+                      Renderer& renderer)
+        : System(entityManager), _renderer(renderer) {}
 
     void update(float deltaTime) override;
 
-    void fixedUpdate(float fixedDeltaTime) override {}
+    void fixedUpdate(float fixedDeltaTime) override;
 
   private:
     Renderer& _renderer;
-    Grid& _grid;
     std::random_device _random;
 };
 

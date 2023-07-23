@@ -30,6 +30,18 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
     });
   });
 
+  findEntities<Hostile, Unit, PhysicalState, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Friendly, Unit, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
+      detectHit(a, b);
+    });
+  });
+
+  findEntities<Friendly, Unit, PhysicalState, CircleCollider>()->each([this](Entity& a) {
+    findEntities<Hostile, Unit, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
+      detectHit(a, b);
+    });
+  });
+
   findEntities<Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
     findEntities<CameraFixture, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
       if (!checkCollision(a, b)) {

@@ -1,5 +1,8 @@
 #include "EnemyTargetingSystem.h"
 
+#include <glm/geometric.hpp>
+#include <glm/gtx/norm.hpp>
+
 #include "components/Alive.h"
 #include "components/Friendly.h"
 #include "components/Hostile.h"
@@ -8,34 +11,24 @@
 namespace linguine {
 
 void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
-  auto friendlies = findEntities<Friendly, Alive, GridPosition, PhysicalState>()->get();
+  auto friendlies = findEntities<Friendly, Alive, PhysicalState>()->get();
 
-  findEntities<Hostile, Unit, Alive, GridPosition, PhysicalState, Targeting>()->each([this, &friendlies](const Entity& entity) {
+  findEntities<Hostile, Unit, Alive, PhysicalState, Targeting>()->each([this, &friendlies, fixedDeltaTime](const Entity& entity) {
     auto targeting = entity.get<Targeting>();
-    auto gridPosition = entity.get<GridPosition>();
     auto physicalState = entity.get<PhysicalState>();
 
-    if (!gridPosition->transientDestination) {
-      if (targeting->current) {
-        clearTargetIfDead(targeting);
-        clearTargetIfOutOfRange(targeting, physicalState);
-      }
+    if (targeting->current) {
+      clearTargetIfDead(targeting);
+    }
 
-      auto friendliesInRange = std::vector<std::shared_ptr<Entity>>();
-      std::copy_if(friendlies.begin(), friendlies.end(), std::back_inserter(friendliesInRange), [&targeting, &physicalState](const std::shared_ptr<Entity>& friendly) {
-        auto targetPhysicalState = friendly->get<PhysicalState>();
-        return glm::distance(targetPhysicalState->currentPosition, physicalState->currentPosition) <= targeting->range;
-      });
+    if (friendlies.empty()) {
+      return;
+    }
 
-      if (friendliesInRange.empty()) {
-        return;
-      }
+    selectTarget(targeting, physicalState, friendlies);
 
-      selectTarget(targeting, gridPosition, friendliesInRange);
-
-      if (targeting->current) {
-        moveTowardTarget(targeting, gridPosition);
-      }
+    if (targeting->current) {
+      moveTowardTarget(targeting, physicalState, fixedDeltaTime);
     }
   });
 }
@@ -49,19 +42,8 @@ void EnemyTargetingSystem::clearTargetIfDead(Component<Targeting>& targeting) {
   }
 }
 
-void EnemyTargetingSystem::clearTargetIfOutOfRange(Component<Targeting>& targeting,
-                                                   Component<PhysicalState>& physicalState) {
-  auto targetId = *targeting->current;
-  auto target = getEntityById(targetId);
-  auto targetPhysicalState = target->get<PhysicalState>();
-
-  if (glm::distance(targetPhysicalState->currentPosition, physicalState->currentPosition) > targeting->range) {
-    targeting->current = {};
-  }
-}
-
 void EnemyTargetingSystem::selectTarget(Component<Targeting>& targeting,
-                                        Component<GridPosition>& gridPosition,
+                                        Component<PhysicalState>& physicalState,
                                         const std::vector<std::shared_ptr<Entity>>& availableTargets) {
   switch (targeting->strategy) {
     case Targeting::Random: {
@@ -74,64 +56,43 @@ void EnemyTargetingSystem::selectTarget(Component<Targeting>& targeting,
       break;
     }
     case Targeting::Nearest: {
-      auto nearest = INT_MAX;
+      auto nearest = MAXFLOAT;
 
       if (targeting->current) {
         auto target = getEntityById(*targeting->current);
-        auto targetPosition = target->get<GridPosition>()->position;
-        auto path = _grid.search(glm::round(gridPosition->position), targetPosition);
+        auto targetPosition = target->get<PhysicalState>()->currentPosition;
 
-        if (!path.empty()) {
-          nearest = static_cast<int>(path.size());
-        }
+        nearest = glm::distance(physicalState->currentPosition, targetPosition);
       }
 
       for (const auto& target : availableTargets) {
-        auto targetPosition = target->get<GridPosition>()->position;
-        auto path = _grid.search(glm::round(gridPosition->position), targetPosition);
+        auto targetPosition = target->get<PhysicalState>()->currentPosition;
 
-        if (!path.empty()) {
-          auto distance = static_cast<int>(path.size());
+        auto distance = glm::distance(physicalState->currentPosition, targetPosition);
 
-          if (distance < nearest) {
-            nearest = distance;
-            targeting->current = target->getId();
-          }
+        if (distance < nearest) {
+          nearest = distance;
+          targeting->current = target->getId();
         }
       }
       break;
     }
     case Targeting::Adjacent: {
-      if (!targeting->current) {
-        for (const auto& target : availableTargets) {
-          auto targetPosition = target->get<GridPosition>()->position;
-
-          if (_grid.isAdjacent(glm::round(targetPosition), glm::round(gridPosition->position))) {
-            targeting->current = target->getId();
-          }
-        }
-      }
-      break;
+      throw std::runtime_error("Unsupported targeting mode");
     }
   }
 }
 
 void EnemyTargetingSystem::moveTowardTarget(Component<Targeting>& targeting,
-                                            Component<GridPosition>& gridPosition) {
+                                            Component<PhysicalState>& physicalState,
+                                            float fixedDeltaTime) {
   auto targetId = *targeting->current;
   auto target = getEntityById(targetId);
-  auto targetPosition = target->get<GridPosition>()->position;
+  auto targetPosition = target->get<PhysicalState>()->currentPosition;
 
-  auto currentPosition = glm::round(gridPosition->position);
-  auto path = _grid.search(currentPosition, targetPosition);
-
-  if (path.size() > 1) {
-    auto newPosition = *std::next(path.begin());
-    gridPosition->transientDestination = newPosition;
-
-    _grid.removeObstruction(currentPosition, gridPosition->dimensions);
-    _grid.addObstruction(newPosition, gridPosition->dimensions);
-  }
+  auto direction = glm::normalize(targetPosition - physicalState->currentPosition);
+  physicalState->currentPosition += direction * fixedDeltaTime;
+  physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
 }
 
 }  // namespace linguine

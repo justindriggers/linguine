@@ -2,11 +2,11 @@
 
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
-#include "components/GridPosition.h"
+#include "components/Friendly.h"
 #include "components/Health.h"
+#include "components/Hit.h"
 #include "components/Hostile.h"
 #include "components/MeleeAttack.h"
-#include "components/Orbiter.h"
 #include "components/PhysicalState.h"
 #include "components/Projectile.h"
 #include "components/ProjectileAttack.h"
@@ -16,35 +16,6 @@
 namespace linguine {
 
 void EnemyAttackSystem::update(float deltaTime) {
-  findEntities<Hostile, MeleeAttack, Targeting, GridPosition>()->each([this, deltaTime](const Entity& entity) {
-    auto targeting = entity.get<Targeting>();
-    auto meleeAttack = entity.get<MeleeAttack>();
-    meleeAttack->elapsed += deltaTime;
-
-    if (targeting->current) {
-      auto target = getEntityById(*targeting->current);
-
-      if (target->has<GridPosition>()) {
-        if (_grid.isAdjacent(target->get<GridPosition>()->position, entity.get<GridPosition>()->position)
-            && meleeAttack->elapsed >= meleeAttack->speed) {
-          meleeAttack->elapsed = 0.0f;
-
-          auto orbiters = findEntities<Orbiter, Health>()->get();
-
-          if (orbiters.empty()) {
-            auto health = target->get<Health>();
-            health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
-          } else {
-            auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(orbiters.size() - 1));
-            const auto targetIndex = randomEntity(_random);
-            auto health = orbiters[targetIndex]->get<Health>();
-            health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
-          }
-        }
-      }
-    }
-  });
-
   findEntities<Hostile, ProjectileAttack, Targeting, PhysicalState>()->each([this, deltaTime](const Entity& enemyEntity) {
     auto targeting = enemyEntity.get<Targeting>();
     auto enemyPhysicalState = enemyEntity.get<PhysicalState>();
@@ -87,6 +58,38 @@ void EnemyAttackSystem::update(float deltaTime) {
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
         });
+      }
+    }
+  });
+}
+
+void EnemyAttackSystem::fixedUpdate(float fixedDeltaTime) {
+  findEntities<Hostile, MeleeAttack, Targeting, Hit>()->each([this](const Entity& entity) {
+    auto targeting = entity.get<Targeting>();
+    auto hit = entity.get<Hit>();
+
+    if (targeting->current) {
+      for (const auto entityId : hit->entityIds) {
+        if (entityId == *targeting->current) {
+          auto meleeAttack = entity.get<MeleeAttack>();
+
+          auto target = getEntityById(*targeting->current);
+          auto targetPosition = target->get<PhysicalState>()->currentPosition;
+
+          auto friendlies = findEntities<Friendly, Health>()->get();
+
+          if (friendlies.empty()) {
+            if (target->has<Health>()) {
+              auto health = target->get<Health>();
+              health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
+            }
+          } else {
+            auto randomEntity = std::uniform_int_distribution<>(0, static_cast<int>(friendlies.size() - 1));
+            const auto targetIndex = randomEntity(_random);
+            auto health = friendlies[targetIndex]->get<Health>();
+            health->current = glm::clamp<int32_t>(health->current - meleeAttack->power, 0, health->max);
+          }
+        }
       }
     }
   });
