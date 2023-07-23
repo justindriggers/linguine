@@ -1,5 +1,6 @@
 #import "MacInputManager.h"
 
+#import <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
 
 #import <vector>
@@ -81,11 +82,49 @@ void MacInputManager::pollEvents() {
           touch.y = static_cast<float>(mouseLocation.y / frameSize.height);
           break;
         }
+        case NSEventTypeKeyDown: {
+          switch (event.keyCode) {
+          case kVK_ANSI_W:
+            _keyStates[Key::W] = true;
+            break;
+          case kVK_ANSI_A:
+            _keyStates[Key::A] = true;
+            break;
+          case kVK_ANSI_S:
+            _keyStates[Key::S] = true;
+            break;
+          case kVK_ANSI_D:
+            _keyStates[Key::D] = true;
+            break;
+          default:
+            [app sendEvent:event];
+            break;
+          }
+          break;
+        }
+        case NSEventTypeKeyUp: {
+          switch (event.keyCode) {
+          case kVK_ANSI_W:
+            _keyStates[Key::W] = false;
+            break;
+          case kVK_ANSI_A:
+            _keyStates[Key::A] = false;
+            break;
+          case kVK_ANSI_S:
+            _keyStates[Key::S] = false;
+            break;
+          case kVK_ANSI_D:
+            _keyStates[Key::D] = false;
+            break;
+          default:
+            [app sendEvent:event];
+            break;
+          }
+          break;
+        }
         default:
           break;
       }
-
-      [app sendEvent:event];
     }
   }
 }
@@ -96,6 +135,10 @@ const std::unordered_map<uint64_t, InputManager::Touch>& MacInputManager::getTou
 
 float MacInputManager::getSensitivity() const {
   return 1350.0f;
+}
+
+bool MacInputManager::isKeyPressed(Key key) const {
+  return _keyStates[key];
 }
 
 }  // namespace linguine::alfredo

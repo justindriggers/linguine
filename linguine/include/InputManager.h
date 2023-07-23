@@ -22,6 +22,14 @@ class InputManager {
       TouchState state;
     };
 
+    enum Key {
+      W,
+      A,
+      S,
+      D,
+      MAX
+    };
+
     virtual ~InputManager() = default;
 
     virtual void pollEvents() = 0;
@@ -29,6 +37,8 @@ class InputManager {
     [[nodiscard]] virtual const std::unordered_map<uint64_t, Touch>& getTouches() const = 0;
 
     [[nodiscard]] virtual float getSensitivity() const = 0;
+
+    [[nodiscard]] virtual bool isKeyPressed(Key key) const = 0;
 };
 
 }  // namespace linguine

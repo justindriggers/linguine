@@ -14,6 +14,10 @@ class IosInputManager : public InputManager {
 
     [[nodiscard]] float getSensitivity() const override;
 
+    [[nodiscard]] bool isKeyPressed(Key key) const override {
+      return false;
+    }
+
     void onTouchBegan(uint64_t id, float x, float y);
 
     void onTouchMoved(uint64_t id, float x, float y);

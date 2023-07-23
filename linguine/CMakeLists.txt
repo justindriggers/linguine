@@ -14,6 +14,7 @@ add_library(linguine
         src/systems/CameraSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
+        src/systems/DirectionalMovementSystem.cpp
         src/systems/EnemyAttackSystem.cpp
         src/systems/EnemyTargetingSystem.cpp
         src/systems/EnemySpawnSystem.cpp
