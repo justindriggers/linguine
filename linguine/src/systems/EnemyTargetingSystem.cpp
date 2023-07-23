@@ -56,7 +56,7 @@ void EnemyTargetingSystem::selectTarget(Component<Targeting>& targeting,
       break;
     }
     case Targeting::Nearest: {
-      auto nearest = MAXFLOAT;
+      auto nearest = 9999.0f;
 
       if (targeting->current) {
         auto target = getEntityById(*targeting->current);
