@@ -3,6 +3,7 @@
 #include "Scene.h"
 
 #include "components/Alive.h"
+#include "components/BoxCollider.h"
 #include "components/CameraFixture.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
@@ -17,6 +18,7 @@
 #include "components/Progressable.h"
 #include "components/ProjectileAttack.h"
 #include "components/Selectable.h"
+#include "components/Static.h"
 #include "components/Targeting.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
@@ -128,7 +130,7 @@ class BossFightPrototypeScene : public Scene {
         physicalState->currentPosition = physicalState->previousPosition;
 
         auto circleCollider = playerEntity->add<CircleCollider>();
-        circleCollider->radius = 0.75f / 2.0f;
+        circleCollider->radius = 0.25;
 
         auto drawable = playerEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
@@ -214,7 +216,7 @@ class BossFightPrototypeScene : public Scene {
         physicalState->currentPosition = physicalState->previousPosition;
 
         auto circleCollider = enemyEntity->add<CircleCollider>();
-        circleCollider->radius = 1.25f / 2.0f;
+        circleCollider->radius = 0.5f;
 
         auto drawable = enemyEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
@@ -236,6 +238,56 @@ class BossFightPrototypeScene : public Scene {
 
         auto meleeAttack = enemyEntity->add<MeleeAttack>();
         meleeAttack->power = 500;
+      }
+
+      {
+        auto movableEntity = createEntity();
+
+        auto transform = movableEntity->add<Transform>();
+        transform->position = { -5.0f, 5.0f, 1.0f };
+        transform->scale = { 1.0f, 5.0f, 1.0f };
+
+        auto physicalState = movableEntity->add<PhysicalState>();
+        physicalState->previousPosition = glm::vec2(transform->position);
+        physicalState->currentPosition = physicalState->previousPosition;
+
+        auto boxCollider = movableEntity->add<BoxCollider>();
+        boxCollider->size = { 1.0f, 5.0f };
+
+        auto drawable = movableEntity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->feature->color = { 0.0f, 1.0f, 0.0f };
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
+      }
+
+      {
+        auto immovableEntity = createEntity();
+
+        auto transform = immovableEntity->add<Transform>();
+        transform->position = { 5.0f, -2.0f, 1.0f };
+        transform->scale = { 4.0f, 2.0f, 1.0f };
+
+        auto physicalState = immovableEntity->add<PhysicalState>();
+        physicalState->previousPosition = glm::vec2(transform->position);
+        physicalState->currentPosition = physicalState->previousPosition;
+
+        auto boxCollider = immovableEntity->add<BoxCollider>();
+        boxCollider->size = { 4.0f, 2.0f };
+
+        immovableEntity->add<Static>();
+
+        auto drawable = immovableEntity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->feature->color = { 0.76f, 0.76f, 0.76f };
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
       }
     }
 };

@@ -12,6 +12,7 @@
 #include "components/ProjectileAttack.h"
 #include "components/Targeting.h"
 #include "components/Transform.h"
+#include "components/Trigger.h"
 
 namespace linguine {
 
@@ -49,6 +50,8 @@ void EnemyAttackSystem::update(float deltaTime) {
 
         auto collider = entity->add<CircleCollider>();
         collider->radius = 0.125f;
+
+        entity->add<Trigger>();
 
         auto drawable = entity->add<Drawable>();
         drawable->feature = new ColoredFeature();

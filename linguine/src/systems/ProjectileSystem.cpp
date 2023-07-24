@@ -19,7 +19,7 @@ void ProjectileSystem::fixedUpdate(float fixedDeltaTime) {
     auto hit = entity.get<Hit>();
 
     for (const auto entityId : hit->entityIds) {
-      if (entity.has<Projectile>() && entityId == projectile->target) {
+      if (entity.has<Projectile>() && entityId != projectile->actor) {
         auto target = getEntityById(entityId);
 
         if (target->has<Friendly>()) {
@@ -39,7 +39,7 @@ void ProjectileSystem::fixedUpdate(float fixedDeltaTime) {
               playerTarget->entityId = projectile->actor;
             }
           });
-        } else {
+        } else if (target->has<Health>()) {
           auto health = target->get<Health>();
           health->current = glm::clamp<int32_t>(health->current - projectile->power, 0, health->max);
         }
