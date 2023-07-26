@@ -2,6 +2,8 @@
 
 #include "Scene.h"
 
+#include <array>
+
 #include "components/Alive.h"
 #include "components/BoxCollider.h"
 #include "components/CameraFixture.h"
@@ -241,53 +243,63 @@ class BossFightPrototypeScene : public Scene {
       }
 
       {
-        auto movableEntity = createEntity();
+        const auto Y = true;
+        const auto N = false;
 
-        auto transform = movableEntity->add<Transform>();
-        transform->position = { -5.0f, 5.0f, 1.0f };
-        transform->scale = { 1.0f, 5.0f, 1.0f };
+        std::array<std::array<bool, 12>, 12> tiles = {
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, Y, N, N, N, N, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, Y, N, N, N, Y, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, N, N, N, N, Y, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, Y, N },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, Y, N, N },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, Y, N, N },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, Y, N, N, N },
+            std::array<bool, 12> { N, N, N, N, N, N, N, Y, N, N, N, N },
+            std::array<bool, 12> { N, N, N, N, N, N, Y, N, N, N, N, N },
+            std::array<bool, 12> { Y, Y, Y, Y, Y, Y, N, N, N, N, N, N },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, N }
+        };
 
-        auto physicalState = movableEntity->add<PhysicalState>();
-        physicalState->previousPosition = glm::vec2(transform->position);
-        physicalState->currentPosition = physicalState->previousPosition;
+        std::array<glm::vec2, 4> mods = {
+            glm::vec2 { -1.0f,  1.0f },
+            glm::vec2 {  1.0f,  1.0f },
+            glm::vec2 { -1.0f, -1.0f },
+            glm::vec2 {  1.0f, -1.0f }
+        };
 
-        auto boxCollider = movableEntity->add<BoxCollider>();
-        boxCollider->size = { 1.0f, 5.0f };
+        for (auto i = 0; i < tiles.size(); ++i) {
+          for (auto j = 0; j < tiles[i].size(); ++j) {
+            if (tiles[i][j]) {
+              for (auto& mod : mods) {
+                auto immovableEntity = createEntity();
 
-        auto drawable = movableEntity->add<Drawable>();
-        drawable->feature = new ColoredFeature();
-        drawable->feature->meshType = Quad;
-        drawable->feature->color = { 0.0f, 1.0f, 0.0f };
-        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
-        drawable.setRemovalListener([drawable](const Entity e) {
-          drawable->renderable->destroy();
-        });
-      }
+                auto transform = immovableEntity->add<Transform>();
+                transform->position = {
+                    mod.x * (static_cast<float>(j) + 0.5f),
+                    mod.y * (static_cast<float>(i) + 0.5f),
+                    5.0f
+                };
 
-      {
-        auto immovableEntity = createEntity();
+                auto physicalState = immovableEntity->add<PhysicalState>();
+                physicalState->previousPosition = glm::vec2(transform->position);
+                physicalState->currentPosition = physicalState->previousPosition;
 
-        auto transform = immovableEntity->add<Transform>();
-        transform->position = { 5.0f, -2.0f, 1.0f };
-        transform->scale = { 4.0f, 2.0f, 1.0f };
+                immovableEntity->add<BoxCollider>();
+                immovableEntity->add<Static>();
 
-        auto physicalState = immovableEntity->add<PhysicalState>();
-        physicalState->previousPosition = glm::vec2(transform->position);
-        physicalState->currentPosition = physicalState->previousPosition;
-
-        auto boxCollider = immovableEntity->add<BoxCollider>();
-        boxCollider->size = { 4.0f, 2.0f };
-
-        immovableEntity->add<Static>();
-
-        auto drawable = immovableEntity->add<Drawable>();
-        drawable->feature = new ColoredFeature();
-        drawable->feature->meshType = Quad;
-        drawable->feature->color = { 0.76f, 0.76f, 0.76f };
-        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
-        drawable.setRemovalListener([drawable](const Entity e) {
-          drawable->renderable->destroy();
-        });
+                auto drawable = immovableEntity->add<Drawable>();
+                drawable->feature = new ColoredFeature();
+                drawable->feature->meshType = Quad;
+                drawable->feature->color = {0.76f, 0.76f, 0.76f};
+                drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+                drawable.setRemovalListener([drawable](const Entity e) {
+                  drawable->renderable->destroy();
+                });
+              }
+            }
+          }
+        }
       }
     }
 };

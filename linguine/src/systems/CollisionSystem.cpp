@@ -38,6 +38,10 @@ bool CollisionSystem::checkCollision(const Entity& a, const Entity& b) {
     return false;
   }
 
+  if (a.has<Static>() && b.has<Static>()) {
+    return false;
+  }
+
   if (a.has<BoxCollider>() && b.has<BoxCollider>()
       && checkBoxBoxCollision(a, b)) {
     return true;
