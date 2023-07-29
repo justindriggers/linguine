@@ -2,6 +2,8 @@
 
 #include "System.h"
 
+#include "data/RaycastHit.h"
+
 namespace linguine {
 
 class CollisionSystem : public System {
@@ -29,6 +31,12 @@ class CollisionSystem : public System {
     static void resolveBoxCircleCollision(const Entity& a, const Entity& b);
 
     static void resolveCircleCircleCollision(const Entity& a, const Entity& b);
+
+    static std::optional<RaycastHit> checkRayIntersection(const Entity& a, const Entity& b);
+
+    static std::optional<RaycastHit> checkRayBoxIntersection(const Entity& a, const Entity& b);
+
+    static std::optional<RaycastHit> checkRayCircleIntersection(const Entity& a, const Entity& b);
 
     static void detectHit(Entity& a, Entity& b);
 };

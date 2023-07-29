@@ -5,6 +5,7 @@
 #include <array>
 
 #include "components/Alive.h"
+#include "components/Attachment.h"
 #include "components/BoxCollider.h"
 #include "components/CameraFixture.h"
 #include "components/CircleCollider.h"
@@ -19,11 +20,13 @@
 #include "components/Player.h"
 #include "components/Progressable.h"
 #include "components/ProjectileAttack.h"
+#include "components/Raycaster.h"
 #include "components/Selectable.h"
 #include "components/Static.h"
 #include "components/Targeting.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
+#include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
@@ -33,6 +36,7 @@
 #include "systems/EnemyTargetingSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
+#include "systems/GridPositionSystem.h"
 #include "systems/HealthProgressSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
@@ -48,11 +52,13 @@ class BossFightPrototypeScene : public Scene {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
+      registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<DirectionalMovementSystem>(getEntityManager(), serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+      registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
-      registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager()));
+      registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
@@ -218,7 +224,27 @@ class BossFightPrototypeScene : public Scene {
         physicalState->currentPosition = physicalState->previousPosition;
 
         auto circleCollider = enemyEntity->add<CircleCollider>();
-        circleCollider->radius = 0.5f;
+        circleCollider->radius = 0.35f;
+
+        {
+          auto raycasterEntity1 = createEntity();
+          raycasterEntity1->add<PhysicalState>();
+          raycasterEntity1->add<Raycaster>();
+
+          auto attachment = raycasterEntity1->add<Attachment>();
+          attachment->parentId = enemyEntity->getId();
+          attachment->offset = { -0.45f, 0.0f };
+        }
+
+        {
+          auto raycasterEntity2 = createEntity();
+          raycasterEntity2->add<PhysicalState>();
+          raycasterEntity2->add<Raycaster>();
+
+          auto attachment = raycasterEntity2->add<Attachment>();
+          attachment->parentId = enemyEntity->getId();
+          attachment->offset = { 0.45f, 0.0f };
+        }
 
         auto drawable = enemyEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
@@ -288,6 +314,8 @@ class BossFightPrototypeScene : public Scene {
                 immovableEntity->add<BoxCollider>();
                 immovableEntity->add<Static>();
 
+                _grid->addObstruction(_grid->getGridPosition(physicalState->currentPosition), { 1, 1 });
+
                 auto drawable = immovableEntity->add<Drawable>();
                 drawable->feature = new ColoredFeature();
                 drawable->feature->meshType = Quad;
@@ -302,6 +330,9 @@ class BossFightPrototypeScene : public Scene {
         }
       }
     }
+
+  private:
+    std::unique_ptr<Grid> _grid = std::make_unique<Grid>(1.0f);
 };
 
 }  // namespace linguine

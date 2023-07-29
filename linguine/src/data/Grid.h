@@ -10,8 +10,7 @@ namespace linguine {
 
 class Grid {
   public:
-    Grid(int width, int height, float scale)
-        : _width(width), _height(height), _scale(scale) {}
+    explicit Grid(float scale) : _scale(scale) {}
 
     [[nodiscard]] glm::vec2 getWorldPosition(glm::vec2 gridPosition) const;
 
@@ -23,17 +22,7 @@ class Grid {
 
     void removeObstruction(glm::ivec2 location, glm::ivec2 dimensions);
 
-    [[nodiscard]] bool isAdjacent(glm::ivec2 a, glm::ivec2 b) const;
-
     [[nodiscard]] std::list<glm::ivec2> search(glm::ivec2 start, glm::ivec2 goal);
-
-    [[nodiscard]] int getWidth() const {
-      return _width;
-    }
-
-    [[nodiscard]] int getHeight() const {
-      return _height;
-    }
 
   private:
     struct SearchNode {
@@ -50,13 +39,15 @@ class Grid {
       glm::ivec2 size;
     };
 
-    int _width;
-    int _height;
     float _scale;
 
     std::unordered_map<glm::ivec2, Obstruction> _obstructions;
 
     [[nodiscard]] std::vector<glm::ivec2> getNeighbors(glm::ivec2 location) const;
+
+    [[nodiscard]] bool isWalkable(glm::ivec2 a, glm::ivec2 b) const;
+
+    void smooth(std::list<glm::ivec2>& path) const;
 
     static inline int heuristic(glm::ivec2 a, glm::ivec2 b);
 

@@ -1,6 +1,8 @@
 #include "CollisionSystem.h"
 
 #include <glm/geometric.hpp>
+#include <glm/gtx/norm.hpp>
+#include <glm/gtx/projection.hpp>
 
 #include "components/BoxCollider.h"
 #include "components/CameraFixture.h"
@@ -8,6 +10,7 @@
 #include "components/Hit.h"
 #include "components/PhysicalState.h"
 #include "components/Projectile.h"
+#include "components/Raycaster.h"
 #include "components/Static.h"
 #include "components/Trigger.h"
 
@@ -16,6 +19,10 @@ namespace linguine {
 void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
   findEntities<Hit>()->each([](Entity& entity) {
     entity.remove<Hit>();
+  });
+
+  findEntities<Raycaster>()->each([](Entity& entity) {
+    entity.get<Raycaster>()->nearest = {};
   });
 
   findEntities<PhysicalState>()->each([this](Entity& a) {
@@ -207,6 +214,95 @@ void CollisionSystem::resolveCircleCircleCollision(const Entity& a, const Entity
   }
 }
 
+std::optional<RaycastHit> CollisionSystem::checkRayIntersection(const Entity& a, const Entity& b) {
+  if (a.getId() == b.getId()) {
+    return {};
+  }
+
+  std::optional<RaycastHit> result = {};
+  std::optional<RaycastHit> current = {};
+
+  if (b.has<BoxCollider>() && (current = checkRayBoxIntersection(a, b))) {
+    result = current;
+  }
+
+  if (b.has<CircleCollider>() && (current = checkRayCircleIntersection(a, b))) {
+    if (!result || result->distance > current->distance) {
+      result = current;
+    }
+  }
+
+  return result;
+}
+
+std::optional<RaycastHit> CollisionSystem::checkRayBoxIntersection(const Entity& a, const Entity& b) {
+  auto stateA = a.get<PhysicalState>();
+  auto stateB = b.get<PhysicalState>();
+
+  auto raycasterA = a.get<Raycaster>();
+  auto colliderB = b.get<BoxCollider>();
+
+  auto line = raycasterA->direction * raycasterA->distance;
+  auto sign = glm::sign(line);
+
+  auto nearTime = (stateB->currentPosition - sign * colliderB->size / 2.0f - stateA->currentPosition) / line;
+  auto farTime = (stateB->currentPosition + sign * colliderB->size / 2.0f - stateA->currentPosition) / line;
+
+  if (nearTime.x > farTime.y || nearTime.y > farTime.x) {
+    return {};
+  }
+
+  const auto greatestNearTime = glm::max(nearTime.x, nearTime.y);
+  const auto leastFarTime = glm::min(farTime.x, farTime.y);
+
+  if (greatestNearTime >= 1.0f || leastFarTime <= 0.0f) {
+    return {};
+  }
+
+  auto time = glm::clamp(greatestNearTime, 0.0f, 1.0f);
+
+  return RaycastHit {
+      .entityId = b.getId(),
+      .distance = time * raycasterA->distance
+  };
+}
+
+std::optional<RaycastHit> CollisionSystem::checkRayCircleIntersection(const Entity& a, const Entity& b) {
+  auto stateA = a.get<PhysicalState>();
+  auto stateB = b.get<PhysicalState>();
+
+  auto raycasterA = a.get<Raycaster>();
+  auto colliderB = b.get<CircleCollider>();
+
+  auto offset = stateB->currentPosition - stateA->currentPosition;
+  auto projectionDistance = glm::proj(offset, raycasterA->direction);
+
+  if (glm::length2(projectionDistance) > raycasterA->distance * raycasterA->distance) {
+    return {};
+  }
+
+  auto projection = stateA->currentPosition + projectionDistance;
+  auto distance = glm::distance(stateB->currentPosition, projection);
+
+  if (distance < colliderB->radius) {
+    auto mod = glm::sqrt(colliderB->radius * colliderB->radius - distance * distance);
+    auto distance1 = glm::distance(stateA->currentPosition, projection + mod);
+    auto distance2 = glm::distance(stateA->currentPosition, projection - mod);
+
+    return RaycastHit {
+        .entityId = b.getId(),
+        .distance = distance1 < distance2 ? distance1 : distance2
+    };
+  } else if (distance == colliderB->radius) {
+    return RaycastHit {
+        .entityId = b.getId(),
+        .distance = glm::distance(stateA->currentPosition, projection)
+    };
+  }
+
+  return {};
+}
+
 void CollisionSystem::detectHit(Entity& a, Entity& b) {
   if (checkCollision(a, b)) {
     if (a.has<Trigger>()) {
@@ -227,6 +323,15 @@ void CollisionSystem::detectHit(Entity& a, Entity& b) {
 
     if (!a.has<Trigger>() && !b.has<Trigger>()) {
       resolveCollision(a, b);
+    }
+  }
+
+  if (a.has<Raycaster>() && !b.has<Trigger>()) {
+    auto raycaster = a.get<Raycaster>();
+    auto intersection = checkRayIntersection(a, b);
+
+    if (intersection && (!raycaster->nearest || raycaster->nearest->distance > intersection->distance)) {
+      raycaster->nearest = intersection;
     }
   }
 }

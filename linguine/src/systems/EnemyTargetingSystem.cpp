@@ -1,10 +1,11 @@
 #include "EnemyTargetingSystem.h"
 
 #include <glm/geometric.hpp>
-#include <glm/gtx/norm.hpp>
 
 #include "components/Alive.h"
+#include "components/Attachment.h"
 #include "components/Friendly.h"
+#include "components/GridPosition.h"
 #include "components/Hostile.h"
 #include "components/Unit.h"
 
@@ -13,7 +14,7 @@ namespace linguine {
 void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
   auto friendlies = findEntities<Friendly, Alive, PhysicalState>()->get();
 
-  findEntities<Hostile, Unit, Alive, PhysicalState, Targeting>()->each([this, &friendlies, fixedDeltaTime](const Entity& entity) {
+  findEntities<Hostile, Unit, Alive, PhysicalState, Targeting>()->each([this, &friendlies, fixedDeltaTime](Entity& entity) {
     auto targeting = entity.get<Targeting>();
     auto physicalState = entity.get<PhysicalState>();
 
@@ -28,7 +29,7 @@ void EnemyTargetingSystem::fixedUpdate(float fixedDeltaTime) {
     selectTarget(targeting, physicalState, friendlies);
 
     if (targeting->current) {
-      moveTowardTarget(targeting, physicalState, fixedDeltaTime);
+      moveTowardTarget(entity, targeting, physicalState, fixedDeltaTime);
     }
   });
 }
@@ -83,16 +84,53 @@ void EnemyTargetingSystem::selectTarget(Component<Targeting>& targeting,
   }
 }
 
-void EnemyTargetingSystem::moveTowardTarget(Component<Targeting>& targeting,
+void EnemyTargetingSystem::moveTowardTarget(Entity& entity,
+                                            Component<Targeting>& targeting,
                                             Component<PhysicalState>& physicalState,
                                             float fixedDeltaTime) {
   auto targetId = *targeting->current;
   auto target = getEntityById(targetId);
   auto targetPosition = target->get<PhysicalState>()->currentPosition;
 
-  auto direction = glm::normalize(targetPosition - physicalState->currentPosition);
-  physicalState->currentPosition += direction * fixedDeltaTime;
-  physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
+  auto raycasters = findEntities<Attachment, Raycaster, PhysicalState>()->get();
+
+  for (const auto& raycasterEntity : raycasters) {
+    auto raycaster = raycasterEntity->get<Raycaster>();
+    auto raycasterPhysicalState = raycasterEntity->get<PhysicalState>();
+    raycaster->direction = glm::normalize(targetPosition - raycasterPhysicalState->currentPosition);
+  }
+
+  auto isPlayerInSight = std::all_of(raycasters.begin(), raycasters.end(), [this](const std::shared_ptr<Entity>& raycasterEntity) {
+    auto raycaster = raycasterEntity->get<Raycaster>();
+
+    if (raycaster->nearest) {
+      auto nearest = getEntityById(raycaster->nearest->entityId);
+      return nearest->has<Friendly>();
+    }
+
+    return false;
+  });
+
+  const auto speed = 2.0f;
+
+  if (isPlayerInSight) {
+    if (entity.has<GridPosition>()) {
+      entity.remove<GridPosition>();
+    }
+
+    auto direction = glm::normalize(targetPosition - physicalState->currentPosition);
+    physicalState->currentPosition += direction * speed * fixedDeltaTime;
+    physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
+  } else {
+    if (!entity.has<GridPosition>()) {
+      entity.add<GridPosition>();
+    }
+
+    auto gridPosition = entity.get<GridPosition>();
+    gridPosition->position = _grid.getGridPosition(physicalState->currentPosition);
+    gridPosition->speed = speed;
+    gridPosition->finalDestination = glm::round(_grid.getGridPosition(targetPosition));
+  }
 }
 
 }  // namespace linguine

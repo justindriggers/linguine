@@ -26,15 +26,11 @@ void GridPositionSystem::fixedUpdate(float fixedDeltaTime) {
     }
 
     if (!gridPosition->transientDestination && gridPosition->finalDestination) {
-      auto currentPosition = glm::round(gridPosition->position);
       auto path = _grid.search(gridPosition->position, *gridPosition->finalDestination);
 
       if (path.size() > 1) {
         auto newPosition = *std::next(path.begin());
         gridPosition->transientDestination = newPosition;
-
-        _grid.removeObstruction(currentPosition, gridPosition->dimensions);
-        _grid.addObstruction(newPosition, gridPosition->dimensions);
       } else {
         gridPosition->finalDestination = {};
       }
