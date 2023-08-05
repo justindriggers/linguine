@@ -9,6 +9,7 @@
 #include "platform/WebLifecycleManager.h"
 #include "platform/WebLogger.h"
 #include "platform/WebOpenALFileLoader.h"
+#include "platform/WebOpenGLFileLoader.h"
 #include "platform/WebTimeManager.h"
 
 using namespace linguine;
@@ -54,7 +55,8 @@ int main() {
 
   emscripten_webgl_make_context_current(contextHandle);
 
-  auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create());
+  auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create(
+      std::make_unique<WebOpenGLFileLoader>()));
   renderer->resize(width, height);
 
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport());

@@ -12,13 +12,16 @@
 #include "features/ColoredFeatureRenderer.h"
 #include "features/ProgressFeatureRenderer.h"
 #include "features/SelectableFeatureRenderer.h"
+#include "features/TextFeatureRenderer.h"
 
 namespace linguine::render {
 
 class MetalRendererImpl : public MetalRenderer {
   public:
-    explicit MetalRendererImpl(MTK::View& view, bool autoDraw)
-        : _context{}, _view(view), _autoDraw(autoDraw) {
+    explicit MetalRendererImpl(MTK::View& view, bool autoDraw,
+                               MetalTextureLoader& textureLoader)
+        : _context{}, _view(view), _autoDraw(autoDraw),
+          _textureLoader(textureLoader) {
       _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
       _view.setDepthStencilPixelFormat(MTL::PixelFormatDepth32Float);
 
@@ -32,6 +35,7 @@ class MetalRendererImpl : public MetalRenderer {
       _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
+      _features.push_back(std::make_unique<TextFeatureRenderer>(_context, *_meshRegistry, _textureLoader));
       _features.shrink_to_fit();
     }
 
@@ -54,6 +58,7 @@ class MetalRendererImpl : public MetalRenderer {
   private:
     MTK::View& _view;
     bool _autoDraw;
+    MetalTextureLoader& _textureLoader;
 
     MetalRenderContext _context;
     std::unique_ptr<MeshRegistry> _meshRegistry;
@@ -109,8 +114,9 @@ std::optional<uint64_t> MetalRendererImpl::getEntityIdAt(float x, float y) const
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
-MetalRenderer* MetalRenderer::create(MTK::View& view, bool autoDraw) {
-  return new MetalRendererImpl(view, autoDraw);
+MetalRenderer* MetalRenderer::create(MTK::View& view, bool autoDraw,
+                                     MetalTextureLoader& textureLoader) {
+  return new MetalRendererImpl(view, autoDraw, textureLoader);
 }
 
 } // namespace linguine::render

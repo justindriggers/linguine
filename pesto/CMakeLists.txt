@@ -7,7 +7,12 @@ add_executable(pesto
         src/platform/WebInputManager.cpp
         src/platform/WebLogger.cpp
         src/platform/WebOpenALFileLoader.cpp
+        src/platform/WebOpenGLFileLoader.cpp
         src/platform/WebTimeManager.cpp
+)
+
+target_include_directories(pesto PUBLIC
+        "${THIRD_PARTY_DIR}/stb"
 )
 
 target_link_libraries(pesto PRIVATE linguine openal opengl)

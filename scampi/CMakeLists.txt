@@ -18,6 +18,7 @@ add_executable(scampi
         src/platform/IosAudioEngineFileLoader.mm
         src/platform/IosInputManager.cpp
         src/platform/IosLifecycleManager.cpp
+        src/platform/IosMetalTextureLoader.mm
         src/platform/IosTimeManager.cpp
         src/platform/NSLogger.mm
         src/uikit/ScampiAppDelegate.mm

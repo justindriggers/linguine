@@ -24,8 +24,10 @@
 #include "components/Selectable.h"
 #include "components/Static.h"
 #include "components/Targeting.h"
+#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
+#include "renderer/features/TextFeature.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
@@ -119,6 +121,22 @@ class BossFightPrototypeScene : public Scene {
         selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature), UI);
         selectable.setRemovalListener([selectable](const Entity e) {
           selectable->renderable->destroy();
+        });
+      }
+
+      {
+        auto textEntity = createEntity();
+
+        auto transform = textEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -0.4f, 0.5f);
+        transform->scale = glm::vec3(0.035f, 0.035f, 0.0f);
+
+        auto text = textEntity->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = "Hello world!";
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
         });
       }
 
@@ -274,9 +292,9 @@ class BossFightPrototypeScene : public Scene {
 
         std::array<std::array<bool, 12>, 12> tiles = {
             std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, Y },
-            std::array<bool, 12> { N, N, Y, N, N, N, N, N, N, N, N, Y },
-            std::array<bool, 12> { N, N, Y, N, N, N, Y, N, N, N, N, Y },
-            std::array<bool, 12> { N, N, N, N, N, N, Y, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, Y },
+            std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, N, Y },
             std::array<bool, 12> { N, N, N, N, N, N, N, N, N, N, Y, N },
             std::array<bool, 12> { N, N, N, N, N, N, N, N, N, Y, N, N },
             std::array<bool, 12> { N, N, N, N, N, N, N, N, N, Y, N, N },

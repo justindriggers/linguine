@@ -10,6 +10,7 @@ add_executable(alfredo
         src/platform/MacInputManager.mm
         src/platform/MacLifecycleManager.mm
         src/platform/MacLogger.mm
+        src/platform/MacMetalTextureLoader.mm
         src/platform/MacTimeManager.cpp
 )
 

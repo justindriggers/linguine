@@ -12,5 +12,6 @@
 }
 @property(nonatomic, strong) NSWindow *window;
 @property(nonatomic, retain) id<MTLDevice> device;
+@property(nonatomic) linguine::render::MetalTextureLoader *metalTextureLoader;
 @property(nonatomic) linguine::render::MetalRenderer *metalRenderer;
 @end

@@ -5,13 +5,14 @@
 #include "features/ColoredFeatureRenderer.h"
 #include "features/ProgressFeatureRenderer.h"
 #include "features/SelectableFeatureRenderer.h"
+#include "features/TextFeatureRenderer.h"
 #include "postprocessing/GammaCorrection.h"
 
 namespace linguine::render {
 
 class OpenGLRendererImpl : public OpenGLRenderer {
   public:
-    OpenGLRendererImpl();
+    OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader);
 
     ~OpenGLRendererImpl() override;
 
@@ -27,6 +28,8 @@ class OpenGLRendererImpl : public OpenGLRenderer {
     }
 
   private:
+    std::unique_ptr<OpenGLFileLoader> _fileLoader;
+
     GLuint _targetTexture;
     GLuint _depthBuffer;
     GLuint _framebuffer;
@@ -38,8 +41,9 @@ class OpenGLRendererImpl : public OpenGLRenderer {
     std::unique_ptr<GammaCorrection> _gammaCorrection;
 };
 
-OpenGLRendererImpl::OpenGLRendererImpl()
-    : _selectableFeatureRenderer(new SelectableFeatureRenderer(_meshRegistry)) {
+OpenGLRendererImpl::OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader)
+    : _selectableFeatureRenderer(new SelectableFeatureRenderer(_meshRegistry)),
+      _fileLoader(std::move(fileLoader)) {
   glGenTextures(1, &_targetTexture);
   glGenRenderbuffers(1, &_depthBuffer);
   glGenFramebuffers(1, &_framebuffer);
@@ -47,6 +51,7 @@ OpenGLRendererImpl::OpenGLRendererImpl()
   _features.push_back(std::make_unique<ColoredFeatureRenderer>(_meshRegistry));
   _features.push_back(std::make_unique<ProgressFeatureRenderer>(_meshRegistry));
   _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
+  _features.push_back(std::make_unique<TextFeatureRenderer>(_meshRegistry, *_fileLoader));
   _features.shrink_to_fit();
 
   _gammaCorrection = std::make_unique<GammaCorrection>(_targetTexture);
@@ -58,6 +63,9 @@ OpenGLRendererImpl::OpenGLRendererImpl()
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 OpenGLRendererImpl::~OpenGLRendererImpl() {
@@ -112,8 +120,8 @@ std::optional<uint64_t> OpenGLRendererImpl::getEntityIdAt(float x, float y) cons
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
-OpenGLRenderer* OpenGLRenderer::create() {
-  return new OpenGLRendererImpl();
+OpenGLRenderer* OpenGLRenderer::create(std::unique_ptr<OpenGLFileLoader> fileLoader) {
+  return new OpenGLRendererImpl(std::move(fileLoader));
 }
 
 }  // namespace linguine::render

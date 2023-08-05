@@ -3,6 +3,7 @@
 #include "components/Drawable.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
+#include "components/Text.h"
 #include "components/Transform.h"
 
 namespace linguine {
@@ -33,6 +34,16 @@ void TransformationSystem::update(float deltaTime) {
     const auto selectable = entity.get<Selectable>();
 
     selectable->feature->modelMatrix = glm::scale(
+        glm::translate(glm::mat4(1.0f), transform->position) * glm::mat4_cast(transform->rotation),
+        transform->scale
+    );
+  });
+
+  findEntities<Transform, Text>()->each([](const Entity& entity) {
+    const auto transform = entity.get<Transform>();
+    const auto text = entity.get<Text>();
+
+    text->feature->modelMatrix = glm::scale(
         glm::translate(glm::mat4(1.0f), transform->position) * glm::mat4_cast(transform->rotation),
         transform->scale
     );

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "renderer/Renderer.h"
-#include "renderer/features/FeatureRenderer.h"
+
+#include "MetalTextureLoader.h"
 
 namespace MTK {
 
@@ -19,7 +20,8 @@ class MetalRenderer : public Renderer {
 
     virtual void doDraw() = 0;
 
-    static MetalRenderer* create(MTK::View& view, bool autoDraw);
+    static MetalRenderer* create(MTK::View& view, bool autoDraw,
+                                 MetalTextureLoader& textureLoader);
 
   private:
     friend class MetalRendererImpl;

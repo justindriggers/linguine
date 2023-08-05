@@ -1,5 +1,7 @@
 #import "AlfredoApplicationDelegate.h"
 
+#import "../platform/MacMetalTextureLoader.h"
+
 @implementation AlfredoApplicationDelegate
 
 - (void)closeWindow {
@@ -62,7 +64,9 @@
     [view setEnableSetNeedsDisplay:NO];
     ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
 
-    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view, false);
+    auto mtkTextureLoader = [[MTKTextureLoader alloc] initWithDevice:self.device];
+    self.metalTextureLoader = new linguine::alfredo::MacMetalTextureLoader(mtkTextureLoader);
+    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view, false, *self.metalTextureLoader);
 
     _viewDelegate = [[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer];
 
@@ -81,6 +85,7 @@
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
   delete _metalRenderer;
+  delete _metalTextureLoader;
 }
 
 @end
