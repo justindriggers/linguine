@@ -92,7 +92,7 @@ class BossFightPrototypeScene : public Scene {
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
         auto fixture = uiCameraEntity->add<CameraFixture>();
-        fixture->height = 1.0f;
+        fixture->height = 768.0f;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = {};
         fixture->camera->layer = UI;
@@ -102,8 +102,8 @@ class BossFightPrototypeScene : public Scene {
         auto uiBackgroundEntity = createEntity();
 
         auto transform = uiBackgroundEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -0.35f, 10.0f);
-        transform->scale = glm::vec3(1.0f, 0.3f, 0.0f);
+        transform->position = glm::vec3(0.0f, -269.0f, 10.0f);
+        transform->scale = glm::vec3(768.0f, 230.0f, 0.0f);
 
         auto drawable = uiBackgroundEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
@@ -128,8 +128,8 @@ class BossFightPrototypeScene : public Scene {
         auto textEntity = createEntity();
 
         auto transform = textEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -0.4f, 0.5f);
-        transform->scale = glm::vec3(0.035f, 0.035f, 0.0f);
+        transform->position = glm::vec3(0.0f, -300.0f, 0.5f);
+        transform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
 
         auto text = textEntity->add<Text>();
         text->feature = new TextFeature();
@@ -182,8 +182,8 @@ class BossFightPrototypeScene : public Scene {
             healthBar->entityId = orbiterEntity->getId();
 
             auto healthTransform = healthEntity->add<Transform>();
-            healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 0.08f, -0.3f, 0.0f);
-            healthTransform->scale = glm::vec3(0.075f, 0.075f, 0.0f);
+            healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 68.0f, -230.0f, 0.0f);
+            healthTransform->scale = glm::vec3(64.0f, 64.0f, 0.0f);
 
             auto healthProgressable = healthEntity->add<Progressable>();
             healthProgressable->feature = new ProgressFeature();
