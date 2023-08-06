@@ -209,8 +209,8 @@ class BossFightPrototypeScene : public Scene {
         auto gcdEntity = createEntity();
 
         auto transform = gcdEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -0.225f, 0.0f);
-        transform->scale = glm::vec3(0.25f, 0.025f, 1.0f);
+        transform->position = glm::vec3(0.0f, -176.0f, 0.0f);
+        transform->scale = glm::vec3(192.0f, 20.0f, 1.0f);
 
         auto progressable = gcdEntity->add<Progressable>();
         progressable->feature = new ProgressFeature();
