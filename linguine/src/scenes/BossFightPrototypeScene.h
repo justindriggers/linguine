@@ -26,6 +26,7 @@
 #include "components/Selectable.h"
 #include "components/Static.h"
 #include "components/Targeting.h"
+#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
@@ -58,7 +59,7 @@ class BossFightPrototypeScene : public Scene {
           _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), *_spellDatabase));
+      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<DirectionalMovementSystem>(getEntityManager(), serviceLocator.get<InputManager>()));
@@ -226,13 +227,47 @@ class BossFightPrototypeScene : public Scene {
       }
 
       {
-        auto spellEntity = createEntity();
+        auto spellEntity1 = createEntity();
 
-        auto transform = spellEntity->add<Transform>();
+        auto transform = spellEntity1->add<Transform>();
+        transform->position = glm::vec3(-64.0f, -320.0f, 0.0f);
+        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
+
+        auto progressable = spellEntity1->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->color = { 1.0f, 1.0f, 0.0f };
+        progressable->feature->meshType = Quad;
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+
+        spellEntity1->add<Ability>(_spellDatabase->getSpellById(0), Key::Q);
+
+        auto keybind1 = createEntity();
+
+        auto keybindTransform = keybind1->add<Transform>();
+        keybindTransform->position = glm::vec3(-64.0f, -330.0f, 0.0f);
+        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
+
+        auto text = keybind1->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = "Q";
+        text->feature->color = { 0.15f, 0.15f, 0.15f };
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
+        });
+      }
+
+      {
+        auto spellEntity2 = createEntity();
+
+        auto transform = spellEntity2->add<Transform>();
         transform->position = glm::vec3(0.0f, -320.0f, 0.0f);
         transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
 
-        auto progressable = spellEntity->add<Progressable>();
+        auto progressable = spellEntity2->add<Progressable>();
         progressable->feature = new ProgressFeature();
         progressable->feature->color = { 0.0f, 1.0f, 0.0f };
         progressable->feature->meshType = Quad;
@@ -241,7 +276,56 @@ class BossFightPrototypeScene : public Scene {
           progressable->renderable->destroy();
         });
 
-        spellEntity->add<Ability>(_spellDatabase->getSpellById(2));
+        spellEntity2->add<Ability>(_spellDatabase->getSpellById(1), Key::E);
+
+        auto keybind2 = createEntity();
+
+        auto keybindTransform = keybind2->add<Transform>();
+        keybindTransform->position = glm::vec3(0.0f, -330.0f, 0.0f);
+        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
+
+        auto text = keybind2->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = "E";
+        text->feature->color = { 0.15f, 0.15f, 0.15f };
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
+        });
+      }
+
+      {
+        auto spellEntity3 = createEntity();
+
+        auto transform = spellEntity3->add<Transform>();
+        transform->position = glm::vec3(64.0f, -320.0f, 0.0f);
+        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
+
+        auto progressable = spellEntity3->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->color = { 1.0f, 0.0f, 0.0f };
+        progressable->feature->meshType = Quad;
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+
+        spellEntity3->add<Ability>(_spellDatabase->getSpellById(2), Key::R);
+
+        auto keybind3 = createEntity();
+
+        auto keybindTransform = keybind3->add<Transform>();
+        keybindTransform->position = glm::vec3(64.0f, -330.0f, 0.0f);
+        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
+
+        auto text = keybind3->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = "R";
+        text->feature->color = { 0.15f, 0.15f, 0.15f };
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
+        });
       }
 
       {

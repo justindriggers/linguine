@@ -6,9 +6,9 @@
 #include <optional>
 #include <unordered_map>
 
-#include "InputManager.h"
-#include "renderer/Renderer.h"
 #include "TimeManager.h"
+#include "input/InputManager.h"
+#include "renderer/Renderer.h"
 
 namespace linguine {
 

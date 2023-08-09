@@ -191,12 +191,13 @@ void SelectableFeatureRenderer::resize(uint16_t width, uint16_t height) {
   _selectableRenderPassDescriptor->depthAttachment()->setTexture(_selectableDepthTexture);
 
   selectableTextureDescriptor->release();
+  selectableDepthTextureDescriptor->release();
 }
 
 std::optional<uint64_t> SelectableFeatureRenderer::getEntityIdAt(float x, float y) const {
   auto region = MTL::Region::Make2D(
-      static_cast<uint16_t>(x * _selectableTexture->width()),
-      static_cast<uint16_t>((1.0f - y) * _selectableTexture->height()),
+      static_cast<uint16_t>(x * _selectableTexture->width() - 1),
+      static_cast<uint16_t>((1.0f - y) * _selectableTexture->height() - 1),
       1,
       1
   );

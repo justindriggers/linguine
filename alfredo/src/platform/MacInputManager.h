@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InputManager.h>
+#include <input/InputManager.h>
 
 #include <bitset>
 #include <unordered_map>
@@ -17,9 +17,12 @@ class MacInputManager : public InputManager {
 
     [[nodiscard]] bool isKeyPressed(Key key) const override;
 
+    [[nodiscard]] CursorLocation getCursorLocation() const override;
+
   private:
     std::unordered_map<uint64_t, Touch> _active;
     std::bitset<Key::MAX> _keyStates;
+    CursorLocation _cursorLocation{};
 };
 
 }  // namespace linguine::alfredo

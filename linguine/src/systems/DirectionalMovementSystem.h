@@ -2,7 +2,7 @@
 
 #include "System.h"
 
-#include "InputManager.h"
+#include "input/InputManager.h"
 
 namespace linguine {
 

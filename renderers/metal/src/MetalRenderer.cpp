@@ -106,6 +106,7 @@ void MetalRendererImpl::doDraw() {
 
   _context.commandBuffer->presentDrawable(_view.currentDrawable());
   _context.commandBuffer->commit();
+  _context.commandBuffer->waitUntilCompleted();
 
   pool->release();
 }

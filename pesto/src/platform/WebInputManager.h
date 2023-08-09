@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InputManager.h>
+#include <input/InputManager.h>
 
 #include <bitset>
 
@@ -26,18 +26,23 @@ class WebInputManager : public InputManager {
 
     [[nodiscard]] bool isKeyPressed(Key key) const override;
 
+    [[nodiscard]] CursorLocation getCursorLocation() const override;
+
   private:
     const Viewport& _viewport;
 
     std::unordered_map<uint64_t, Touch> _active;
     std::unordered_map<uint64_t, Touch> _pending;
     std::bitset<Key::MAX> _keyStates;
+    CursorLocation _cursorLocation{};
 
     void onMouseDown(unsigned short button, long x, long y);
 
     void onMouseUp(unsigned short button, long x, long y);
 
-    void onMouseMoved(unsigned short button, long x, long y);
+    void onMouseDragged(unsigned short button, long x, long y);
+
+    void onMouseMoved(long x, long y);
 
     void onKeyDown(const std::string& key);
 

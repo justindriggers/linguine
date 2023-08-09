@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InputManager.h>
+#include <input/InputManager.h>
 
 #include <unordered_map>
 
@@ -16,6 +16,10 @@ class IosInputManager : public InputManager {
 
     [[nodiscard]] bool isKeyPressed(Key key) const override {
       return false;
+    }
+
+    [[nodiscard]] CursorLocation getCursorLocation() const override {
+      return CursorLocation { -1.0f, -1.0f };
     }
 
     void onTouchBegan(uint64_t id, float x, float y);

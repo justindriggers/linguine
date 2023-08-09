@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#include "Key.h"
+
 namespace linguine {
 
 class InputManager {
@@ -22,12 +24,13 @@ class InputManager {
       TouchState state;
     };
 
-    enum Key {
-      W,
-      A,
-      S,
-      D,
-      MAX
+    /**
+     * @param x Where 0.0f is the left, and 1.0f is the right
+     * @param y Where 0.0f is the bottom, and 1.0f is the top
+     */
+    struct CursorLocation {
+      float x;
+      float y;
     };
 
     virtual ~InputManager() = default;
@@ -39,6 +42,8 @@ class InputManager {
     [[nodiscard]] virtual float getSensitivity() const = 0;
 
     [[nodiscard]] virtual bool isKeyPressed(Key key) const = 0;
+
+    [[nodiscard]] virtual CursorLocation getCursorLocation() const = 0;
 };
 
 }  // namespace linguine

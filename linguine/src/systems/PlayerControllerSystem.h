@@ -3,14 +3,17 @@
 #include "System.h"
 
 #include "data/spells/SpellDatabase.h"
+#include "input/InputManager.h"
 
 namespace linguine {
 
 class PlayerControllerSystem : public System {
   public:
     explicit PlayerControllerSystem(EntityManager& entityManager,
-                                    SpellDatabase& spellDatabase)
-        : System(entityManager), _spellDatabase(spellDatabase) {}
+                                    SpellDatabase& spellDatabase,
+                                    InputManager& inputManager)
+        : System(entityManager), _spellDatabase(spellDatabase),
+          _inputManager(inputManager) {}
 
     void update(float deltaTime) override;
 
@@ -18,6 +21,7 @@ class PlayerControllerSystem : public System {
 
   private:
     SpellDatabase& _spellDatabase;
+    InputManager& _inputManager;
 };
 
 }  // namespace linguine

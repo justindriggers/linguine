@@ -38,6 +38,18 @@ void MacInputManager::pollEvents() {
                                         inMode:NSDefaultRunLoopMode
                                        dequeue:TRUE]) != nil) {
       switch (event.type) {
+        case NSEventTypeMouseMoved: {
+          auto mouseLocation = [window convertPointFromScreen:[NSEvent mouseLocation]];
+
+          if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
+              || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+            break;
+          }
+
+          _cursorLocation.x = static_cast<float>(mouseLocation.x / frameSize.width);
+          _cursorLocation.y = static_cast<float>(mouseLocation.y / frameSize.height);
+          break;
+        }
         case NSEventTypeLeftMouseDown: {
           auto mouseLocation = event.locationInWindow;
 
@@ -84,8 +96,21 @@ void MacInputManager::pollEvents() {
         }
         case NSEventTypeKeyDown: {
           switch (event.keyCode) {
+          case kVK_ANSI_Q:
+            _keyStates[Key::Q] = true;
+
+            if (event.modifierFlags & NSEventModifierFlagCommand) {
+              [app sendEvent:event];
+            }
+            break;
           case kVK_ANSI_W:
             _keyStates[Key::W] = true;
+            break;
+          case kVK_ANSI_E:
+            _keyStates[Key::E] = true;
+            break;
+          case kVK_ANSI_R:
+            _keyStates[Key::R] = true;
             break;
           case kVK_ANSI_A:
             _keyStates[Key::A] = true;
@@ -96,6 +121,12 @@ void MacInputManager::pollEvents() {
           case kVK_ANSI_D:
             _keyStates[Key::D] = true;
             break;
+          case kVK_ANSI_F:
+            _keyStates[Key::F] = true;
+            break;
+          case kVK_ANSI_C:
+            _keyStates[Key::C] = true;
+            break;
           default:
             [app sendEvent:event];
             break;
@@ -104,8 +135,21 @@ void MacInputManager::pollEvents() {
         }
         case NSEventTypeKeyUp: {
           switch (event.keyCode) {
+          case kVK_ANSI_Q:
+            _keyStates[Key::Q] = false;
+
+            if (event.modifierFlags & NSEventModifierFlagCommand) {
+              [app sendEvent:event];
+            }
+            break;
           case kVK_ANSI_W:
             _keyStates[Key::W] = false;
+            break;
+          case kVK_ANSI_E:
+            _keyStates[Key::E] = false;
+            break;
+          case kVK_ANSI_R:
+            _keyStates[Key::R] = false;
             break;
           case kVK_ANSI_A:
             _keyStates[Key::A] = false;
@@ -115,6 +159,12 @@ void MacInputManager::pollEvents() {
             break;
           case kVK_ANSI_D:
             _keyStates[Key::D] = false;
+            break;
+          case kVK_ANSI_F:
+            _keyStates[Key::F] = false;
+            break;
+          case kVK_ANSI_C:
+            _keyStates[Key::C] = false;
             break;
           default:
             [app sendEvent:event];
@@ -139,6 +189,10 @@ float MacInputManager::getSensitivity() const {
 
 bool MacInputManager::isKeyPressed(Key key) const {
   return _keyStates[key];
+}
+
+InputManager::CursorLocation MacInputManager::getCursorLocation() const {
+  return _cursorLocation;
 }
 
 }  // namespace linguine::alfredo

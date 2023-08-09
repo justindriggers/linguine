@@ -16,7 +16,31 @@ WebInputManager::WebInputManager(const Viewport& viewport) : _viewport(viewport)
   });
 
   emscripten_set_mousemove_callback("canvas", this, false, [](int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData) -> EM_BOOL {
-    static_cast<WebInputManager*>(userData)->onMouseMoved(mouseEvent->button, mouseEvent->targetX, mouseEvent->targetY);
+    auto inputManager = static_cast<WebInputManager*>(userData);
+
+    if (mouseEvent->buttons) {
+      if (mouseEvent->buttons & 1) {
+        inputManager->onMouseDragged(1, mouseEvent->targetX, mouseEvent->targetY);
+      }
+
+      if (mouseEvent->buttons & 2) {
+        inputManager->onMouseDragged(2, mouseEvent->targetX, mouseEvent->targetY);
+      }
+
+      if (mouseEvent->buttons & 4) {
+        inputManager->onMouseDragged(3, mouseEvent->targetX, mouseEvent->targetY);
+      }
+
+      if (mouseEvent->buttons & 8) {
+        inputManager->onMouseDragged(4, mouseEvent->targetX, mouseEvent->targetY);
+      }
+
+      if (mouseEvent->buttons & 16) {
+        inputManager->onMouseDragged(5, mouseEvent->targetX, mouseEvent->targetY);
+      }
+    }
+
+    inputManager->onMouseMoved(mouseEvent->targetX, mouseEvent->targetY);
     return true;
   });
 
@@ -72,6 +96,10 @@ bool WebInputManager::isKeyPressed(Key key) const {
   return _keyStates[key];
 }
 
+InputManager::CursorLocation WebInputManager::getCursorLocation() const {
+  return _cursorLocation;
+}
+
 void WebInputManager::onMouseDown(unsigned short button, long x, long y) {
   auto touch = Touch {
       static_cast<float>(x) / _viewport.getWidth(),
@@ -90,7 +118,7 @@ void WebInputManager::onMouseUp(unsigned short button, long x, long y) {
   _pending.insert({button, touch});
 }
 
-void WebInputManager::onMouseMoved(unsigned short button, long x, long y) {
+void WebInputManager::onMouseDragged(unsigned short button, long x, long y) {
   auto touch = Touch {
       static_cast<float>(x) / _viewport.getWidth(),
       1.0f - static_cast<float>(y) / _viewport.getHeight(),
@@ -99,27 +127,52 @@ void WebInputManager::onMouseMoved(unsigned short button, long x, long y) {
   _pending.insert({button, touch});
 }
 
+void WebInputManager::onMouseMoved(long x, long y) {
+  _cursorLocation.x = static_cast<float>(x) / _viewport.getWidth();
+  _cursorLocation.y = 1.0f - static_cast<float>(y) / _viewport.getHeight();
+}
+
 void WebInputManager::onKeyDown(const std::string& key) {
-  if (key == "w" || key == "W") {
+  if (key == "q" || key == "Q") {
+    _keyStates[Q] = true;
+  } else if (key == "w" || key == "W") {
     _keyStates[W] = true;
+  } else if (key == "e" || key == "E") {
+    _keyStates[E] = true;
+  } else if (key == "r" || key == "R") {
+    _keyStates[R] = true;
   } else if (key == "a" || key == "A") {
     _keyStates[A] = true;
   } else if (key == "s" || key == "S") {
     _keyStates[S] = true;
   } else if (key == "d" || key == "D") {
     _keyStates[D] = true;
+  } else if (key == "f" || key == "F") {
+    _keyStates[F] = true;
+  } else if (key == "c" || key == "C") {
+    _keyStates[C] = true;
   }
 }
 
 void WebInputManager::onKeyUp(const std::string& key) {
-  if (key == "w" || key == "W") {
+  if (key == "q" || key == "Q") {
+    _keyStates[Q] = false;
+  } else if (key == "w" || key == "W") {
     _keyStates[W] = false;
+  } else if (key == "e" || key == "E") {
+    _keyStates[E] = false;
+  } else if (key == "r" || key == "R") {
+    _keyStates[R] = false;
   } else if (key == "a" || key == "A") {
     _keyStates[A] = false;
   } else if (key == "s" || key == "S") {
     _keyStates[S] = false;
   } else if (key == "d" || key == "D") {
     _keyStates[D] = false;
+  } else if (key == "f" || key == "F") {
+    _keyStates[F] = false;
+  } else if (key == "c" || key == "C") {
+    _keyStates[C] = false;
   }
 }
 

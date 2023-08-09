@@ -2,12 +2,12 @@
 
 #include <stdexcept>
 
-#include "InputManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
 #include "TimeManager.h"
 #include "audio/AudioManager.h"
 #include "entity/EntityManagerFactory.h"
+#include "input/InputManager.h"
 #include "renderer/Renderer.h"
 
 namespace linguine {

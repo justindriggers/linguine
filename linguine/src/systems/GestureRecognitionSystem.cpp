@@ -2,6 +2,7 @@
 
 #include <glm/geometric.hpp>
 
+#include "components/Hovered.h"
 #include "components/LongPressed.h"
 #include "components/Tapped.h"
 
@@ -15,6 +16,18 @@ void GestureRecognitionSystem::update(float deltaTime) {
   findEntities<Tapped>()->each([](Entity& entity) {
     entity.remove<Tapped>();
   });
+
+  findEntities<Hovered>()->each([](Entity& entity) {
+    entity.remove<Hovered>();
+  });
+
+  const auto cursorLocation = _inputManager.getCursorLocation();
+  const auto entityId = _renderer.getEntityIdAt(cursorLocation.x, cursorLocation.y);
+
+  if (entityId) {
+    auto entity = getEntityById(*entityId);
+    entity->add<Hovered>();
+  }
 
   for (auto& touch : _inputManager.getTouches()) {
     switch (touch.second.state) {

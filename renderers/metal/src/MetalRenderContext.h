@@ -5,10 +5,10 @@
 namespace linguine::render {
 
 struct MetalRenderContext {
-  MTL::Device* device;
-  MTL::CommandQueue* commandQueue;
-  MTL::CommandBuffer* commandBuffer;
-  MTL::RenderPassDescriptor* coloredRenderPassDescriptor;
+  MTL::Device* device = nullptr;
+  MTL::CommandQueue* commandQueue = nullptr;
+  MTL::CommandBuffer* commandBuffer = nullptr;
+  MTL::RenderPassDescriptor* coloredRenderPassDescriptor = nullptr;
 };
 
 }  // namespace linguine::render

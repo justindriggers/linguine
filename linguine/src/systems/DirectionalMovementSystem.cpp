@@ -11,19 +11,19 @@ namespace linguine {
 void DirectionalMovementSystem::update(float deltaTime) {
   auto direction = glm::vec2(0.0f);
 
-  if (_inputManager.isKeyPressed(InputManager::W)) {
+  if (_inputManager.isKeyPressed(Key::W)) {
     direction += glm::vec2(0.0f, 1.0f);
   }
 
-  if (_inputManager.isKeyPressed(InputManager::A)) {
+  if (_inputManager.isKeyPressed(Key::A)) {
     direction += glm::vec2(-1.0f, 0.0f);
   }
 
-  if (_inputManager.isKeyPressed(InputManager::S)) {
+  if (_inputManager.isKeyPressed(Key::S)) {
     direction += glm::vec2(0.0f, -1.0f);
   }
 
-  if (_inputManager.isKeyPressed(InputManager::D)) {
+  if (_inputManager.isKeyPressed(Key::D)) {
     direction += glm::vec2(1.0f, 0.0f);
   }
 
