@@ -11,6 +11,7 @@ void EffectSystem::update(float deltaTime) {
   findEntities<EffectTracker, Progressable>()->each([this](const Entity& entity) {
     auto effectTracker = entity.get<EffectTracker>();
     auto progressable = entity.get<Progressable>();
+    progressable->renderable->setEnabled(true);
     progressable->feature->progress = 1.0f - effectTracker->timeSinceApplication / effectTracker->effect.getDuration();
 
     findEntities<HealthBar>()->each([&entity, &effectTracker](const Entity& healthBarEntity) {
