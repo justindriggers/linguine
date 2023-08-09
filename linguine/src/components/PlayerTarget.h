@@ -2,8 +2,6 @@
 
 namespace linguine {
 
-struct PlayerTarget {
-  std::optional<uint64_t> entityId = {};
-};
+struct PlayerTarget {};
 
 }  // namespace linguine

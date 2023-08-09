@@ -1,6 +1,10 @@
 add_library(linguine
         src/Engine.cpp
         src/data/Grid.cpp
+        src/data/spells/actions/Apply.cpp
+        src/data/spells/actions/Heal.cpp
+        src/data/spells/effects/Effect.cpp
+        src/data/spells/effects/HealOverTime.cpp
         src/entity/archetype/Archetype.cpp
         src/entity/archetype/ArchetypeEntityManager.cpp
         src/entity/archetype/ArchetypeResult.cpp
@@ -13,9 +17,11 @@ add_library(linguine
         src/systems/AttachmentSystem.cpp
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
+        src/systems/CastSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
         src/systems/DirectionalMovementSystem.cpp
+        src/systems/EffectSystem.cpp
         src/systems/EnemyAttackSystem.cpp
         src/systems/EnemyTargetingSystem.cpp
         src/systems/EnemySpawnSystem.cpp
@@ -29,18 +35,14 @@ add_library(linguine
         src/systems/OrbitSystem.cpp
         src/systems/PathTraversalSystem.cpp
         src/systems/PhysicsInterpolationSystem.cpp
-        src/systems/PlayerAttackSystem.cpp
         src/systems/PlayerControllerSystem.cpp
-        src/systems/PlayerTargetingSystem.cpp
         src/systems/PointAndClickMovementSystem.cpp
         src/systems/ProjectileSpawnSystem.cpp
         src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/SelectionDestructionSystem.cpp
-        src/systems/TileSelectionSystem.cpp
         src/systems/TransformationSystem.cpp
-        src/systems/UnitCreationSystem.cpp
 )
 
 target_include_directories(linguine PUBLIC

@@ -4,9 +4,9 @@
 
 namespace linguine {
 
-class PlayerTargetingSystem : public System {
+class CastSystem : public System {
   public:
-    explicit PlayerTargetingSystem(EntityManager& entityManager)
+    explicit CastSystem(EntityManager& entityManager)
         : System(entityManager) {}
 
     void update(float deltaTime) override;

@@ -4,10 +4,11 @@
 
 #include "components/PhysicalState.h"
 #include "components/Player.h"
+#include "components/Velocity.h"
 
 namespace linguine {
 
-void DirectionalMovementSystem::fixedUpdate(float fixedDeltaTime) {
+void DirectionalMovementSystem::update(float deltaTime) {
   auto direction = glm::vec2(0.0f);
 
   if (_inputManager.isKeyPressed(InputManager::W)) {
@@ -26,15 +27,29 @@ void DirectionalMovementSystem::fixedUpdate(float fixedDeltaTime) {
     direction += glm::vec2(1.0f, 0.0f);
   }
 
-  if (glm::length2(direction) > 0.0f) {
-    direction = glm::normalize(direction);
+  findEntities<Player, Velocity>()->each([&direction](const Entity& entity) {
+    auto velocity = entity.get<Velocity>();
 
-    findEntities<Player, PhysicalState>()->each([&direction, fixedDeltaTime](Entity &entity) {
-      auto physicalState = entity.get<PhysicalState>();
-      physicalState->currentPosition += direction * 5.0f * fixedDeltaTime;
+    if (glm::length2(direction) > 0.0f) {
+      velocity->velocity = glm::normalize(direction) * 5.0f;
+    } else {
+      velocity->velocity = { 0.0f, 0.0f };
+    }
+  });
+}
+
+void DirectionalMovementSystem::fixedUpdate(float fixedDeltaTime) {
+  findEntities<Player, Velocity, PhysicalState>()->each([fixedDeltaTime](const Entity &entity) {
+    auto velocity = entity.get<Velocity>();
+    auto physicalState = entity.get<PhysicalState>();
+
+    physicalState->currentPosition += velocity->velocity * fixedDeltaTime;
+
+    if (glm::length2(velocity->velocity) > 0.0f) {
+      auto direction = glm::normalize(velocity->velocity);
       physicalState->currentRotation = glm::atan(direction.y, direction.x) - glm::half_pi<float>();
-    });
-  }
+    }
+  });
 }
 
 }  // namespace linguine

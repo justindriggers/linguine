@@ -1,37 +1,32 @@
 #include "CooldownProgressSystem.h"
 
-#include "components/Cooldown.h"
+#include "components/Ability.h"
 #include "components/GlobalCooldown.h"
 #include "components/Progressable.h"
 
 namespace linguine {
 
 void CooldownProgressSystem::update(float deltaTime) {
-  findEntities<Cooldown, Progressable>()->each([deltaTime](const Entity& entity) {
-    auto cooldown = entity.get<Cooldown>();
-    auto progressable = entity.get<Progressable>();
-
-    progressable->feature->progress = glm::clamp(
-            static_cast<float>(cooldown->elapsed) / static_cast<float>(cooldown->total),
-            0.0f,
-            1.0f
-    );
-
-    cooldown->elapsed += deltaTime;
-  });
-
-  findEntities<GlobalCooldown, Progressable>()->each([deltaTime](const Entity& entity) {
+  findEntities<GlobalCooldown>()->each([this, deltaTime](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
-    auto progressable = entity.get<Progressable>();
-
-    progressable->renderable->setEnabled(globalCooldown->elapsed < globalCooldown->total);
-    progressable->feature->progress = glm::clamp(
-        static_cast<float>(globalCooldown->elapsed) / static_cast<float>(globalCooldown->total),
-        0.0f,
-        1.0f
-    );
-
     globalCooldown->elapsed += deltaTime;
+
+    findEntities<Ability, Progressable>()->each([deltaTime, &globalCooldown](const Entity& entity) {
+      auto ability = entity.get<Ability>();
+
+      auto progressable = entity.get<Progressable>();
+      auto progress = globalCooldown->elapsed / globalCooldown->total;
+
+      if (ability->spell.cooldown > 0.0f) {
+        ability->remainingCooldown -= deltaTime;
+
+        if (ability->remainingCooldown > globalCooldown->total - globalCooldown->elapsed) {
+          progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
+        }
+      }
+
+      progressable->feature->progress = glm::clamp(progress, 0.0f, 1.0f);
+    });
   });
 }
 

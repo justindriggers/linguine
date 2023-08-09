@@ -4,10 +4,12 @@
 
 #include <array>
 
+#include "components/Ability.h"
 #include "components/Alive.h"
 #include "components/Attachment.h"
 #include "components/BoxCollider.h"
 #include "components/CameraFixture.h"
+#include "components/Cast.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
 #include "components/Friendly.h"
@@ -24,16 +26,18 @@
 #include "components/Selectable.h"
 #include "components/Static.h"
 #include "components/Targeting.h"
-#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
+#include "components/Velocity.h"
 #include "renderer/features/TextFeature.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
+#include "systems/CastSystem.h"
 #include "systems/CollisionSystem.h"
 #include "systems/CooldownProgressSystem.h"
 #include "systems/DirectionalMovementSystem.h"
+#include "systems/EffectSystem.h"
 #include "systems/EnemyAttackSystem.h"
 #include "systems/EnemyTargetingSystem.h"
 #include "systems/FpsSystem.h"
@@ -50,20 +54,23 @@ namespace linguine {
 class BossFightPrototypeScene : public Scene {
   public:
     explicit BossFightPrototypeScene(ServiceLocator& serviceLocator)
-        : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
+        : Scene(serviceLocator.get<EntityManagerFactory>().create()),
+          _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
+      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<DirectionalMovementSystem>(getEntityManager(), serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
       registerSystem(std::make_unique<GridPositionSystem>(getEntityManager(), *_grid));
+      registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
+      registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -125,22 +132,6 @@ class BossFightPrototypeScene : public Scene {
       }
 
       {
-        auto textEntity = createEntity();
-
-        auto transform = textEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -300.0f, 0.5f);
-        transform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
-
-        auto text = textEntity->add<Text>();
-        text->feature = new TextFeature();
-        text->feature->text = "Hello world!";
-        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-        text.setRemovalListener([text](const Entity e) {
-          text->renderable->destroy();
-        });
-      }
-
-      {
         auto playerEntity = createEntity();
         playerEntity->add<Player>();
         playerEntity->add<Friendly>();
@@ -154,6 +145,8 @@ class BossFightPrototypeScene : public Scene {
         auto physicalState = playerEntity->add<PhysicalState>();
         physicalState->previousPosition = glm::vec2(transform->position);
         physicalState->currentPosition = physicalState->previousPosition;
+
+        playerEntity->add<Velocity>();
 
         auto circleCollider = playerEntity->add<CircleCollider>();
         circleCollider->radius = 0.25;
@@ -206,25 +199,49 @@ class BossFightPrototypeScene : public Scene {
       }
 
       {
-        auto gcdEntity = createEntity();
+        auto castEntity = createEntity();
 
-        auto transform = gcdEntity->add<Transform>();
+        auto transform = castEntity->add<Transform>();
         transform->position = glm::vec3(0.0f, -176.0f, 0.0f);
         transform->scale = glm::vec3(192.0f, 20.0f, 1.0f);
 
-        auto progressable = gcdEntity->add<Progressable>();
+        auto progressable = castEntity->add<Progressable>();
         progressable->feature = new ProgressFeature();
         progressable->feature->meshType = Quad;
-        progressable->feature->color = glm::vec3(0.88f, 0.34f, 0.1f);
         progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
         progressable.setRemovalListener([progressable](const Entity e) {
           progressable->renderable->destroy();
         });
         progressable->renderable->setEnabled(false);
 
+        castEntity->add<Cast>();
+      }
+
+      {
+        auto gcdEntity = createEntity();
+
         auto globalCooldown = gcdEntity->add<GlobalCooldown>();
         globalCooldown->elapsed = 1.5f;
         globalCooldown->total = 1.5f;
+      }
+
+      {
+        auto spellEntity = createEntity();
+
+        auto transform = spellEntity->add<Transform>();
+        transform->position = glm::vec3(0.0f, -320.0f, 0.0f);
+        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
+
+        auto progressable = spellEntity->add<Progressable>();
+        progressable->feature = new ProgressFeature();
+        progressable->feature->color = { 0.0f, 1.0f, 0.0f };
+        progressable->feature->meshType = Quad;
+        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
+        progressable.setRemovalListener([progressable](const Entity e) {
+          progressable->renderable->destroy();
+        });
+
+        spellEntity->add<Ability>(_spellDatabase->getSpellById(2));
       }
 
       {
@@ -351,6 +368,7 @@ class BossFightPrototypeScene : public Scene {
 
   private:
     std::unique_ptr<Grid> _grid = std::make_unique<Grid>(1.0f);
+    std::unique_ptr<SpellDatabase> _spellDatabase;
 };
 
 }  // namespace linguine

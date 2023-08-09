@@ -1,15 +1,14 @@
 #include "PlayerControllerSystem.h"
 
-#include <glm/common.hpp>
+#include <glm/gtx/norm.hpp>
 
-#include "components/Alive.h"
-#include "components/BigHeal.h"
-#include "components/Cooldown.h"
-#include "components/Friendly.h"
+#include "components/Ability.h"
+#include "components/Cast.h"
 #include "components/GlobalCooldown.h"
-#include "components/Health.h"
 #include "components/HealthBar.h"
+#include "components/Player.h"
 #include "components/Tapped.h"
+#include "components/Velocity.h"
 
 namespace linguine {
 
@@ -20,29 +19,22 @@ void PlayerControllerSystem::update(float deltaTime) {
     if (globalCooldown->elapsed >= globalCooldown->total) {
       findEntities<HealthBar, Tapped>()->each([this, &globalCooldown](const Entity& healthBarEntity) {
         auto healthBar = healthBarEntity.get<HealthBar>();
-        auto entity = getEntityById(healthBar->entityId);
 
-        if (entity->has<Health>()) {
-          auto health = entity->get<Health>();
-          health->current = glm::clamp(health->current + 250, 0, health->max);
-          globalCooldown->elapsed = 0.0f;
-        }
-      });
+        findEntities<Ability>()->each([this, &globalCooldown, &healthBar](const Entity& abilityEntity) {
+          auto ability = abilityEntity.get<Ability>();
 
-      findEntities<BigHeal, Tapped, Cooldown>()->each([this, &globalCooldown](const Entity& entity) {
-        auto cooldown = entity.get<Cooldown>();
+          if (ability->remainingCooldown <= 0.0f) {
+            findEntities<Cast>()->each([&abilityEntity, &globalCooldown, &healthBar](const Entity& castEntity) {
+              auto cast = castEntity.get<Cast>();
 
-        if (cooldown->elapsed >= cooldown->total) {
-          auto bigHeal = entity.get<BigHeal>();
-
-          findEntities<Friendly, Alive, Health>()->each([bigHeal](const Entity& entity) {
-            auto health = entity.get<Health>();
-            health->current = glm::clamp(health->current + bigHeal->power, 0, health->max);
-          });
-
-          cooldown->elapsed = 0.0f;
-          globalCooldown->elapsed = 0.0f;
-        }
+              if (cast->elapsed <= 0.0f) {
+                cast->abilityEntityId = abilityEntity.getId();
+                cast->targetEntityId = healthBar->entityId;
+                globalCooldown->elapsed = 0.0f;
+              }
+            });
+          }
+        });
       });
     }
   });

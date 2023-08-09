@@ -12,7 +12,7 @@ class DirectionalMovementSystem : public System {
                               InputManager& inputManager)
         : System(entityManager), _inputManager(inputManager) {}
 
-    void update(float deltaTime) override {}
+    void update(float deltaTime) override;
 
     void fixedUpdate(float fixedDeltaTime) override;
 

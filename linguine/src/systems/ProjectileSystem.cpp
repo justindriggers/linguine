@@ -7,7 +7,6 @@
 #include "components/Health.h"
 #include "components/Hit.h"
 #include "components/PhysicalState.h"
-#include "components/PlayerTarget.h"
 #include "components/Projectile.h"
 
 namespace linguine {
@@ -31,14 +30,6 @@ void ProjectileSystem::fixedUpdate(float fixedDeltaTime) {
             auto health = friendlies[targetIndex]->get<Health>();
             health->current = glm::clamp<int32_t>(health->current - projectile->power, 0, health->max);
           }
-
-          findEntities<PlayerTarget>()->each([&projectile](const Entity& playerTargetEntity) {
-            auto playerTarget = playerTargetEntity.get<PlayerTarget>();
-
-            if (!playerTarget->entityId) {
-              playerTarget->entityId = projectile->actor;
-            }
-          });
         } else if (target->has<Health>()) {
           auto health = target->get<Health>();
           health->current = glm::clamp<int32_t>(health->current - projectile->power, 0, health->max);
