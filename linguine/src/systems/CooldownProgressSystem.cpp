@@ -1,6 +1,7 @@
 #include "CooldownProgressSystem.h"
 
 #include "components/Ability.h"
+#include "components/AbilityButton.h"
 #include "components/GlobalCooldown.h"
 #include "components/Progressable.h"
 
@@ -11,8 +12,10 @@ void CooldownProgressSystem::update(float deltaTime) {
     auto globalCooldown = entity.get<GlobalCooldown>();
     globalCooldown->elapsed += deltaTime;
 
-    findEntities<Ability, Progressable>()->each([deltaTime, &globalCooldown](const Entity& entity) {
-      auto ability = entity.get<Ability>();
+    findEntities<AbilityButton, Progressable>()->each([this, deltaTime, &globalCooldown](const Entity& entity) {
+      auto abilityButton = entity.get<AbilityButton>();
+      auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
+      auto ability = abilityEntity->get<Ability>();
 
       auto progressable = entity.get<Progressable>();
       auto progress = globalCooldown->elapsed / globalCooldown->total;

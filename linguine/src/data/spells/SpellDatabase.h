@@ -14,9 +14,9 @@ class SpellDatabase {
     SpellDatabase(ServiceLocator& serviceLocator,
                   EntityManager& entityManager)
         : _spells {
-              { 0, std::make_shared<Spell>(0.0f, 6.0f, std::make_unique<Heal>(entityManager, 175)) },
-              { 1, std::make_shared<Spell>(2.5f, 0.0f, std::make_unique<Heal>(entityManager, 250)) },
-              { 2, std::make_shared<Spell>(1.5f, 0.0f, std::make_unique<Apply>(serviceLocator, entityManager, std::make_unique<HealOverTime>(entityManager, 12.0f, 6, 50))) }
+              { 0, std::make_shared<Spell>(0.0f, 6.0f, glm::vec3(1.0f, 1.0f, 0.0f), std::make_unique<Heal>(entityManager, 175)) },
+              { 1, std::make_shared<Spell>(2.5f, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f), std::make_unique<Heal>(entityManager, 250)) },
+              { 2, std::make_shared<Spell>(1.5f, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f), std::make_unique<Apply>(serviceLocator, entityManager, std::make_unique<HealOverTime>(entityManager, 12.0f, 6, 50))) }
           } {}
 
     Spell& getSpellById(uint64_t id) {

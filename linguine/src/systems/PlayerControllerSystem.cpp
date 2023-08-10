@@ -1,6 +1,7 @@
 #include "PlayerControllerSystem.h"
 
 #include "components/Ability.h"
+#include "components/AbilityButton.h"
 #include "components/Cast.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
@@ -20,11 +21,13 @@ void PlayerControllerSystem::update(float deltaTime) {
           auto cast = castEntity.get<Cast>();
 
           if (cast->elapsed <= 0.0f) {
-            findEntities<Ability>()->each([this, &cast, &globalCooldown, &healthBar](const Entity& abilityEntity) {
-              auto ability = abilityEntity.get<Ability>();
+            findEntities<AbilityButton>()->each([this, &cast, &globalCooldown, &healthBar](const Entity& abilityButtonEntity) {
+              auto abilityButton = abilityButtonEntity.get<AbilityButton>();
+              auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
+              auto ability = abilityEntity->get<Ability>();
 
-              if (_inputManager.isKeyPressed(ability->key) && ability->remainingCooldown <= 0.0f) {
-                cast->abilityEntityId = abilityEntity.getId();
+              if (_inputManager.isKeyPressed(abilityButton->key) && ability->remainingCooldown <= 0.0f) {
+                cast->abilityEntityId = abilityButton->abilityEntityId;
                 cast->targetEntityId = healthBar->entityId;
                 globalCooldown->elapsed = 0.0f;
               }

@@ -15,22 +15,18 @@
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
-#include "components/HealthBar.h"
 #include "components/Hostile.h"
 #include "components/MeleeAttack.h"
+#include "components/Party.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
 #include "components/Progressable.h"
 #include "components/ProjectileAttack.h"
-#include "components/Raycaster.h"
 #include "components/Selectable.h"
 #include "components/Static.h"
-#include "components/Targeting.h"
-#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
-#include "renderer/features/TextFeature.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
@@ -45,6 +41,7 @@
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/GridPositionSystem.h"
 #include "systems/HealthProgressSystem.h"
+#include "systems/HudSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/ProjectileSystem.h"
@@ -69,6 +66,7 @@ class BossFightPrototypeScene : public Scene {
       registerSystem(std::make_unique<ProjectileSystem>(getEntityManager()));
       registerSystem(std::make_unique<EnemyTargetingSystem>(getEntityManager(), *_grid));
       registerSystem(std::make_unique<EnemyAttackSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
@@ -160,43 +158,30 @@ class BossFightPrototypeScene : public Scene {
           drawable->renderable->destroy();
         });
 
-        const auto count = 5;
+        auto member1 = createEntity();
+        member1->add<Friendly>();
+        member1->add<Ability>(_spellDatabase->getSpellById(0));
+        member1->add<Health>(500);
+        member1->add<Alive>();
 
-        for (int i = 0; i < count; ++i) {
-          auto orbiterEntity = createEntity();
-          orbiterEntity->add<Friendly>();
+        auto member2 = createEntity();
+        member2->add<Friendly>();
+        member2->add<Ability>(_spellDatabase->getSpellById(1));
+        member2->add<Health>(400);
+        member2->add<Alive>();
 
-          orbiterEntity->add<Health>(500);
-          orbiterEntity->add<Alive>();
+        auto member3 = createEntity();
+        member3->add<Friendly>();
+        member3->add<Ability>(_spellDatabase->getSpellById(2));
+        member3->add<Health>(350);
+        member3->add<Alive>();
 
-          {
-            auto healthEntity = createEntity();
-
-            auto healthBar = healthEntity->add<HealthBar>();
-            healthBar->entityId = orbiterEntity->getId();
-
-            auto healthTransform = healthEntity->add<Transform>();
-            healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 68.0f, -230.0f, 0.0f);
-            healthTransform->scale = glm::vec3(64.0f, 64.0f, 0.0f);
-
-            auto healthProgressable = healthEntity->add<Progressable>();
-            healthProgressable->feature = new ProgressFeature();
-            healthProgressable->feature->meshType = Quad;
-            healthProgressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
-            healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
-              healthProgressable->renderable->destroy();
-            });
-
-            auto healthSelectable = healthEntity->add<Selectable>();
-            healthSelectable->feature = new SelectableFeature();
-            healthSelectable->feature->meshType = Quad;
-            healthSelectable->feature->entityId = healthEntity->getId();
-            healthSelectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(healthSelectable->feature), UI);
-            healthSelectable.setRemovalListener([healthSelectable](const Entity e) {
-              healthSelectable->renderable->destroy();
-            });
-          }
-        }
+        auto party = playerEntity->add<Party>();
+        party->memberIds = {
+            member1->getId(),
+            member2->getId(),
+            member3->getId()
+        };
       }
 
       {
@@ -224,108 +209,6 @@ class BossFightPrototypeScene : public Scene {
         auto globalCooldown = gcdEntity->add<GlobalCooldown>();
         globalCooldown->elapsed = 1.5f;
         globalCooldown->total = 1.5f;
-      }
-
-      {
-        auto spellEntity1 = createEntity();
-
-        auto transform = spellEntity1->add<Transform>();
-        transform->position = glm::vec3(-64.0f, -320.0f, 0.0f);
-        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
-
-        auto progressable = spellEntity1->add<Progressable>();
-        progressable->feature = new ProgressFeature();
-        progressable->feature->color = { 1.0f, 1.0f, 0.0f };
-        progressable->feature->meshType = Quad;
-        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
-        progressable.setRemovalListener([progressable](const Entity e) {
-          progressable->renderable->destroy();
-        });
-
-        spellEntity1->add<Ability>(_spellDatabase->getSpellById(0), Key::Q);
-
-        auto keybind1 = createEntity();
-
-        auto keybindTransform = keybind1->add<Transform>();
-        keybindTransform->position = glm::vec3(-64.0f, -330.0f, 0.0f);
-        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
-
-        auto text = keybind1->add<Text>();
-        text->feature = new TextFeature();
-        text->feature->text = "Q";
-        text->feature->color = { 0.15f, 0.15f, 0.15f };
-        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-        text.setRemovalListener([text](const Entity e) {
-          text->renderable->destroy();
-        });
-      }
-
-      {
-        auto spellEntity2 = createEntity();
-
-        auto transform = spellEntity2->add<Transform>();
-        transform->position = glm::vec3(0.0f, -320.0f, 0.0f);
-        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
-
-        auto progressable = spellEntity2->add<Progressable>();
-        progressable->feature = new ProgressFeature();
-        progressable->feature->color = { 0.0f, 1.0f, 0.0f };
-        progressable->feature->meshType = Quad;
-        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
-        progressable.setRemovalListener([progressable](const Entity e) {
-          progressable->renderable->destroy();
-        });
-
-        spellEntity2->add<Ability>(_spellDatabase->getSpellById(1), Key::E);
-
-        auto keybind2 = createEntity();
-
-        auto keybindTransform = keybind2->add<Transform>();
-        keybindTransform->position = glm::vec3(0.0f, -330.0f, 0.0f);
-        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
-
-        auto text = keybind2->add<Text>();
-        text->feature = new TextFeature();
-        text->feature->text = "E";
-        text->feature->color = { 0.15f, 0.15f, 0.15f };
-        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-        text.setRemovalListener([text](const Entity e) {
-          text->renderable->destroy();
-        });
-      }
-
-      {
-        auto spellEntity3 = createEntity();
-
-        auto transform = spellEntity3->add<Transform>();
-        transform->position = glm::vec3(64.0f, -320.0f, 0.0f);
-        transform->scale = glm::vec3(48.0f, 48.0f, 0.0f);
-
-        auto progressable = spellEntity3->add<Progressable>();
-        progressable->feature = new ProgressFeature();
-        progressable->feature->color = { 1.0f, 0.0f, 0.0f };
-        progressable->feature->meshType = Quad;
-        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
-        progressable.setRemovalListener([progressable](const Entity e) {
-          progressable->renderable->destroy();
-        });
-
-        spellEntity3->add<Ability>(_spellDatabase->getSpellById(2), Key::R);
-
-        auto keybind3 = createEntity();
-
-        auto keybindTransform = keybind3->add<Transform>();
-        keybindTransform->position = glm::vec3(64.0f, -330.0f, 0.0f);
-        keybindTransform->scale = glm::vec3(30.0f, 30.0f, 0.0f);
-
-        auto text = keybind3->add<Text>();
-        text->feature = new TextFeature();
-        text->feature->text = "R";
-        text->feature->color = { 0.15f, 0.15f, 0.15f };
-        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-        text.setRemovalListener([text](const Entity e) {
-          text->renderable->destroy();
-        });
       }
 
       {

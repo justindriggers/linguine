@@ -31,6 +31,7 @@ add_library(linguine
         src/systems/GestureRecognitionSystem.cpp
         src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
+        src/systems/HudSystem.cpp
         src/systems/LivenessSystem.cpp
         src/systems/OrbitSystem.cpp
         src/systems/PathTraversalSystem.cpp
