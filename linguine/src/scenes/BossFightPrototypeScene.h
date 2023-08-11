@@ -24,6 +24,7 @@
 #include "components/ProjectileAttack.h"
 #include "components/Selectable.h"
 #include "components/Static.h"
+#include "components/Tooltip.h"
 #include "components/Transform.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
@@ -45,6 +46,7 @@
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/ProjectileSystem.h"
+#include "systems/TooltipSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
@@ -70,6 +72,7 @@ class BossFightPrototypeScene : public Scene {
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
+      registerSystem(std::make_unique<TooltipSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<InputManager>()));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -102,6 +105,11 @@ class BossFightPrototypeScene : public Scene {
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = {};
         fixture->camera->layer = UI;
+      }
+
+      {
+        auto tooltipEntity = createEntity();
+        tooltipEntity->add<Tooltip>();
       }
 
       {

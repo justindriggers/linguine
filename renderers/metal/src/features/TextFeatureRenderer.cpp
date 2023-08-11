@@ -206,25 +206,33 @@ void TextFeatureRenderer::draw(Camera& camera) {
 
     auto glyphValueBufferIndex = 0;
 
-    auto modelMatrix = feature.modelMatrix;
-    auto translation = glm::vec3(1.0f, 0.0f, 0.0f);
+    auto currentModelMatrix = feature.modelMatrix;
+    auto lineStartModelMatrix = currentModelMatrix;
+    auto horizontalTranslation = glm::vec3(1.0f, 0.0f, 0.0f);
+    auto verticalTranslation = glm::vec3(0.0f, -1.0f, 0.0f);
 
     for (const auto& character : feature.text) {
-      auto glyphVertexValueBuffer = glyphVertexValueBuffers[glyphValueBufferIndex];
-      auto metalGlyphVertexFeature = static_cast<MetalGlyphVertexFeature*>(glyphVertexValueBuffer->contents());
-      memcpy(&metalGlyphVertexFeature->modelMatrix, &modelMatrix, sizeof(simd::float4x4));
+      if (character == '\n') {
+        currentModelMatrix = glm::translate(lineStartModelMatrix, verticalTranslation);
+        lineStartModelMatrix = currentModelMatrix;
+      } else {
+        auto glyphVertexValueBuffer = glyphVertexValueBuffers[glyphValueBufferIndex];
+        auto metalGlyphVertexFeature = static_cast<MetalGlyphVertexFeature *>(glyphVertexValueBuffer->contents());
+        memcpy(&metalGlyphVertexFeature->modelMatrix, &currentModelMatrix, sizeof(simd::float4x4));
 
-      commandEncoder->setVertexBuffer(glyphVertexValueBuffer, 0, 3);
+        commandEncoder->setVertexBuffer(glyphVertexValueBuffer, 0, 3);
 
-      auto glyphFragmentValueBuffer = glyphFragmentValueBuffers[glyphValueBufferIndex];
-      auto metalGlyphFragmentFeature = static_cast<MetalGlyphFragmentFeature*>(glyphFragmentValueBuffer->contents());
-      memcpy(&metalGlyphFragmentFeature->position, &_glyphPositions.at(character), sizeof(simd::float2));
+        auto glyphFragmentValueBuffer = glyphFragmentValueBuffers[glyphValueBufferIndex];
+        auto metalGlyphFragmentFeature = static_cast<MetalGlyphFragmentFeature *>(glyphFragmentValueBuffer->contents());
+        memcpy(&metalGlyphFragmentFeature->position, &_glyphPositions.at(character), sizeof(simd::float2));
 
-      commandEncoder->setFragmentBuffer(glyphFragmentValueBuffer, 0, 0);
+        commandEncoder->setFragmentBuffer(glyphFragmentValueBuffer, 0, 0);
 
-      mesh->draw(*commandEncoder);
+        mesh->draw(*commandEncoder);
 
-      modelMatrix = glm::translate(modelMatrix, translation);
+        currentModelMatrix = glm::translate(currentModelMatrix, horizontalTranslation);
+      }
+
       ++glyphValueBufferIndex;
     }
 

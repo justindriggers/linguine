@@ -181,16 +181,23 @@ void TextFeatureRenderer::draw(Camera& camera) {
 
     glUniform3fv(_colorLocation, 1, glm::value_ptr(feature.color));
 
-    auto modelMatrix = feature.modelMatrix;
-    auto translation = glm::vec3(1.0f, 0.0f, 0.0f);
+    auto currentModelMatrix = feature.modelMatrix;
+    auto lineStartModelMatrix = currentModelMatrix;
+    auto horizontalTranslation = glm::vec3(1.0f, 0.0f, 0.0f);
+    auto verticalTranslation = glm::vec3(0.0f, -1.0f, 0.0f);
 
     for (const auto& character : feature.text) {
-      glUniformMatrix4fv(_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-      glUniform2fv(_positionLocation, 1, glm::value_ptr(_glyphPositions.at(character)));
+      if (character == '\n') {
+        currentModelMatrix = glm::translate(lineStartModelMatrix, verticalTranslation);
+        lineStartModelMatrix = currentModelMatrix;
+      } else {
+        glUniformMatrix4fv(_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(currentModelMatrix));
+        glUniform2fv(_positionLocation, 1, glm::value_ptr(_glyphPositions.at(character)));
 
-      mesh->draw();
+        mesh->draw();
 
-      modelMatrix = glm::translate(modelMatrix, translation);
+        currentModelMatrix = glm::translate(currentModelMatrix, horizontalTranslation);
+      }
     }
   }
 

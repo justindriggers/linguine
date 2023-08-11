@@ -43,6 +43,7 @@ add_library(linguine
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/SelectionDestructionSystem.cpp
+        src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
 )
 
