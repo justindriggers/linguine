@@ -3,13 +3,30 @@
 #include "components/Ability.h"
 #include "components/AbilityButton.h"
 #include "components/Cast.h"
+#include "components/Drawable.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
 #include "components/Hovered.h"
+#include "components/TargetIndicator.h"
+#include "components/Transform.h"
 
 namespace linguine {
 
 void PlayerControllerSystem::update(float deltaTime) {
+  findEntities<TargetIndicator, Drawable, Transform>()->each([this](const Entity& entity) {
+    auto targetIndicatorDrawable = entity.get<Drawable>();
+    targetIndicatorDrawable->renderable->setEnabled(false);
+
+    auto targetIndicatorTransform = entity.get<Transform>();
+
+    findEntities<HealthBar, Hovered, Transform>()->each([&targetIndicatorDrawable, &targetIndicatorTransform](const Entity& healthBarEntity) {
+      auto healthBarTransform = healthBarEntity.get<Transform>();
+      targetIndicatorTransform->position = healthBarTransform->position;
+
+      targetIndicatorDrawable->renderable->setEnabled(true);
+    });
+  });
+
   findEntities<GlobalCooldown>()->each([this](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
 

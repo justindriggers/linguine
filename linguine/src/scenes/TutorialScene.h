@@ -24,11 +24,16 @@
 #include "components/ProjectileAttack.h"
 #include "components/Selectable.h"
 #include "components/Static.h"
+#include "components/TargetIndicator.h"
+#include "components/Text.h"
 #include "components/Tooltip.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
+#include "components/tutorial/TutorialState.h"
+#include "components/tutorial/TutorialText1.h"
+#include "components/tutorial/TutorialText2.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
@@ -192,6 +197,24 @@ class TutorialScene : public Scene {
         progressable->renderable->setEnabled(false);
 
         castEntity->add<Cast>();
+      }
+
+      {
+        auto targetIndicatorEntity = createEntity();
+        targetIndicatorEntity->add<TargetIndicator>();
+
+        auto transform = targetIndicatorEntity->add<Transform>();
+        transform->scale = glm::vec3(68.0f, 68.0f, 0.0f);
+
+        auto drawable = targetIndicatorEntity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->feature->color = { 0.35f, 0.35f, 0.35f };
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
+        drawable->renderable->setEnabled(false);
       }
 
       {
@@ -394,6 +417,47 @@ class TutorialScene : public Scene {
           auto circleCollider = triggerEntity->add<CircleCollider>();
           circleCollider->radius = 2.0f;
         }
+      }
+
+      auto tutorialStateEntity = createEntity();
+      tutorialStateEntity->add<TutorialState>();
+
+      {
+        auto tutorialTextEntity1 = createEntity();
+        tutorialTextEntity1->add<TutorialText1>();
+
+        auto transform = tutorialTextEntity1->add<Transform>();
+        transform->scale = glm::vec3(20.0f);
+        transform->position = { -340.0f, -210.0f, 0.0f };
+
+        auto text = tutorialTextEntity1->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = " Hover over a\n health bar to\nchoose a target";
+        text->feature->color = { 0.0f, 0.0f, 0.0f };
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
+        });
+        text->renderable->setEnabled(false);
+      }
+
+      {
+        auto tutorialTextEntity2 = createEntity();
+        tutorialTextEntity2->add<TutorialText2>();
+
+        auto transform = tutorialTextEntity2->add<Transform>();
+        transform->scale = glm::vec3(20.0f);
+        transform->position = { 40.0f, -290.0f, 0.0f };
+
+        auto text = tutorialTextEntity2->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->text = " While hovering\n over a target,\n press a hotkey\nto use an ability";
+        text->feature->color = { 0.0f, 0.0f, 0.0f };
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity e) {
+          text->renderable->destroy();
+        });
+        text->renderable->setEnabled(false);
       }
     }
 
