@@ -1,9 +1,11 @@
 #pragma once
 
+#include <unordered_set>
+
 namespace linguine {
 
 struct Hit {
-  std::vector<uint64_t> entityIds{};
+  std::unordered_set<uint64_t> entityIds{};
 };
 
 }  // namespace linguine

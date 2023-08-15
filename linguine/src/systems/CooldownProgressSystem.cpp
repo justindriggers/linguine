@@ -8,11 +8,19 @@
 namespace linguine {
 
 void CooldownProgressSystem::update(float deltaTime) {
+  findEntities<Ability>()->each([deltaTime](const Entity& entity) {
+    auto ability = entity.get<Ability>();
+
+    if (ability->spell.cooldown > 0.0f) {
+      ability->remainingCooldown = glm::max(0.0f, ability->remainingCooldown - deltaTime);
+    }
+  });
+
   findEntities<GlobalCooldown>()->each([this, deltaTime](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
     globalCooldown->elapsed += deltaTime;
 
-    findEntities<AbilityButton, Progressable>()->each([this, deltaTime, &globalCooldown](const Entity& entity) {
+    findEntities<AbilityButton, Progressable>()->each([this, &globalCooldown](const Entity& entity) {
       auto abilityButton = entity.get<AbilityButton>();
       auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
       auto ability = abilityEntity->get<Ability>();
@@ -21,8 +29,6 @@ void CooldownProgressSystem::update(float deltaTime) {
       auto progress = globalCooldown->elapsed / globalCooldown->total;
 
       if (ability->spell.cooldown > 0.0f) {
-        ability->remainingCooldown -= deltaTime;
-
         if (ability->remainingCooldown > globalCooldown->total - globalCooldown->elapsed) {
           progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
         }

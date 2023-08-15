@@ -307,7 +307,7 @@ void CollisionSystem::detectHit(Entity& a, Entity& b) {
   if (checkCollision(a, b)) {
     if (a.has<Trigger>()) {
       if (a.has<Hit>()) {
-        a.get<Hit>()->entityIds.push_back(b.getId());
+        a.get<Hit>()->entityIds.insert(b.getId());
       } else {
         a.add<Hit>()->entityIds = { b.getId() };
       }
@@ -315,7 +315,7 @@ void CollisionSystem::detectHit(Entity& a, Entity& b) {
 
     if (b.has<Trigger>()) {
       if (b.has<Hit>()) {
-        b.get<Hit>()->entityIds.push_back(a.getId());
+        b.get<Hit>()->entityIds.insert(a.getId());
       } else {
         b.add<Hit>()->entityIds = { a.getId() };
       }

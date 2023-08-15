@@ -45,6 +45,7 @@ add_library(linguine
         src/systems/SelectionDestructionSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
+        src/systems/tutorial/WispTriggerSystem.cpp
 )
 
 target_include_directories(linguine PUBLIC
