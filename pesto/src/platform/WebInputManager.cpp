@@ -128,8 +128,13 @@ void WebInputManager::onMouseDragged(unsigned short button, long x, long y) {
 }
 
 void WebInputManager::onMouseMoved(long x, long y) {
+  if (x < 0 || x > _viewport.getWidth()
+      || y < 0 || y > _viewport.getHeight()) {
+    return;
+  }
+
   _cursorLocation.x = static_cast<float>(x) / _viewport.getWidth();
-  _cursorLocation.y = 1.0f - static_cast<float>(y) / _viewport.getHeight();
+  _cursorLocation.y = 1.0f - static_cast<float>(y + 1) / _viewport.getHeight();
 }
 
 void WebInputManager::onKeyDown(const std::string& key) {
