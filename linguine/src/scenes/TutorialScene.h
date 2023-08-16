@@ -428,7 +428,7 @@ class TutorialScene : public Scene {
 
         auto transform = tutorialTextEntity1->add<Transform>();
         transform->scale = glm::vec3(20.0f);
-        transform->position = { -340.0f, -210.0f, 0.0f };
+        transform->position = { -340.0f, -210.0f, 1.0f };
 
         auto text = tutorialTextEntity1->add<Text>();
         text->feature = new TextFeature();
@@ -447,7 +447,7 @@ class TutorialScene : public Scene {
 
         auto transform = tutorialTextEntity2->add<Transform>();
         transform->scale = glm::vec3(20.0f);
-        transform->position = { 40.0f, -290.0f, 0.0f };
+        transform->position = { 40.0f, -290.0f, 1.0f };
 
         auto text = tutorialTextEntity2->add<Text>();
         text->feature = new TextFeature();
