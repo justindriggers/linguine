@@ -52,15 +52,76 @@ GammaCorrection::GammaCorrection(GLuint sourceTexture)
 
            precision highp float;
 
+           const float dotSize = 8.0;
+
            in vec2 uv;
 
            uniform sampler2D source;
 
            out vec4 outColor;
 
+           vec2 grid(vec2 px, float size) {
+             return px - mod(px, size);
+           }
+
+           vec2 rot(vec2 p, float deg) {
+             float c = cos(deg);
+             float s = sin(deg);
+             mat2 m = mat2(c, s, s, -c);
+             return m*p;
+           }
+
+           vec3 halftone(ivec2 resolution, vec2 coord, float rotation,
+                         vec2 offset, vec3 components, vec3 color) {
+             vec2 gridEdge = grid(rot(coord, rotation), dotSize);
+             vec2 center = rot(gridEdge + 0.5 * dotSize, rotation);
+             vec4 value = texture(source, center / vec2(resolution));
+             value = vec4(pow(value.rgb, vec3(1.0 / 2.2)), value.a);
+
+             vec3 layer = value.rgb * components;
+
+             float distance = length(coord - center + offset);
+             float brightness = max(layer.r, max(layer.g, layer.b));
+
+             if (distance < dotSize * brightness * 0.5) {
+               color += layer;
+             }
+
+             return color;
+           }
+
            void main() {
-             vec4 value = texture(source, uv);
-             outColor = vec4(pow(value.rgb, vec3(1.0 / 2.2)), value.a);
+             ivec2 resolution = textureSize(source, 0);
+             vec2 coord = uv * vec2(resolution);
+
+             float offset = 1.0;
+             vec3 color = vec3(0.0);
+
+             color = halftone(resolution, coord, 15.0, vec2(-offset, offset), vec3(0.0, 1.0, 1.0), color);
+             color = halftone(resolution, coord, 75.0, vec2(offset, offset), vec3(1.0, 0.0, 1.0), color);
+             color = halftone(resolution, coord, 0.0, vec2(-offset, -offset), vec3(1.0, 1.0, 0.0), color);
+
+             bool foreground = length(color) > 0.0;
+
+             float rotation = 45.0;
+
+             vec2 gridEdge = grid(rot(coord, rotation), dotSize);
+             vec2 center = rot(gridEdge + 0.5 * dotSize, rotation);
+             vec4 value = texture(source, center / vec2(resolution));
+             value = vec4(pow(value.rgb, vec3(1.0 / 2.2)), value.a);
+
+             float kDistance = length(center - coord);
+             float brightness = max(value.r, max(value.g, value.b));
+
+             if (kDistance < dotSize * (1.0 - brightness) * 0.5) {
+               color = value.rgb;
+               foreground = true;
+             }
+
+             if (!foreground)
+               color = vec3(1.0);
+
+             outColor = vec4(color, value.a);
            }
       )";
 

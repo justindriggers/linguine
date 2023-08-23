@@ -100,7 +100,7 @@ class TutorialScene : public Scene {
         physicalState->currentPosition = transform->position;
 
         auto fixture = cameraEntity->add<CameraFixture>();
-        fixture->height = 20.0f;
+        fixture->height = 10.0f;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = glm::vec3(0.04f, 0.05f, 0.37f);
       }
