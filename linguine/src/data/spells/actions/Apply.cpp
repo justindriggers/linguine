@@ -28,7 +28,7 @@ void Apply::execute(Entity& target) {
 
     auto transform = effectEntity->add<Transform>();
     transform->position = glm::vec3(0.0f, 0.0f, 1.0f);
-    transform->scale = glm::vec3(64.0f, 8.0f, 0.0f);
+    transform->scale = glm::vec3(40.0f, 4.0f, 0.0f);
 
     auto& renderer = _serviceLocator.get<Renderer>();
 

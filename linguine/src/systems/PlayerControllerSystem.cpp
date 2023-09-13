@@ -4,6 +4,7 @@
 #include "components/AbilityButton.h"
 #include "components/Cast.h"
 #include "components/Drawable.h"
+#include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
 #include "components/Hovered.h"
@@ -38,7 +39,7 @@ void PlayerControllerSystem::update(float deltaTime) {
           auto cast = castEntity.get<Cast>();
 
           if (cast->elapsed <= 0.0f) {
-            findEntities<AbilityButton>()->each([this, &cast, &globalCooldown, &healthBar](const Entity& abilityButtonEntity) {
+            findEntities<Friendly, AbilityButton>()->each([this, &cast, &globalCooldown, &healthBar](const Entity& abilityButtonEntity) {
               auto abilityButton = abilityButtonEntity.get<AbilityButton>();
               auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
               auto ability = abilityEntity->get<Ability>();

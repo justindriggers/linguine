@@ -15,7 +15,7 @@ TextFeatureRenderer::TextFeatureRenderer(MeshRegistry &meshRegistry,
 
   glGenTextures(1, &_fontTexture);
   glBindTexture(GL_TEXTURE_2D, _fontTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, fontImage.width, fontImage.height, 0, GL_RGB, GL_UNSIGNED_BYTE, fontImage.data.data());
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fontImage.width, fontImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, fontImage.data.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -79,9 +79,10 @@ TextFeatureRenderer::TextFeatureRenderer(MeshRegistry &meshRegistry,
            out vec4 outColor;
 
            void main() {
-             float x = (position.x + floor(10.0 * (uv.x + 0.5)) + 0.5) / 160.0;
-             float y = (position.y + floor(10.0 * (-uv.y + 0.5)) + 0.5) / 50.0;
-             float a = 1.0 - texture(sampler, vec2(x, y)).r;
+             vec2 size = vec2(textureSize(sampler, 0));
+             float x = (position.x + floor(5.0 * (uv.x + 0.5)) + 0.5) / size.x;
+             float y = (position.y + floor(5.0 * (-uv.y + 0.5)) + 0.5) / size.y;
+             float a = texture(sampler, vec2(x, y)).a;
              outColor = vec4(color, a);
            }
         )";
@@ -192,7 +193,7 @@ void TextFeatureRenderer::draw(Camera& camera) {
         lineStartModelMatrix = currentModelMatrix;
       } else {
         glUniformMatrix4fv(_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(currentModelMatrix));
-        glUniform2fv(_positionLocation, 1, glm::value_ptr(_glyphPositions.at(character)));
+        glUniform2fv(_positionLocation, 1, glm::value_ptr(getGlyphPosition(character)));
 
         mesh->draw();
 

@@ -6,7 +6,7 @@
 namespace linguine::pesto {
 
 render::OpenGLFileLoader::ImageFile WebOpenGLFileLoader::getImage() const {
-  auto filename = "/assets/fonts/font.bmp";
+  auto filename = "/assets/fonts/font.png";
 
   int width, height, components;
   auto data = stbi_load(filename, &width, &height, &components, 0);

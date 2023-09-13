@@ -11,7 +11,7 @@ MacMetalTextureLoader::~MacMetalTextureLoader() {
 }
 
 MTL::Texture* MacMetalTextureLoader::getTexture() {
-  const auto filename = "font.bmp";
+  const auto filename = "font.png";
 
   auto existing = _textures.find(filename);
 

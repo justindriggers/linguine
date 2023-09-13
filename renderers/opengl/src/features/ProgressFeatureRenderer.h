@@ -26,6 +26,7 @@ class ProgressFeatureRenderer : public FeatureRenderer {
     GLint _viewProjectionMatrixLocation;
     GLint _modelMatrixLocation;
     GLint _colorLocation;
+    GLint _backgroundColorLocation;
     GLint _progressLocation;
 };
 

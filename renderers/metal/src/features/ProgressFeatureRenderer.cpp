@@ -23,6 +23,7 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
 
       struct MetalProgressFragmentFeature {
         float3 color;
+        float3 backgroundColor;
         float progress;
       };
 
@@ -38,7 +39,7 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
 
       float4 fragment fragmentProgress(VertexOutput in [[stage_in]],
           const constant MetalProgressFragmentFeature& feature [[buffer(0)]]) {
-        return in.x < feature.progress ? float4(feature.color, 1.0) : float4(0.0, 0.0, 0.0, 1.0);
+        return in.x < feature.progress ? float4(feature.color, 1.0) : float4(feature.backgroundColor, 1.0);
       }
     )";
 
@@ -155,6 +156,7 @@ void ProgressFeatureRenderer::draw(Camera& camera) {
     auto metalFragmentProgressFeature = static_cast<MetalProgressFragmentFeature*>(fragmentFeatureBuffer->contents());
 
     memcpy(&metalFragmentProgressFeature->color, &feature.color, sizeof(simd::float3));
+    memcpy(&metalFragmentProgressFeature->backgroundColor, &feature.backgroundColor, sizeof(simd::float3));
     metalFragmentProgressFeature->progress = feature.progress;
 
     commandEncoder->setVertexBuffer(vertexFeatureBuffer, 0, 2);

@@ -56,9 +56,9 @@ TextFeatureRenderer::TextFeatureRenderer(MetalRenderContext& context,
             metal::filter::nearest
         );
 
-        float x = feature.position.x + metal::floor(10.0 * (in.uv.x + 0.5));
-        float y = feature.position.y + metal::floor(10.0 * (-in.uv.y + 0.5));
-        float sample = fontTexture.sample(nearestPixel, float2(x, y)).r;
+        float x = feature.position.x + metal::floor(5.0 * (in.uv.x + 0.5));
+        float y = feature.position.y + metal::floor(5.0 * (-in.uv.y + 0.5));
+        float sample = fontTexture.sample(nearestPixel, float2(x, y)).a;
         return float4(in.color, sample);
       }
     )";
@@ -224,7 +224,8 @@ void TextFeatureRenderer::draw(Camera& camera) {
 
         auto glyphFragmentValueBuffer = glyphFragmentValueBuffers[glyphValueBufferIndex];
         auto metalGlyphFragmentFeature = static_cast<MetalGlyphFragmentFeature *>(glyphFragmentValueBuffer->contents());
-        memcpy(&metalGlyphFragmentFeature->position, &_glyphPositions.at(character), sizeof(simd::float2));
+        auto glyphPosition = getGlyphPosition(character);
+        memcpy(&metalGlyphFragmentFeature->position, &glyphPosition, sizeof(simd::float2));
 
         commandEncoder->setFragmentBuffer(glyphFragmentValueBuffer, 0, 0);
 

@@ -11,7 +11,7 @@ IosMetalTextureLoader::~IosMetalTextureLoader() {
 }
 
 MTL::Texture* IosMetalTextureLoader::getTexture() {
-  const auto filename = std::string("font.bmp");
+  const auto filename = std::string("font.png");
 
   auto existing = _textures.find(filename);
 

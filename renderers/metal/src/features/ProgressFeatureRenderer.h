@@ -46,6 +46,7 @@ class ProgressFeatureRenderer : public FeatureRenderer {
 
     struct MetalProgressFragmentFeature {
       simd::float3 color{};
+      simd::float3 backgroundColor{};
       float progress{};
     };
 
