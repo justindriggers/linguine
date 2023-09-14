@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
+#include "data/spells/Category.h"
 #include "entity/Component.h"
 
 namespace linguine {
@@ -9,6 +12,14 @@ struct EffectTracker;
 class Effect {
   public:
     virtual ~Effect() = default;
+
+    [[nodiscard]] Category getCategory() const {
+      return _category;
+    }
+
+    [[nodiscard]] glm::vec3 getColor() const {
+      return _color;
+    }
 
     [[nodiscard]] float getDuration() const {
       return _duration;
@@ -27,10 +38,12 @@ class Effect {
     virtual void onRemove(Component<EffectTracker>& tracker) = 0;
 
   protected:
-    Effect(float duration, uint32_t ticks)
-        : _duration(duration), _ticks(ticks) {}
+    Effect(Category category, glm::vec3 color, float duration, uint32_t ticks)
+        : _category(category), _color(color), _duration(duration), _ticks(ticks) {}
 
   private:
+    Category _category;
+    glm::vec3 _color;
     float _duration;
     uint32_t _ticks;
 };

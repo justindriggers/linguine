@@ -3,6 +3,7 @@ add_library(linguine
         src/data/Grid.cpp
         src/data/spells/actions/Apply.cpp
         src/data/spells/actions/Heal.cpp
+        src/data/spells/effects/DamageOverTime.cpp
         src/data/spells/effects/Effect.cpp
         src/data/spells/effects/HealOverTime.cpp
         src/entity/archetype/Archetype.cpp

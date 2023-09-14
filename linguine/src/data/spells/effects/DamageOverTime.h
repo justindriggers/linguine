@@ -4,14 +4,14 @@
 
 namespace linguine {
 
-class HealOverTime : public Effect {
+class DamageOverTime : public Effect {
   public:
-    HealOverTime(EntityManager& entityManager, glm::vec3 color, float duration,
-                 uint32_t ticks, int32_t powerPerTick)
-        : Effect(Category::Defense, color, duration, ticks), _entityManager(entityManager),
+    DamageOverTime(EntityManager& entityManager, glm::vec3 color,
+                   float duration, uint32_t ticks, int32_t powerPerTick)
+        : Effect(Category::Offense, color, duration, ticks), _entityManager(entityManager),
           _powerPerTick(powerPerTick) {}
 
-    ~HealOverTime() override = default;
+    ~DamageOverTime() override = default;
 
     void onApply(Component<EffectTracker>& tracker) override {}
 

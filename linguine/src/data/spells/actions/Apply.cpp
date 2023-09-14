@@ -28,13 +28,14 @@ void Apply::execute(Entity& target) {
 
     auto transform = effectEntity->add<Transform>();
     transform->position = glm::vec3(0.0f, 0.0f, 1.0f);
-    transform->scale = glm::vec3(40.0f, 4.0f, 0.0f);
+    transform->scale = glm::vec3(38.0f, 2.0f, 0.0f);
 
     auto& renderer = _serviceLocator.get<Renderer>();
 
     auto progressable = effectEntity->add<Progressable>();
     progressable->feature = new ProgressFeature();
-    progressable->feature->color = { 0.0f, 1.0f, 0.0f };
+    progressable->feature->color = _effect->getColor();
+    progressable->feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f };
     progressable->feature->meshType = Quad;
     progressable->renderable = renderer.create(std::unique_ptr<RenderFeature>(progressable->feature), UI);
     progressable->renderable->setEnabled(false);

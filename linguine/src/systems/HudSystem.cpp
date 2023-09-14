@@ -56,7 +56,7 @@ void HudSystem::update(float deltaTime) {
         healthProgressable->feature = new ProgressFeature();
         healthProgressable->feature->meshType = Quad;
         healthProgressable->feature->color = { 1.0f, 1.0f, 1.0f };
-        healthProgressable->feature->backgroundColor = { 0.00972f, 0.04667f, 0.04971f };
+        healthProgressable->feature->backgroundColor = { 0.00972f, 0.04667f, 0.04971f, 1.0f };
         healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
         healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
           healthProgressable->renderable->destroy();
@@ -205,7 +205,7 @@ void HudSystem::update(float deltaTime) {
         healthProgressable->feature = new ProgressFeature();
         healthProgressable->feature->meshType = Quad;
         healthProgressable->feature->color = { 1.0f, 1.0f, 1.0f };
-        healthProgressable->feature->backgroundColor = { 0.04971f, 0.02122f, 0.0319f };
+        healthProgressable->feature->backgroundColor = { 0.04971f, 0.02122f, 0.0319f, 1.0f };
         healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
         healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
           healthProgressable->renderable->destroy();

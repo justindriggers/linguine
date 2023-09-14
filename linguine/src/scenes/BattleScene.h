@@ -135,6 +135,19 @@ class BattleScene : public Scene {
 
           party->memberIds.push_back(wispEntity->getId());
         }
+
+        // DoT Wisp
+        {
+          auto wispEntity = createEntity();
+          wispEntity->add<Friendly>();
+
+          wispEntity->add<Ability>(_spellDatabase->getSpellById(3));
+
+          auto health = wispEntity->add<Health>(350);
+          health->current = 150;
+
+          party->memberIds.push_back(wispEntity->getId());
+        }
       }
 
       {
@@ -258,6 +271,24 @@ class BattleScene : public Scene {
         drawable->feature = new ColoredFeature();
         drawable->feature->meshType = Quad;
         drawable->feature->color = { 0.96469f, 0.28744f, 0.02416f };
+        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+        drawable.setRemovalListener([drawable](const Entity e) {
+          drawable->renderable->destroy();
+        });
+      }
+
+      {
+        auto playerAbilityBackgroundEntity = createEntity();
+
+        auto transform = playerAbilityBackgroundEntity->add<Transform>();
+        transform->position = { 0.0f, -84.0f, 10.0f };
+        transform->scale = { 288.0f, 72.0f, 0.0f };
+
+        auto drawable = playerAbilityBackgroundEntity->add<Drawable>();
+        drawable->feature = new ColoredFeature();
+        drawable->feature->meshType = Quad;
+        drawable->feature->color = { 0.00121f, 0.23074f, 0.6376f };
+//        drawable->feature->color = { 0.96469f, 0.28744f, 0.02416f };
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();

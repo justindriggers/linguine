@@ -22,8 +22,8 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
       };
 
       struct MetalProgressFragmentFeature {
+        float4 backgroundColor;
         float3 color;
-        float3 backgroundColor;
         float progress;
       };
 
@@ -39,7 +39,13 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
 
       float4 fragment fragmentProgress(VertexOutput in [[stage_in]],
           const constant MetalProgressFragmentFeature& feature [[buffer(0)]]) {
-        return in.x < feature.progress ? float4(feature.color, 1.0) : float4(feature.backgroundColor, 1.0);
+        float4 result = in.x < feature.progress ? float4(feature.color, 1.0) : feature.backgroundColor;
+
+        if (result.a > 0.0) {
+          return result;
+        }
+
+        metal::discard_fragment();
       }
     )";
 
@@ -56,7 +62,17 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
   const auto renderPipelineDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
   renderPipelineDescriptor->setVertexFunction(vertexFunction);
   renderPipelineDescriptor->setFragmentFunction(fragmentFunction);
-  renderPipelineDescriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+
+  auto colorAttachment = renderPipelineDescriptor->colorAttachments()->object(0);
+  colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+  colorAttachment->setBlendingEnabled(true);
+  colorAttachment->setRgbBlendOperation(MTL::BlendOperation::BlendOperationAdd);
+  colorAttachment->setAlphaBlendOperation(MTL::BlendOperation::BlendOperationAdd);
+  colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
+  colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
+  colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
+  colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
+
   renderPipelineDescriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
 
   _pipelineState = context.device->newRenderPipelineState(renderPipelineDescriptor, &error);
@@ -155,8 +171,8 @@ void ProgressFeatureRenderer::draw(Camera& camera) {
     auto fragmentFeatureBuffer = fragmentFeatureBuffers[valueBufferIndex];
     auto metalFragmentProgressFeature = static_cast<MetalProgressFragmentFeature*>(fragmentFeatureBuffer->contents());
 
+    memcpy(&metalFragmentProgressFeature->backgroundColor, &feature.backgroundColor, sizeof(simd::float4));
     memcpy(&metalFragmentProgressFeature->color, &feature.color, sizeof(simd::float3));
-    memcpy(&metalFragmentProgressFeature->backgroundColor, &feature.backgroundColor, sizeof(simd::float3));
     metalFragmentProgressFeature->progress = feature.progress;
 
     commandEncoder->setVertexBuffer(vertexFeatureBuffer, 0, 2);

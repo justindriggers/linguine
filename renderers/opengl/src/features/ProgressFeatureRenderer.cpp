@@ -59,8 +59,8 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MeshRegistry &meshRegistry)
 
            precision highp float;
 
+           uniform vec4 backgroundColor;
            uniform vec3 color;
-           uniform vec3 backgroundColor;
            uniform float progress;
 
            in float x;
@@ -68,7 +68,11 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MeshRegistry &meshRegistry)
            out vec4 outColor;
 
            void main() {
-             outColor = x < progress ? vec4(color, 1.0) : vec4(backgroundColor, 1.0);
+             outColor = x < progress ? vec4(color, 1.0) : backgroundColor;
+
+             if (outColor.a <= 0.0) {
+               discard;
+             }
            }
         )";
 
@@ -149,8 +153,8 @@ void ProgressFeatureRenderer::draw(Camera& camera) {
     auto& feature = renderable->getFeature<ProgressFeature>();
 
     glUniformMatrix4fv(_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(feature.modelMatrix));
+    glUniform4fv(_backgroundColorLocation, 1, glm::value_ptr(feature.backgroundColor));
     glUniform3fv(_colorLocation, 1, glm::value_ptr(feature.color));
-    glUniform3fv(_backgroundColorLocation, 1, glm::value_ptr(feature.backgroundColor));
     glUniform1f(_progressLocation, feature.progress);
 
     auto& mesh = _meshRegistry.get(feature.meshType);
