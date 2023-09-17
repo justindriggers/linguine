@@ -24,6 +24,12 @@
 {
   [super viewDidLoad];
 
+  [[UIDevice currentDevice] setValue:@(UIInterfaceOrientationLandscapeLeft)
+                              forKey:@"orientation"];
+  [UINavigationController attemptRotationToDeviceOrientation];
+
+  [self setNeedsUpdateOfHomeIndicatorAutoHidden];
+
   _view = (MTKView *)self.view;
   _view.multipleTouchEnabled = true;
   _view.preferredFramesPerSecond = 120;
@@ -78,6 +84,10 @@
 
   [_viewDelegate mtkView:_view drawableSizeWillChange:_view.bounds.size];
   [_view setDelegate:_viewDelegate];
+}
+
+-(BOOL)prefersHomeIndicatorAutoHidden{
+  return YES;
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches
