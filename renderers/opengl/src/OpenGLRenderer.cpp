@@ -2,6 +2,7 @@
 
 #include <GLES3/gl3.h>
 
+#include "features/CircleFeatureRenderer.h"
 #include "features/ColoredFeatureRenderer.h"
 #include "features/ProgressFeatureRenderer.h"
 #include "features/SelectableFeatureRenderer.h"
@@ -52,6 +53,7 @@ OpenGLRendererImpl::OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoa
   _features.push_back(std::make_unique<ProgressFeatureRenderer>(_meshRegistry));
   _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
   _features.push_back(std::make_unique<TextFeatureRenderer>(_meshRegistry, *_fileLoader));
+  _features.push_back(std::make_unique<CircleFeatureRenderer>(_meshRegistry));
   _features.shrink_to_fit();
 
   _gammaCorrection = std::make_unique<GammaCorrection>(_targetTexture);
@@ -88,6 +90,7 @@ void OpenGLRendererImpl::draw() {
 
     for (const auto& feature : getFeatures()) {
       glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+      glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
       feature->draw(*camera);
     }
   }

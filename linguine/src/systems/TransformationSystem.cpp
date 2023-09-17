@@ -1,5 +1,6 @@
 #include "TransformationSystem.h"
 
+#include "components/Circle.h"
 #include "components/Drawable.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
@@ -9,6 +10,16 @@
 namespace linguine {
 
 void TransformationSystem::update(float deltaTime) {
+  findEntities<Transform, Circle>()->each([](const Entity& entity) {
+    const auto transform = entity.get<Transform>();
+    const auto circle = entity.get<Circle>();
+
+    circle->feature->modelMatrix = glm::scale(
+        glm::translate(glm::mat4(1.0f), transform->position) * glm::mat4_cast(transform->rotation),
+        transform->scale
+    );
+  });
+
   findEntities<Transform, Drawable>()->each([](const Entity& entity) {
     const auto transform = entity.get<Transform>();
     const auto drawable = entity.get<Drawable>();

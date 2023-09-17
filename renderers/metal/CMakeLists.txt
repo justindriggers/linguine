@@ -1,5 +1,6 @@
 add_library(metal
         src/MetalRenderer.cpp
+        src/features/CircleFeatureRenderer.cpp
         src/features/ColoredFeatureRenderer.cpp
         src/features/ProgressFeatureRenderer.cpp
         src/features/SelectableFeatureRenderer.cpp

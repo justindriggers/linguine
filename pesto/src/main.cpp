@@ -35,6 +35,7 @@ int main() {
   attributes.majorVersion = 2;
   attributes.minorVersion = 0;
   attributes.depth = false;
+  attributes.antialias = false;
 
   int width, height;
   emscripten_get_canvas_element_size("canvas", &width, &height);

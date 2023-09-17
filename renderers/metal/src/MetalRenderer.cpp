@@ -9,6 +9,7 @@
 
 #include <renderer/features/FeatureRenderer.h>
 
+#include "features/CircleFeatureRenderer.h"
 #include "features/ColoredFeatureRenderer.h"
 #include "features/ProgressFeatureRenderer.h"
 #include "features/SelectableFeatureRenderer.h"
@@ -36,6 +37,7 @@ class MetalRendererImpl : public MetalRenderer {
       _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
       _features.push_back(std::make_unique<TextFeatureRenderer>(_context, *_meshRegistry, _textureLoader));
+      _features.push_back(std::make_unique<CircleFeatureRenderer>(_context, *_meshRegistry));
       _features.shrink_to_fit();
     }
 

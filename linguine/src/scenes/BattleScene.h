@@ -7,6 +7,7 @@
 #include "components/Attachment.h"
 #include "components/CameraFixture.h"
 #include "components/Cast.h"
+#include "components/Circle.h"
 #include "components/Drawable.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
@@ -292,6 +293,20 @@ class BattleScene : public Scene {
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
+        });
+      }
+
+      {
+        auto circleEntity = createEntity();
+
+        auto transform = circleEntity->add<Transform>();
+        transform->scale = { 40.0f, 40.0f, 0.0f };
+
+        auto circle = circleEntity->add<Circle>();
+        circle->feature = new CircleFeature();
+        circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature), UI);
+        circle.setRemovalListener([circle](const Entity e) {
+          circle->renderable->destroy();
         });
       }
     }
