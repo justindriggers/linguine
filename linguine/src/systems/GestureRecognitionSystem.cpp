@@ -65,7 +65,7 @@ void GestureRecognitionSystem::onHoldEvent(uint64_t id, const InputManager::Touc
       const auto entityId = _renderer.getEntityIdAt(touch.x, touch.y);
 
       if (entityId && entityId == gestureState.startEntityId) {
-        auto entity = getEntityById(entityId.value());
+        auto entity = getEntityById(*entityId);
         entity->add<LongPressed>();
       }
 
@@ -87,7 +87,7 @@ void GestureRecognitionSystem::onUpEvent(uint64_t id, const InputManager::Touch&
       const auto duration = _timeManager.durationInSeconds(gestureState.startTime, _timeManager.currentTime());
 
       if (distance < _tapDistanceThreshold && duration < _longPressThreshold) {
-        auto entity = getEntityById(gestureState.startEntityId.value());
+        auto entity = getEntityById(*gestureState.startEntityId);
         entity->add<Tapped>();
       }
     }
