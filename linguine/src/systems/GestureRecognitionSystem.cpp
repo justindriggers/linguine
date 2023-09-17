@@ -4,6 +4,7 @@
 
 #include "components/Hovered.h"
 #include "components/LongPressed.h"
+#include "components/Pressed.h"
 #include "components/Tapped.h"
 
 namespace linguine {
@@ -19,6 +20,11 @@ void GestureRecognitionSystem::update(float deltaTime) {
 
   findEntities<Hovered>()->each([](Entity& entity) {
     entity.remove<Hovered>();
+  });
+
+  findEntities<Pressed>()->each([](const Entity& entity) {
+    auto pressed = entity.get<Pressed>();
+    pressed->isFirstFrame = false;
   });
 
   const auto cursorLocation = _inputManager.getCursorLocation();
@@ -47,6 +53,11 @@ void GestureRecognitionSystem::update(float deltaTime) {
 void GestureRecognitionSystem::onDownEvent(uint64_t id, const InputManager::Touch& touch) {
   const auto entityId = _renderer.getEntityIdAt(touch.x, touch.y);
 
+  if (entityId) {
+    auto entity = getEntityById(*entityId);
+    entity->add<Pressed>();
+  }
+
   auto position = glm::vec2(touch.x, touch.y);
   _gestureStates.insert({id, { _timeManager.currentTime(), entityId, position, position }});
 }
@@ -68,8 +79,6 @@ void GestureRecognitionSystem::onHoldEvent(uint64_t id, const InputManager::Touc
         auto entity = getEntityById(*entityId);
         entity->add<LongPressed>();
       }
-
-      _gestureStates.erase(it->first);
     }
 
     gestureState.lastLocation = newLocation;
@@ -82,12 +91,14 @@ void GestureRecognitionSystem::onUpEvent(uint64_t id, const InputManager::Touch&
   if (it != _gestureStates.end()) {
     auto& gestureState = it->second;
 
-    if (gestureState.startEntityId.has_value()) {
+    if (gestureState.startEntityId) {
       const auto distance = glm::length(gestureState.startLocation - glm::vec2(touch.x, touch.y));
       const auto duration = _timeManager.durationInSeconds(gestureState.startTime, _timeManager.currentTime());
 
+      auto entity = getEntityById(*gestureState.startEntityId);
+      entity->remove<Pressed>();
+
       if (distance < _tapDistanceThreshold && duration < _longPressThreshold) {
-        auto entity = getEntityById(*gestureState.startEntityId);
         entity->add<Tapped>();
       }
     }

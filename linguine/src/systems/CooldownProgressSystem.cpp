@@ -19,7 +19,7 @@ void CooldownProgressSystem::update(float deltaTime) {
 
   findEntities<GlobalCooldown>()->each([this, deltaTime](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
-    globalCooldown->elapsed += deltaTime;
+    globalCooldown->remaining = glm::max(0.0f, globalCooldown->remaining - deltaTime);
 
     findEntities<Friendly, AbilityButton, Progressable>()->each([this, &globalCooldown](const Entity& entity) {
       auto abilityButton = entity.get<AbilityButton>();
@@ -27,10 +27,10 @@ void CooldownProgressSystem::update(float deltaTime) {
       auto ability = abilityEntity->get<Ability>();
 
       auto progressable = entity.get<Progressable>();
-      auto progress = globalCooldown->elapsed / globalCooldown->total;
+      auto progress = 1.0f - globalCooldown->remaining / globalCooldown->total;
 
       if (ability->spell.cooldown > 0.0f) {
-        if (ability->remainingCooldown > globalCooldown->total - globalCooldown->elapsed) {
+        if (ability->remainingCooldown > globalCooldown->remaining) {
           progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
         }
       }

@@ -44,7 +44,7 @@ class BattleScene : public Scene {
           _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<InputManager>()));
+      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager()));
       registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
@@ -203,17 +203,15 @@ class BattleScene : public Scene {
         auto castEntity = createEntity();
 
         auto transform = castEntity->add<Transform>();
-        transform->position = glm::vec3(0.0f, -176.0f, 0.0f);
-        transform->scale = glm::vec3(192.0f, 20.0f, 1.0f);
+        transform->scale = glm::vec3(40.0f, 40.0f, 0.0f);
 
-        auto progressable = castEntity->add<Progressable>();
-        progressable->feature = new ProgressFeature();
-        progressable->feature->meshType = Quad;
-        progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
-        progressable.setRemovalListener([progressable](const Entity e) {
-          progressable->renderable->destroy();
+        auto circle = castEntity->add<Circle>();
+        circle->feature = new CircleFeature();
+        circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature), UI);
+        circle.setRemovalListener([circle](const Entity e) {
+          circle->renderable->destroy();
         });
-        progressable->renderable->setEnabled(false);
+        circle->renderable->setEnabled(false);
 
         castEntity->add<Cast>();
       }
@@ -240,7 +238,6 @@ class BattleScene : public Scene {
         auto gcdEntity = createEntity();
 
         auto globalCooldown = gcdEntity->add<GlobalCooldown>();
-        globalCooldown->elapsed = 1.5f;
         globalCooldown->total = 1.5f;
       }
 
@@ -293,20 +290,6 @@ class BattleScene : public Scene {
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
-        });
-      }
-
-      {
-        auto circleEntity = createEntity();
-
-        auto transform = circleEntity->add<Transform>();
-        transform->scale = { 40.0f, 40.0f, 0.0f };
-
-        auto circle = circleEntity->add<Circle>();
-        circle->feature = new CircleFeature();
-        circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature), UI);
-        circle.setRemovalListener([circle](const Entity e) {
-          circle->renderable->destroy();
         });
       }
     }

@@ -7,7 +7,9 @@
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
-#include "components/Hovered.h"
+#include "components/Pressed.h"
+#include "components/Selected.h"
+#include "components/Tapped.h"
 #include "components/TargetIndicator.h"
 #include "components/Transform.h"
 
@@ -16,11 +18,19 @@ namespace linguine {
 void PlayerControllerSystem::update(float deltaTime) {
   findEntities<TargetIndicator, Drawable, Transform>()->each([this](const Entity& entity) {
     auto targetIndicatorDrawable = entity.get<Drawable>();
-    targetIndicatorDrawable->renderable->setEnabled(false);
-
     auto targetIndicatorTransform = entity.get<Transform>();
 
-    findEntities<HealthBar, Hovered, Transform>()->each([&targetIndicatorDrawable, &targetIndicatorTransform](const Entity& healthBarEntity) {
+    findEntities<HealthBar, Tapped, Transform>()->each([&targetIndicatorDrawable, &targetIndicatorTransform, this](Entity& healthBarEntity) {
+      findEntities<HealthBar, Selected>()->each([&healthBarEntity](Entity& selectedHealthBarEntity) {
+        if (healthBarEntity.getId() != selectedHealthBarEntity.getId()) {
+          selectedHealthBarEntity.remove<Selected>();
+        }
+      });
+
+      if (!healthBarEntity.has<Selected>()) {
+        healthBarEntity.add<Selected>();
+      }
+
       auto healthBarTransform = healthBarEntity.get<Transform>();
       targetIndicatorTransform->position = healthBarTransform->position;
 
@@ -28,32 +38,46 @@ void PlayerControllerSystem::update(float deltaTime) {
     });
   });
 
-  findEntities<GlobalCooldown>()->each([this](const Entity& entity) {
-    auto globalCooldown = entity.get<GlobalCooldown>();
+  findEntities<HealthBar, Selected>()->each([this](const Entity& healthBarEntity) {
+    auto healthBar = healthBarEntity.get<HealthBar>();
 
-    if (globalCooldown->elapsed >= globalCooldown->total) {
-      findEntities<HealthBar, Hovered>()->each([this, &globalCooldown](const Entity& healthBarEntity) {
-        auto healthBar = healthBarEntity.get<HealthBar>();
+    findEntities<Cast>()->each([this, &healthBar](const Entity& castEntity) {
+      auto cast = castEntity.get<Cast>();
+      auto isCanceled = true;
 
-        findEntities<Cast>()->each([this, &globalCooldown, &healthBar](const Entity& castEntity) {
-          auto cast = castEntity.get<Cast>();
+      findEntities<Friendly, AbilityButton, Pressed>()->each([this, &cast, &healthBar, &isCanceled](const Entity& abilityButtonEntity) {
+        auto abilityButton = abilityButtonEntity.get<AbilityButton>();
+        auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
+        auto ability = abilityEntity->get<Ability>();
+        auto pressed = abilityButtonEntity.get<Pressed>();
 
-          if (cast->elapsed <= 0.0f) {
-            findEntities<Friendly, AbilityButton>()->each([this, &cast, &globalCooldown, &healthBar](const Entity& abilityButtonEntity) {
-              auto abilityButton = abilityButtonEntity.get<AbilityButton>();
-              auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
-              auto ability = abilityEntity->get<Ability>();
+        if (!cast->abilityEntityId && ability->remainingCooldown <= 0.0f && pressed->isFirstFrame) {
+          findEntities<GlobalCooldown>()->each([&cast, &abilityButton, &healthBar, &isCanceled](const Entity& entity) {
+            auto globalCooldown = entity.get<GlobalCooldown>();
 
-              if (_inputManager.isKeyPressed(abilityButton->key) && ability->remainingCooldown <= 0.0f) {
-                cast->abilityEntityId = abilityButton->abilityEntityId;
-                cast->targetEntityId = healthBar->entityId;
-                globalCooldown->elapsed = 0.0f;
-              }
-            });
-          }
-        });
+            if (globalCooldown->remaining <= 0.0f) {
+              cast->abilityEntityId = abilityButton->abilityEntityId;
+              cast->targetEntityId = healthBar->entityId;
+              globalCooldown->remaining = globalCooldown->total;
+              isCanceled = false;
+            }
+          });
+        } else if (cast->abilityEntityId == abilityEntity->getId()) {
+          isCanceled = false;
+        }
       });
-    }
+
+      if (cast->abilityEntityId && isCanceled) {
+        cast->abilityEntityId = {};
+        cast->targetEntityId = {};
+        cast->elapsed = 0.0f;
+
+        findEntities<GlobalCooldown>()->each([](const Entity& entity) {
+          auto globalCooldown = entity.get<GlobalCooldown>();
+          globalCooldown->remaining = 0.0f;
+        });
+      }
+    });
   });
 }
 
