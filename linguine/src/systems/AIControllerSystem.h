@@ -2,16 +2,21 @@
 
 #include "System.h"
 
+#include <random>
+
 namespace linguine {
 
-class LivenessSystem : public System {
+class AIControllerSystem : public System {
   public:
-    explicit LivenessSystem(EntityManager& entityManager)
+    explicit AIControllerSystem(EntityManager& entityManager)
         : System(entityManager) {}
 
     void update(float deltaTime) override;
 
     void fixedUpdate(float fixedDeltaTime) override {}
+
+  private:
+    std::random_device _random;
 };
 
 }  // namespace linguine

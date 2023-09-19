@@ -2,6 +2,7 @@
 
 #include "components/Ability.h"
 #include "components/AbilityButton.h"
+#include "components/Alive.h"
 #include "components/Cast.h"
 #include "components/Drawable.h"
 #include "components/Friendly.h"
@@ -41,27 +42,34 @@ void PlayerControllerSystem::update(float deltaTime) {
   findEntities<HealthBar, Selected>()->each([this](const Entity& healthBarEntity) {
     auto healthBar = healthBarEntity.get<HealthBar>();
 
-    findEntities<Cast>()->each([this, &healthBar](const Entity& castEntity) {
+    findEntities<Cast, Friendly>()->each([this, &healthBar](const Entity& castEntity) {
       auto cast = castEntity.get<Cast>();
       auto isCanceled = true;
 
       findEntities<Friendly, AbilityButton, Pressed>()->each([this, &cast, &healthBar, &isCanceled](const Entity& abilityButtonEntity) {
         auto abilityButton = abilityButtonEntity.get<AbilityButton>();
         auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
+
+        if (!abilityEntity->has<Alive>()) return;
+
         auto ability = abilityEntity->get<Ability>();
         auto pressed = abilityButtonEntity.get<Pressed>();
 
         if (!cast->abilityEntityId && ability->remainingCooldown <= 0.0f && pressed->isFirstFrame) {
-          findEntities<GlobalCooldown>()->each([&cast, &abilityButton, &healthBar, &isCanceled](const Entity& entity) {
-            auto globalCooldown = entity.get<GlobalCooldown>();
+          auto target = getEntityById(healthBar->entityId);
 
-            if (globalCooldown->remaining <= 0.0f) {
-              cast->abilityEntityId = abilityButton->abilityEntityId;
-              cast->targetEntityId = healthBar->entityId;
-              globalCooldown->remaining = globalCooldown->total;
-              isCanceled = false;
-            }
-          });
+          if (target->has<Alive>()) {
+            findEntities<GlobalCooldown, Friendly>()->each([&cast, &abilityButton, &healthBar, &isCanceled](const Entity& entity) {
+              auto globalCooldown = entity.get<GlobalCooldown>();
+
+              if (globalCooldown->remaining <= 0.0f) {
+                cast->abilityEntityId = abilityButton->abilityEntityId;
+                cast->targetEntityId = healthBar->entityId;
+                globalCooldown->remaining = globalCooldown->total;
+                isCanceled = false;
+              }
+            });
+          }
         } else if (cast->abilityEntityId == abilityEntity->getId()) {
           isCanceled = false;
         }
@@ -72,7 +80,7 @@ void PlayerControllerSystem::update(float deltaTime) {
         cast->targetEntityId = {};
         cast->elapsed = 0.0f;
 
-        findEntities<GlobalCooldown>()->each([](const Entity& entity) {
+        findEntities<GlobalCooldown, Friendly>()->each([](const Entity& entity) {
           auto globalCooldown = entity.get<GlobalCooldown>();
           globalCooldown->remaining = 0.0f;
         });

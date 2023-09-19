@@ -15,6 +15,7 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
+        src/systems/AIControllerSystem.cpp
         src/systems/AttachmentSystem.cpp
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp

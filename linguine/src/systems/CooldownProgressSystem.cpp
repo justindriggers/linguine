@@ -17,9 +17,13 @@ void CooldownProgressSystem::update(float deltaTime) {
     }
   });
 
-  findEntities<GlobalCooldown>()->each([this, deltaTime](const Entity& entity) {
+  findEntities<GlobalCooldown>()->each([deltaTime](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
     globalCooldown->remaining = glm::max(0.0f, globalCooldown->remaining - deltaTime);
+  });
+
+  findEntities<GlobalCooldown, Friendly>()->each([this](const Entity& entity) {
+    auto globalCooldown = entity.get<GlobalCooldown>();
 
     findEntities<Friendly, AbilityButton, Progressable>()->each([this, &globalCooldown](const Entity& entity) {
       auto abilityButton = entity.get<AbilityButton>();
