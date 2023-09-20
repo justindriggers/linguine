@@ -122,7 +122,7 @@ class BattleScene : public Scene {
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(0));
-          wispEntity->add<Health>(500);
+          wispEntity->add<Health>(1000);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -134,7 +134,7 @@ class BattleScene : public Scene {
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(1));
-          wispEntity->add<Health>(400);
+          wispEntity->add<Health>(800);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -146,7 +146,7 @@ class BattleScene : public Scene {
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(2));
-          wispEntity->add<Health>(350);
+          wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -158,7 +158,7 @@ class BattleScene : public Scene {
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(3));
-          wispEntity->add<Health>(350);
+          wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -177,7 +177,7 @@ class BattleScene : public Scene {
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(1));
-          wispEntity->add<Health>(400);
+          wispEntity->add<Health>(800);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -189,7 +189,7 @@ class BattleScene : public Scene {
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(0));
-          wispEntity->add<Health>(500);
+          wispEntity->add<Health>(1000);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -201,7 +201,7 @@ class BattleScene : public Scene {
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(2));
-          wispEntity->add<Health>(350);
+          wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
@@ -213,7 +213,7 @@ class BattleScene : public Scene {
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(3));
-          wispEntity->add<Health>(350);
+          wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
