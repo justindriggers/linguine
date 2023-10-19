@@ -2,10 +2,9 @@ add_library(linguine
         src/Engine.cpp
         src/data/Grid.cpp
         src/data/spells/actions/Apply.cpp
-        src/data/spells/actions/Heal.cpp
-        src/data/spells/effects/DamageOverTime.cpp
+        src/data/spells/actions/ModifyHealth.cpp
         src/data/spells/effects/Effect.cpp
-        src/data/spells/effects/HealOverTime.cpp
+        src/data/spells/effects/ModifyHealthOverTime.cpp
         src/entity/archetype/Archetype.cpp
         src/entity/archetype/ArchetypeEntityManager.cpp
         src/entity/archetype/ArchetypeResult.cpp

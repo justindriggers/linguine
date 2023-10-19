@@ -42,8 +42,7 @@ void EffectSystem::update(float deltaTime) {
       return progressableA->feature->progress > progressableB->feature->progress;
     });
 
-    auto offenseCount = 0;
-    auto defenseCount = 0;
+    auto effectCount = 0;
 
     for (const auto& effectEntityId : effects) {
       auto effectEntity = getEntityById(effectEntityId);
@@ -57,26 +56,11 @@ void EffectSystem::update(float deltaTime) {
 
       auto effectTracker = effectEntity->get<EffectTracker>();
 
-      switch (effectTracker->effect.getCategory()) {
-      case Offense:
-      case Control:
-        transform->position.y = healthBarTransform->position.y
-                                + healthBarTransform->scale.y / 2.0f
-                                - transform->scale.y / 2.0f
-                                - 2.0f * static_cast<float>(offenseCount++)
-                                - 1.0f;
-        break;
-      case Defense:
-      case Support:
-        transform->position.y = healthBarTransform->position.y
-                                - healthBarTransform->scale.y / 2.0f
-                                + transform->scale.y / 2.0f
-                                + 2.0f * static_cast<float>(defenseCount++)
-                                + 1.0f;
-        break;
-      default:
-        throw std::runtime_error("Unsupported Effect category");
-      }
+      transform->position.y = healthBarTransform->position.y
+                              + healthBarTransform->scale.y / 2.0f
+                              - transform->scale.y / 2.0f
+                              - 2.0f * static_cast<float>(effectCount++)
+                              - 1.0f;
     }
   }
 }

@@ -1,5 +1,7 @@
 #include "AIControllerSystem.h"
 
+#include <list>
+
 #include "components/Ability.h"
 #include "components/Alive.h"
 #include "components/Cast.h"
@@ -7,6 +9,8 @@
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/UnitType.h"
+#include "data/spells/TypeEvaluator.h"
 
 namespace linguine {
 
@@ -30,91 +34,94 @@ void AIControllerSystem::update(float deltaTime) {
           });
 
           if (!availableAbilities.empty()) {
-            auto shouldBeDefensive = false;
+            std::list<uint64_t> prioritizedTargets = {};
 
-            findEntities<Health, Hostile>()->each([&shouldBeDefensive](const Entity& healthEntity) {
-              auto health = healthEntity.get<Health>();
+            findEntities<Health, Alive>()->each([this, &prioritizedTargets](const Entity& targetEntity) {
+              if (prioritizedTargets.empty()) {
+                prioritizedTargets.push_back(targetEntity.getId());
+              } else {
+                auto health = targetEntity.get<Health>();
+                auto hp = static_cast<float>(health->current) / static_cast<float>(health->max);
 
-              if (health->current > 0 && static_cast<float>(health->current) / static_cast<float>(health->max) < 0.5f) {
-                shouldBeDefensive = true;
+                auto inserted = false;
+
+                auto it = prioritizedTargets.begin();
+
+                while (it != prioritizedTargets.end()) {
+                  auto other = getEntityById(*it);
+
+                  if (targetEntity.has<Hostile>() && hp <= 0.5f) {
+                    auto otherHealth = other->get<Health>();
+                    auto lowestHp = static_cast<float>(otherHealth->current) / static_cast<float>(otherHealth->max);
+
+                    if (hp < lowestHp) {
+                      prioritizedTargets.insert(it, targetEntity.getId());
+                      inserted = true;
+                      break;
+                    } else if (hp == lowestHp) {
+                      auto randomOrder = std::uniform_int_distribution<>(0, 1);
+
+                      if (randomOrder(_random) > 0) {
+                        prioritizedTargets.insert(it, targetEntity.getId());
+                      } else {
+                        prioritizedTargets.insert(std::next(it), targetEntity.getId());
+                      }
+
+                      inserted = true;
+                      break;
+                    }
+                  } else {
+                    auto randomOrder = std::uniform_int_distribution<>(0, 1);
+
+                    if (randomOrder(_random) > 0) {
+                      prioritizedTargets.insert(it, targetEntity.getId());
+                    } else {
+                      prioritizedTargets.insert(std::next(it), targetEntity.getId());
+                    }
+
+                    inserted = true;
+                    break;
+                  }
+
+                  it = std::next(it);
+                }
+
+                if (!inserted) {
+                  prioritizedTargets.push_back(targetEntity.getId());
+                }
               }
             });
 
-            auto defensiveAbilities = std::vector<Entity>();
-            auto otherAbilities = std::vector<Entity>();
-
-            for (const auto& abilityEntity : availableAbilities) {
-              auto ability = abilityEntity.get<Ability>();
-
-              if (ability->spell.category == Category::Defense) {
-                defensiveAbilities.push_back(abilityEntity);
-              } else {
-                otherAbilities.push_back(abilityEntity);
-              }
-            }
-
+            std::optional<uint64_t> chosenTargetId = {};
             std::optional<uint64_t> chosenAbilityId = {};
 
-            if (shouldBeDefensive && !defensiveAbilities.empty()) {
-              auto randomAbility = std::uniform_int_distribution<>(0, static_cast<int>(defensiveAbilities.size() - 1));
-              const auto index = randomAbility(_random);
-              chosenAbilityId = defensiveAbilities[index].getId();
-            } else if (!otherAbilities.empty()) {
-              auto randomAbility = std::uniform_int_distribution<>(0, static_cast<int>(otherAbilities.size() - 1));
-              const auto index = randomAbility(_random);
-              chosenAbilityId = otherAbilities[index].getId();
-            }
+            for (const auto& targetId : prioritizedTargets) {
+              auto target = getEntityById(targetId);
+              auto targetType = target->get<UnitType>()->type;
 
-            if (chosenAbilityId) {
-              auto abilityEntity = getEntityById(*chosenAbilityId);
-              auto ability = abilityEntity->get<Ability>();
+              for (const auto& abilityEntity : availableAbilities) {
+                auto ability = abilityEntity.get<Ability>();
 
-              std::optional<uint64_t> chosenTargetId = {};
-
-              switch (ability->spell.category) {
-              case Category::Offense:
-              case Category::Control: {
-                auto availableTargets = findEntities<Health, Friendly, Alive>()->get();
-
-                if (!availableTargets.empty()) {
-                  auto randomTarget = std::uniform_int_distribution<>(0, static_cast<int>(availableTargets.size() - 1));
-                  const auto index = randomTarget(_random);
-                  chosenTargetId = availableTargets[index]->getId();
-                }
-
-                break;
-              }
-              case Category::Defense: {
-                auto lowestHp = 1.0f;
-
-                findEntities<Health, Hostile, Alive>()->each([&chosenTargetId, &lowestHp](const Entity& targetEntity) {
-                  auto health = targetEntity.get<Health>();
-                  auto hp = static_cast<float>(health->current) / static_cast<float>(health->max);
-
-                  if (hp <= lowestHp) {
-                    lowestHp = hp;
-                    chosenTargetId = targetEntity.getId();
+                if (target->has<Hostile>()) {
+                  if (TypeEvaluator::calculateModifier(ability->spell.type, targetType) > 0.0f) {
+                    chosenTargetId = targetId;
+                    chosenAbilityId = abilityEntity.getId();
+                    break;
                   }
-                });
-                break;
-              }
-              case Category::Support: {
-                auto availableTargets = findEntities<Health, Hostile, Alive>()->get();
-
-                if (!availableTargets.empty()) {
-                  auto randomTarget = std::uniform_int_distribution<>(0, static_cast<int>(availableTargets.size() - 1));
-                  const auto index = randomTarget(_random);
-                  chosenTargetId = availableTargets[index]->getId();
+                } else if (target->has<Friendly>()) {
+                  if (TypeEvaluator::calculateModifier(ability->spell.type, targetType) < 0.0f) {
+                    chosenTargetId = targetId;
+                    chosenAbilityId = abilityEntity.getId();
+                    break;
+                  }
                 }
-
-                break;
-              }
               }
 
-              if (chosenTargetId) {
+              if (chosenTargetId && chosenAbilityId) {
                 cast->abilityEntityId = *chosenAbilityId;
                 cast->targetEntityId = *chosenTargetId;
                 globalCooldown->remaining = globalCooldown->total;
+                break;
               }
             }
           }

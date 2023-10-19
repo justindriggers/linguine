@@ -14,6 +14,7 @@
 #include "components/Text.h"
 #include "components/Tooltip.h"
 #include "components/Transform.h"
+#include "components/UnitType.h"
 
 namespace linguine {
 
@@ -55,7 +56,28 @@ void HudSystem::update(float deltaTime) {
         auto healthProgressable = healthEntity->add<Progressable>();
         healthProgressable->feature = new ProgressFeature();
         healthProgressable->feature->meshType = Quad;
-        healthProgressable->feature->color = { 1.0f, 1.0f, 1.0f };
+
+        switch (memberEntity->get<UnitType>()->type) {
+        case Fire:
+          healthProgressable->feature->color = { 1.0f, 0.0f, 0.0f };
+          break;
+        case Water:
+          healthProgressable->feature->color = { 0.0f, 0.0f, 1.0f };
+          break;
+        case Storm:
+          healthProgressable->feature->color = { 0.0f, 1.0f, 1.0f };
+          break;
+        case Earth:
+          healthProgressable->feature->color = { 1.0f, 1.0f, 0.0f };
+          break;
+        case Growth:
+          healthProgressable->feature->color = { 0.0f, 1.0f, 0.0f };
+          break;
+        case Decay:
+          healthProgressable->feature->color = { 1.0f, 0.0f, 1.0f };
+          break;
+        }
+
         healthProgressable->feature->backgroundColor = { 0.00972f, 0.04667f, 0.04971f, 1.0f };
         healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
         healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
@@ -138,7 +160,27 @@ void HudSystem::update(float deltaTime) {
       auto ability = memberEntity->get<Ability>();
 
       auto abilityProgressable = abilityButtonEntity->get<Progressable>();
-      abilityProgressable->feature->color = ability->spell.color;
+
+      switch (ability->spell.type) {
+      case Fire:
+        abilityProgressable->feature->color = { 1.0f, 0.0f, 0.0f };
+        break;
+      case Water:
+        abilityProgressable->feature->color = { 0.0f, 0.0f, 1.0f };
+        break;
+      case Storm:
+        abilityProgressable->feature->color = { 0.0f, 1.0f, 1.0f };
+        break;
+      case Earth:
+        abilityProgressable->feature->color = { 1.0f, 1.0f, 0.0f };
+        break;
+      case Growth:
+        abilityProgressable->feature->color = { 0.0f, 1.0f, 0.0f };
+        break;
+      case Decay:
+        abilityProgressable->feature->color = { 1.0f, 0.0f, 1.0f };
+        break;
+      }
 
       auto textEntity = getEntityById(abilityButton->textEntityId);
 
@@ -204,7 +246,28 @@ void HudSystem::update(float deltaTime) {
         auto healthProgressable = healthEntity->add<Progressable>();
         healthProgressable->feature = new ProgressFeature();
         healthProgressable->feature->meshType = Quad;
-        healthProgressable->feature->color = { 1.0f, 1.0f, 1.0f };
+
+        switch (memberEntity->get<UnitType>()->type) {
+        case Fire:
+          healthProgressable->feature->color = { 1.0f, 0.0f, 0.0f };
+          break;
+        case Water:
+          healthProgressable->feature->color = { 0.0f, 0.0f, 1.0f };
+          break;
+        case Storm:
+          healthProgressable->feature->color = { 0.0f, 1.0f, 1.0f };
+          break;
+        case Earth:
+          healthProgressable->feature->color = { 1.0f, 1.0f, 0.0f };
+          break;
+        case Growth:
+          healthProgressable->feature->color = { 0.0f, 1.0f, 0.0f };
+          break;
+        case Decay:
+          healthProgressable->feature->color = { 1.0f, 0.0f, 1.0f };
+          break;
+        }
+
         healthProgressable->feature->backgroundColor = { 0.04971f, 0.02122f, 0.0319f, 1.0f };
         healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
         healthProgressable.setRemovalListener([healthProgressable](const Entity e) {

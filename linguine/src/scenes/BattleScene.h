@@ -23,6 +23,7 @@
 #include "components/Transform.h"
 #include "components/Trigger.h"
 #include "components/Unit.h"
+#include "components/UnitType.h"
 #include "systems/AIControllerSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CastSystem.h"
@@ -116,48 +117,52 @@ class BattleScene : public Scene {
 
         auto party = playerEntity->add<Party>();
 
-        // Instant-cast Wisp
+        // Infuse Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(0));
+          wispEntity->add<UnitType>()->type = Type::Storm;
           wispEntity->add<Health>(1000);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // Hard-cast Wisp
+        // Growth Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(1));
+          wispEntity->add<UnitType>()->type = Type::Growth;
           wispEntity->add<Health>(800);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // HoT Wisp
+        // Splash Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(2));
+          wispEntity->add<UnitType>()->type = Type::Water;
           wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // DoT Wisp
+        // Scorch Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Friendly>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(3));
+          wispEntity->add<UnitType>()->type = Type::Fire;
           wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
@@ -171,48 +176,52 @@ class BattleScene : public Scene {
 
         auto party = enemyEntity->add<Party>();
 
-        // Hard-cast Wisp
+        // Growth Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(1));
+          wispEntity->add<UnitType>()->type = Type::Growth;
           wispEntity->add<Health>(800);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // Instant-cast Wisp
+        // Infuse Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(0));
+          wispEntity->add<UnitType>()->type = Type::Storm;
           wispEntity->add<Health>(1000);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // HoT Wisp
+        // Splash Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(2));
+          wispEntity->add<UnitType>()->type = Type::Water;
           wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 
           party->memberIds.push_back(wispEntity->getId());
         }
 
-        // DoT Wisp
+        // Scorch Wisp
         {
           auto wispEntity = createEntity();
           wispEntity->add<Hostile>();
 
           wispEntity->add<Ability>(_spellDatabase->getSpellById(3));
+          wispEntity->add<UnitType>()->type = Type::Fire;
           wispEntity->add<Health>(700);
           wispEntity->add<Alive>();
 

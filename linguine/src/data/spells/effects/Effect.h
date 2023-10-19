@@ -2,7 +2,7 @@
 
 #include <glm/vec3.hpp>
 
-#include "data/spells/Category.h"
+#include "data/spells/Type.h"
 #include "entity/Component.h"
 
 namespace linguine {
@@ -13,8 +13,8 @@ class Effect {
   public:
     virtual ~Effect() = default;
 
-    [[nodiscard]] Category getCategory() const {
-      return _category;
+    [[nodiscard]] Type getType() const {
+      return _type;
     }
 
     [[nodiscard]] glm::vec3 getColor() const {
@@ -38,11 +38,11 @@ class Effect {
     virtual void onRemove(Component<EffectTracker>& tracker) = 0;
 
   protected:
-    Effect(Category category, glm::vec3 color, float duration, uint32_t ticks)
-        : _category(category), _color(color), _duration(duration), _ticks(ticks) {}
+    Effect(Type type, glm::vec3 color, float duration, uint32_t ticks)
+        : _type(type), _color(color), _duration(duration), _ticks(ticks) {}
 
   private:
-    Category _category;
+    Type _type;
     glm::vec3 _color;
     float _duration;
     uint32_t _ticks;
