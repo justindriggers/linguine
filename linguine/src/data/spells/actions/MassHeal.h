@@ -6,12 +6,12 @@
 
 namespace linguine {
 
-class ModifyHealth : public Action {
+class MassHeal : public Action {
   public:
-    ModifyHealth(EntityManager& entityManager, int32_t power)
+    MassHeal(EntityManager& entityManager, int32_t power)
         : _entityManager(entityManager), _power(power) {}
 
-    ~ModifyHealth() override = default;
+    ~MassHeal() override = default;
 
     void execute(Entity& target) override;
 

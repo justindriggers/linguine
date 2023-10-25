@@ -2,6 +2,7 @@ add_library(linguine
         src/Engine.cpp
         src/data/Grid.cpp
         src/data/spells/actions/Apply.cpp
+        src/data/spells/actions/MassHeal.cpp
         src/data/spells/actions/ModifyHealth.cpp
         src/data/spells/effects/Effect.cpp
         src/data/spells/effects/ModifyHealthOverTime.cpp
@@ -14,7 +15,6 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
-        src/systems/AIControllerSystem.cpp
         src/systems/AttachmentSystem.cpp
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
@@ -43,10 +43,13 @@ add_library(linguine
         src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
+        src/systems/ScoringSystem.cpp
         src/systems/SelectionDestructionSystem.cpp
+        src/systems/SpawnSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
         src/systems/tutorial/WispTriggerSystem.cpp
+        src/systems/VelocitySystem.cpp
 )
 
 target_include_directories(linguine PUBLIC

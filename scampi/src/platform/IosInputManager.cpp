@@ -32,6 +32,12 @@ void IosInputManager::pollEvents() {
   }
 
   _pending.clear();
+
+  _currentLeftSwipe = _pendingLeftSwipe;
+  _pendingLeftSwipe = false;
+
+  _currentRightSwipe = _pendingRightSwipe;
+  _pendingRightSwipe = false;
 }
 
 const std::unordered_map<uint64_t, InputManager::Touch>& IosInputManager::getTouches() const {
@@ -56,6 +62,14 @@ void IosInputManager::onTouchEnded(uint64_t id, float x, float y) {
 
 void IosInputManager::onTouchCanceled(uint64_t id, float x, float y) {
   _pending.insert({id, { x, y, Up }});
+}
+
+void IosInputManager::onLeftSwipe() {
+  _pendingLeftSwipe = true;
+}
+
+void IosInputManager::onRightSwipe() {
+  _pendingRightSwipe = true;
 }
 
 }  // namespace linguine::scampi

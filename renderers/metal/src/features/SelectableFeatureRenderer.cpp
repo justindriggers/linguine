@@ -184,7 +184,7 @@ void SelectableFeatureRenderer::resize(uint16_t width, uint16_t height) {
   selectableDepthTextureDescriptor->setWidth(width);
   selectableDepthTextureDescriptor->setHeight(height);
   selectableDepthTextureDescriptor->setPixelFormat(MTL::PixelFormatDepth32Float);
-  selectableDepthTextureDescriptor->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite);
+  selectableDepthTextureDescriptor->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite | MTL::TextureUsageRenderTarget);
   selectableDepthTextureDescriptor->setStorageMode(MTL::StorageMode::StorageModeMemoryless);
 
   _selectableDepthTexture = _context.device->newTexture(selectableDepthTextureDescriptor);

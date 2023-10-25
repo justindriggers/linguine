@@ -2,8 +2,6 @@
 
 namespace linguine {
 
-struct HudDetails {
-  uint64_t healthBarId{};
-};
+struct Earth {};
 
 }  // namespace linguine

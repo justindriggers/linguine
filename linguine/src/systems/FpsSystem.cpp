@@ -1,4 +1,5 @@
 #include "FpsSystem.h"
+#include "components/Player.h"
 
 namespace linguine {
 
@@ -20,6 +21,10 @@ void FpsSystem::fixedUpdate(float fixedDeltaTime) {
 
   while (_fdtAccumulator >= 1.0f) {
     _logger.log("fixedUpdate(): " + std::to_string(_fixedUpdateCounter) + " fps");
+
+    findEntities<Player>()->each([this](const Entity& entity) {
+      _logger.log("Speed: " + std::to_string(entity.get<Player>()->speed));
+    });
 
     _fdtAccumulator -= 1.0f;
     _fixedUpdateCounter = 0;

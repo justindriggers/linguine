@@ -2,16 +2,23 @@
 
 #include "System.h"
 
+#include "data/spells/SpellDatabase.h"
+#include "input/InputManager.h"
+
 namespace linguine {
 
 class PlayerControllerSystem : public System {
   public:
-    explicit PlayerControllerSystem(EntityManager& entityManager)
-        : System(entityManager) {}
+    PlayerControllerSystem(EntityManager& entityManager,
+                           InputManager& inputManager)
+        : System(entityManager), _inputManager(inputManager) {}
 
     void update(float deltaTime) override;
 
-    void fixedUpdate(float fixedDeltaTime) override {}
+    void fixedUpdate(float fixedDeltaTime) override;
+
+  private:
+    InputManager& _inputManager;
 };
 
 }  // namespace linguine

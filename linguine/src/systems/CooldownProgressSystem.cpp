@@ -1,8 +1,6 @@
 #include "CooldownProgressSystem.h"
 
 #include "components/Ability.h"
-#include "components/AbilityButton.h"
-#include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Progressable.h"
 
@@ -22,13 +20,11 @@ void CooldownProgressSystem::update(float deltaTime) {
     globalCooldown->remaining = glm::max(0.0f, globalCooldown->remaining - deltaTime);
   });
 
-  findEntities<GlobalCooldown, Friendly>()->each([this](const Entity& entity) {
+  findEntities<GlobalCooldown>()->each([this](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
 
-    findEntities<Friendly, AbilityButton, Progressable>()->each([this, &globalCooldown](const Entity& entity) {
-      auto abilityButton = entity.get<AbilityButton>();
-      auto abilityEntity = getEntityById(abilityButton->abilityEntityId);
-      auto ability = abilityEntity->get<Ability>();
+    findEntities<Ability, Progressable>()->each([&globalCooldown](const Entity& entity) {
+      auto ability = entity.get<Ability>();
 
       auto progressable = entity.get<Progressable>();
       auto progress = 1.0f - globalCooldown->remaining / globalCooldown->total;

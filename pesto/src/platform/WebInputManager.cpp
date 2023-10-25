@@ -20,23 +20,23 @@ WebInputManager::WebInputManager(const Viewport& viewport) : _viewport(viewport)
 
     if (mouseEvent->buttons) {
       if (mouseEvent->buttons & 1) {
-        inputManager->onMouseDragged(1, mouseEvent->targetX, mouseEvent->targetY);
+        inputManager->onMouseDragged(0, mouseEvent->targetX, mouseEvent->targetY);
       }
 
       if (mouseEvent->buttons & 2) {
-        inputManager->onMouseDragged(2, mouseEvent->targetX, mouseEvent->targetY);
+        inputManager->onMouseDragged(1, mouseEvent->targetX, mouseEvent->targetY);
       }
 
       if (mouseEvent->buttons & 4) {
-        inputManager->onMouseDragged(3, mouseEvent->targetX, mouseEvent->targetY);
+        inputManager->onMouseDragged(2, mouseEvent->targetX, mouseEvent->targetY);
       }
 
       if (mouseEvent->buttons & 8) {
-        inputManager->onMouseDragged(4, mouseEvent->targetX, mouseEvent->targetY);
+        inputManager->onMouseDragged(3, mouseEvent->targetX, mouseEvent->targetY);
       }
 
       if (mouseEvent->buttons & 16) {
-        inputManager->onMouseDragged(5, mouseEvent->targetX, mouseEvent->targetY);
+        inputManager->onMouseDragged(4, mouseEvent->targetX, mouseEvent->targetY);
       }
     }
 

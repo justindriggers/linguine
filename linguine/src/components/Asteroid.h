@@ -1,11 +1,9 @@
 #pragma once
 
-#include "data/spells/Type.h"
-
 namespace linguine {
 
-struct UnitType {
-  Type type;
+struct Asteroid {
+  int points = 1;
 };
 
 }  // namespace linguine

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity/Entity.h"
+#include "entity/Result.h"
 
 namespace linguine {
 

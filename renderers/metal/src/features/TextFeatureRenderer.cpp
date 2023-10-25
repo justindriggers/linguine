@@ -59,7 +59,12 @@ TextFeatureRenderer::TextFeatureRenderer(MetalRenderContext& context,
         float x = feature.position.x + metal::floor(5.0 * (in.uv.x + 0.5));
         float y = feature.position.y + metal::floor(5.0 * (-in.uv.y + 0.5));
         float sample = fontTexture.sample(nearestPixel, float2(x, y)).a;
-        return float4(in.color, sample);
+
+        if (sample > 0.0) {
+          return float4(in.color, sample);
+        }
+
+        metal::discard_fragment();
       }
     )";
 

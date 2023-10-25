@@ -19,6 +19,10 @@ class MacInputManager : public InputManager {
 
     [[nodiscard]] CursorLocation getCursorLocation() const override;
 
+    [[nodiscard]] bool isSwipeDetected(Direction direction) const override {
+      return false;
+    }
+
   private:
     std::unordered_map<uint64_t, Touch> _active;
     std::bitset<Key::MAX> _keyStates;

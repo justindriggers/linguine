@@ -15,9 +15,7 @@ void ProjectileSpawnSystem::fixedUpdate(float fixedDeltaTime) {
     while (spawnPoint->elapsed >= spawnPoint->interval) {
       spawnPoint->elapsed -= spawnPoint->interval;
 
-      for (auto i = 0; i < spawnPoint->count; ++i) {
-        _projectileFactory.create(physicalState->currentPosition, 1.0f, 20);
-      }
+      _projectileFactory.create(physicalState->currentPosition, 1.0f, 20);
     }
   });
 }

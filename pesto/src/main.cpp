@@ -41,8 +41,8 @@ int main() {
   emscripten_get_canvas_element_size("canvas", &width, &height);
 
   if (width == 300 && height == 150) {
-    width = 1280;
-    height = 768;
+    width = 540;
+    height = 900;
 
     emscripten_set_canvas_element_size("canvas", width, height);
   }

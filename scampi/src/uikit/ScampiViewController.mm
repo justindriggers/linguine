@@ -24,10 +24,6 @@
 {
   [super viewDidLoad];
 
-  [[UIDevice currentDevice] setValue:@(UIInterfaceOrientationLandscapeLeft)
-                              forKey:@"orientation"];
-  [UINavigationController attemptRotationToDeviceOrientation];
-
   [self setNeedsUpdateOfHomeIndicatorAutoHidden];
 
   _view = (MTKView *)self.view;
@@ -64,6 +60,16 @@
   }
 
   _inputManager = std::make_shared<linguine::scampi::IosInputManager>();
+
+  UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                                                  action:@selector(leftSwipe:)];
+  [swipeLeft setDirection: UISwipeGestureRecognizerDirectionLeft];
+  [_view addGestureRecognizer:swipeLeft];
+
+  UISwipeGestureRecognizer *swipeRight = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                                                   action:@selector(rightSwipe:)];
+  [swipeRight setDirection: UISwipeGestureRecognizerDirectionRight];
+  [_view addGestureRecognizer:swipeRight];
 
   auto audioFileLoader = std::make_unique<linguine::scampi::IosAudioEngineFileLoader>();
 
@@ -136,6 +142,14 @@
         static_cast<float>(1.0f - point.y / _view.bounds.size.height)
     );
   }
+}
+
+- (void)leftSwipe:(UISwipeGestureRecognizer *)gesture {
+  _inputManager->onLeftSwipe();
+}
+
+-(void)rightSwipe:(UISwipeGestureRecognizer *)gesture {
+  _inputManager->onRightSwipe();
 }
 
 @end

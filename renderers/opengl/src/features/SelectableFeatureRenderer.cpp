@@ -158,8 +158,9 @@ void SelectableFeatureRenderer::draw(linguine::Camera& camera) {
   if (camera.getId() == 0) {
     auto clearColor = glm::uvec4(UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX);
     glClearBufferuiv(GL_COLOR, 0, glm::value_ptr(clearColor));
-    glClear(GL_DEPTH_BUFFER_BIT);
   }
+
+  glClear(GL_DEPTH_BUFFER_BIT);
 
   glUseProgram(_shaderProgram);
 

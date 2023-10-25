@@ -28,6 +28,10 @@ class WebInputManager : public InputManager {
 
     [[nodiscard]] CursorLocation getCursorLocation() const override;
 
+    [[nodiscard]] bool isSwipeDetected(Direction direction) const override {
+      return false;
+    }
+
   private:
     const Viewport& _viewport;
 

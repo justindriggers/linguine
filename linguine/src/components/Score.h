@@ -2,8 +2,8 @@
 
 namespace linguine {
 
-struct HudDetails {
-  uint64_t healthBarId{};
+struct Score {
+  int32_t points = 0;
 };
 
 }  // namespace linguine

@@ -12,6 +12,10 @@ void CameraSystem::update(float deltaTime) {
     const auto transform = entity.get<Transform>();
     const auto cameraFixture = entity.get<CameraFixture>();
 
+    if (cameraFixture->camera->layer == UI) {
+      cameraFixture->height = 240.0f / viewport.getAspectRatio();
+    }
+
     auto cameraModelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
                              * glm::mat4_cast(transform->rotation);
 

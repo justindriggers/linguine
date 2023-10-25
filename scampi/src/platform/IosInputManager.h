@@ -19,7 +19,18 @@ class IosInputManager : public InputManager {
     }
 
     [[nodiscard]] CursorLocation getCursorLocation() const override {
-      return CursorLocation { -1.0f, -1.0f };
+      return CursorLocation { 0.0f, 0.0f };
+    }
+
+    [[nodiscard]] bool isSwipeDetected(Direction direction) const override {
+      switch (direction) {
+      case InputManager::Direction::Left:
+        return _currentLeftSwipe;
+      case InputManager::Direction::Right:
+        return _currentRightSwipe;
+      default:
+        return false;
+      }
     }
 
     void onTouchBegan(uint64_t id, float x, float y);
@@ -30,9 +41,19 @@ class IosInputManager : public InputManager {
 
     void onTouchCanceled(uint64_t id, float x, float y);
 
+    void onLeftSwipe();
+
+    void onRightSwipe();
+
   private:
     std::unordered_map<uint64_t, Touch> _active;
     std::unordered_map<uint64_t, Touch> _pending;
+
+    bool _pendingLeftSwipe;
+    bool _currentLeftSwipe;
+
+    bool _pendingRightSwipe;
+    bool _currentRightSwipe;
 };
 
 }

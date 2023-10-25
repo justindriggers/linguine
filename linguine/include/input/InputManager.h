@@ -33,6 +33,13 @@ class InputManager {
       float y;
     };
 
+    enum class Direction {
+      Up,
+      Down,
+      Left,
+      Right
+    };
+
     virtual ~InputManager() = default;
 
     virtual void pollEvents() = 0;
@@ -44,6 +51,8 @@ class InputManager {
     [[nodiscard]] virtual bool isKeyPressed(Key key) const = 0;
 
     [[nodiscard]] virtual CursorLocation getCursorLocation() const = 0;
+
+    [[nodiscard]] virtual bool isSwipeDetected(Direction direction) const = 0;
 };
 
 }  // namespace linguine

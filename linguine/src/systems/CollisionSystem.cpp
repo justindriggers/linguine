@@ -9,7 +9,6 @@
 #include "components/CircleCollider.h"
 #include "components/Hit.h"
 #include "components/PhysicalState.h"
-#include "components/Projectile.h"
 #include "components/Raycaster.h"
 #include "components/Static.h"
 #include "components/Trigger.h"
@@ -31,10 +30,10 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
     });
   });
 
-  findEntities<Projectile, PhysicalState, CircleCollider>()->each([this](Entity& a) {
-    findEntities<CameraFixture, PhysicalState, CircleCollider>()->each([&a](const Entity& b) {
-      if (!checkCollision(a, b)) {
-        a.destroy();
+  findEntities<CameraFixture, PhysicalState, CircleCollider>()->each([this](const Entity& a) {
+    findEntities<PhysicalState, CircleCollider>()->each([&a](Entity& b) {
+      if (a.getId() != b.getId() && !checkCircleCircleCollision(a, b)) {
+        b.destroy();
       }
     });
   });
