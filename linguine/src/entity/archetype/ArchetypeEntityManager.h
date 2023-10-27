@@ -32,7 +32,7 @@ class ArchetypeEntityManager : public EntityManager {
   public:
     ArchetypeEntityManager();
 
-    ~ArchetypeEntityManager() override = default;
+    ~ArchetypeEntityManager() override;
 
     std::shared_ptr<Entity> create() override;
 

@@ -11,6 +11,14 @@ ArchetypeEntityManager::ArchetypeEntityManager()
   _rootArchetype = &_componentArchetypes.at({});
 }
 
+ArchetypeEntityManager::~ArchetypeEntityManager() {
+  for (auto id = 0; id < _entities.size(); ++id) {
+    for (const auto& removalListener : _entities[id].removalListeners) {
+      removalListener.second(Entity(*this, id));
+    }
+  }
+}
+
 std::shared_ptr<Entity> ArchetypeEntityManager::create() {
   if (!_availableIndices.empty()) {
     const auto index = _availableIndices.front();
