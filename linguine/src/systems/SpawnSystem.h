@@ -25,6 +25,8 @@ class SpawnSystem : public System {
 
     void spawnAsteroid(glm::vec3 spawnPointPosition);
 
+    void spawnObstacles(glm::vec3 spawnPointPosition);
+
     void spawnStars(glm::vec3 spawnPointPosition);
 };
 

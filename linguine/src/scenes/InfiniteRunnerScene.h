@@ -13,7 +13,6 @@
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
-#include "components/Earth.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
@@ -100,38 +99,17 @@ class InfiniteRunnerScene : public Scene {
           auto spawnPointEntity = createEntity();
 
           auto spawnPoint = spawnPointEntity->add<SpawnPoint>();
-          spawnPoint->interval = 0.5f;
+          spawnPoint->distance = 5.0f;
           spawnPoint->spawnChance = 0.85f;
 
-          spawnPointEntity->add<Transform>();
-          spawnPointEntity->add<PhysicalState>();
+          auto spawnPointTransform = spawnPointEntity->add<Transform>();
+          spawnPointTransform->position = { 0.0f, 15.0f, 0.0f };
+
+          spawnPointEntity->add<PhysicalState>(spawnPointTransform->position, 0.0f);
 
           auto attachment = spawnPointEntity->add<Attachment>();
           attachment->parentId = cameraEntity->getId();
           attachment->offset = { 0.0f, 15.0f };
-        }
-
-        {
-          auto earthEntity = createEntity();
-          earthEntity->add<Earth>();
-          earthEntity->add<Health>(1000);
-
-          earthEntity->add<Transform>()->scale = glm::vec3(30.0f);
-          earthEntity->add<PhysicalState>();
-          earthEntity->add<CircleCollider>()->radius = 15.0f;
-          earthEntity->add<Trigger>();
-
-          auto attachment = earthEntity->add<Attachment>();
-          attachment->parentId = cameraEntity->getId();
-          attachment->offset = { 0.0f, -17.0f };
-
-          auto circle = earthEntity->add<Circle>();
-          circle->feature = new CircleFeature();
-          circle->feature->color = { 0.02315f, 0.09759f, 0.49693f };
-          circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
-          circle.setRemovalListener([circle](const Entity e) {
-            circle->renderable->destroy();
-          });
         }
       }
 
@@ -150,7 +128,11 @@ class InfiniteRunnerScene : public Scene {
 
       {
         auto playerEntity = createEntity();
-        playerEntity->add<Player>()->speed = 5.0f;
+
+        auto player = playerEntity->add<Player>();
+        player->speed = 5.0f;
+        player->acceleration = 0.05f;
+        player->maxSpeed = 20.0f;
 
         playerEntity->add<Transform>();
         playerEntity->add<PhysicalState>();

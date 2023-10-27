@@ -2,6 +2,7 @@ add_library(linguine
         src/Engine.cpp
         src/data/Grid.cpp
         src/data/spells/actions/Apply.cpp
+        src/data/spells/actions/Explosion.cpp
         src/data/spells/actions/MassHeal.cpp
         src/data/spells/actions/ModifyHealth.cpp
         src/data/spells/effects/Effect.cpp
@@ -39,8 +40,6 @@ add_library(linguine
         src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp
         src/systems/PointAndClickMovementSystem.cpp
-        src/systems/ProjectileSpawnSystem.cpp
-        src/systems/ProjectileSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/ScoringSystem.cpp

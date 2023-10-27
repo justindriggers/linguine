@@ -6,6 +6,7 @@
 #include "actions/Apply.h"
 #include "actions/MassHeal.h"
 #include "actions/ModifyHealth.h"
+#include "data/spells/actions/Explosion.h"
 #include "effects/ModifyHealthOverTime.h"
 
 namespace linguine {
@@ -16,7 +17,8 @@ class SpellDatabase {
                   EntityManager& entityManager)
         : _spells {
               { 1, std::make_shared<Spell>("Base", 0.0f, 1.5f, glm::vec3(0.12477f, 0.56471f, 0.07421f), "",std::make_unique<ModifyHealth>(entityManager, 250)) },
-              { 2, std::make_shared<Spell>("AoE", 0.0f, 6.0f, glm::vec3(0.12477f, 0.56471f, 0.07421f), "",std::make_unique<MassHeal>(entityManager, 200)) }
+              { 2, std::make_shared<Spell>("AoE", 0.0f, 6.0f, glm::vec3(0.12477f, 0.56471f, 0.07421f), "",std::make_unique<MassHeal>(entityManager, 200)) },
+              { 3, std::make_shared<Spell>("Bomb", 0.0f, 6.0f, glm::vec3(0.12477f, 0.56471f, 0.07421f), "",std::make_unique<Explosion>(entityManager, 2000)) }
           } {}
 
     Spell& getSpellById(uint64_t id) {

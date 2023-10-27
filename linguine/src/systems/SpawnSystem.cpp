@@ -1,6 +1,7 @@
 #include "SpawnSystem.h"
 
 #include "components/Asteroid.h"
+#include "components/Bomb.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
@@ -16,19 +17,19 @@ namespace linguine {
 SpawnSystem::SpawnSystem(linguine::EntityManager& entityManager, linguine::Renderer& renderer)
     : System(entityManager), _renderer(renderer) {
   for (auto i = 0; i < 20; ++i) {
-    spawnStars({ 0.0f, -10.0f + 1.25f * i, 0.0f });
+    spawnStars({ 0.0f, -10.0f + 1.25f * static_cast<float>(i), 0.0f });
   }
 }
 
 void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
   findEntities<SpawnPoint, Transform>()->each([this, fixedDeltaTime](const Entity& entity) {
     auto spawnPoint = entity.get<SpawnPoint>();
-    spawnPoint->elapsed += fixedDeltaTime;
-    spawnPoint->powerUpElapsed += fixedDeltaTime;
-    spawnPoint->starElapsed += fixedDeltaTime;
+    auto physicalState = entity.get<PhysicalState>();
 
-    if (spawnPoint->elapsed >= spawnPoint->interval) {
-      spawnPoint->elapsed = 0.0f;
+    spawnPoint->powerUpElapsed += fixedDeltaTime;
+
+    if (physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
+      spawnPoint->lastSpawnPoint = physicalState->currentPosition.y;
 
       auto randomSpawn = std::uniform_real_distribution(0.0f, 1.0f);
 
@@ -37,13 +38,17 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
           spawnPoint->powerUpElapsed = 0.0f;
           spawnPowerUp(entity.get<Transform>()->position);
         } else {
-          spawnAsteroid(entity.get<Transform>()->position);
+          if (randomSpawn(_random) < 0.65f) {
+            spawnObstacles(entity.get<Transform>()->position);
+          } else {
+            spawnAsteroid(entity.get<Transform>()->position);
+          }
         }
       }
     }
 
-    if (spawnPoint->starElapsed >= spawnPoint->starInterval) {
-      spawnPoint->starElapsed = 0.0f;
+    if (physicalState->currentPosition.y >= spawnPoint->lastStarSpawnPoint + spawnPoint->starDistance) {
+      spawnPoint->lastStarSpawnPoint = physicalState->currentPosition.y;
 
       auto randomSpawn = std::uniform_real_distribution(0.0f, 1.0f);
 
@@ -125,6 +130,40 @@ void SpawnSystem::spawnAsteroid(glm::vec3 spawnPointPosition) {
   });
 }
 
+void SpawnSystem::spawnObstacles(glm::vec3 spawnPointPosition) {
+  auto obstacleEntity = createEntity();
+  obstacleEntity->add<Bomb>();
+
+  auto randomX = std::uniform_int_distribution(0, 2);
+
+  auto transform = obstacleEntity->add<Transform>();
+
+  switch (randomX(_random)) {
+  case 0:
+    transform->position = spawnPointPosition + glm::vec3(-4.0f, 0.0f, 1.0f);
+    break;
+  case 1:
+    transform->position = spawnPointPosition + glm::vec3(0.0f, 0.0f, 1.0f);
+    break;
+  case 2:
+    transform->position = spawnPointPosition + glm::vec3(4.0f, 0.0f, 1.0f);
+    break;
+  default:
+    break;
+  }
+
+  obstacleEntity->add<PhysicalState>(transform->position, 0.0f);
+  obstacleEntity->add<CircleCollider>();
+
+  auto circle = obstacleEntity->add<Circle>();
+  circle->feature = new CircleFeature();
+  circle->feature->color = { 1.0f, 0.0f, 0.0f };
+  circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+  circle.setRemovalListener([circle](const Entity e) {
+    circle->renderable->destroy();
+  });
+}
+
 void SpawnSystem::spawnStars(glm::vec3 spawnPointPosition) {
   auto randomCount = std::uniform_int_distribution(1, 3);
   auto count = randomCount(_random);
@@ -142,7 +181,7 @@ void SpawnSystem::spawnStars(glm::vec3 spawnPointPosition) {
     starEntity->add<PhysicalState>(transform->position, 0.0f);
     starEntity->add<CircleCollider>()->radius = 0.075f;
     starEntity->add<Trigger>();
-    starEntity->add<Velocity>()->velocity = {0.0f, 2.0f};
+    starEntity->add<Velocity>()->velocity = {0.0f, 3.0f};
 
     auto circle = starEntity->add<Circle>();
     circle->feature = new CircleFeature();

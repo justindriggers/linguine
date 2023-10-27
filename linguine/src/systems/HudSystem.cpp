@@ -2,7 +2,6 @@
 
 #include "components/Ability.h"
 #include "components/AbilityLabel.h"
-#include "components/Earth.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
 #include "components/Party.h"
@@ -75,29 +74,6 @@ void HudSystem::update(float deltaTime) {
 
       auto healthTransform = healthBarEntity->get<Transform>();
       healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 46.0f, -128.0f, 5.0f);
-    }
-  });
-
-  findEntities<Earth>()->each([this](Entity& entity) {
-    if (!entity.has<HudDetails>()) {
-      auto hudDetails = entity.add<HudDetails>();
-
-      auto healthEntity = createEntity();
-      healthEntity->add<HealthBar>()->entityId = entity.getId();
-
-      auto healthTransform = healthEntity->add<Transform>();
-      healthTransform->position = glm::vec3(0.0f, -192.0f, 5.0f);
-      healthTransform->scale = glm::vec3(224.0f, 12.0f, 0.0f);
-
-      auto healthProgressable = healthEntity->add<Progressable>();
-      healthProgressable->feature = new ProgressFeature();
-      healthProgressable->feature->meshType = Quad;
-      healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
-      healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
-        healthProgressable->renderable->destroy();
-      });
-
-      hudDetails->healthBarId = healthEntity->getId();
     }
   });
 

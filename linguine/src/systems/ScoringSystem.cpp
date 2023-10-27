@@ -2,7 +2,7 @@
 
 #include "components/Alive.h"
 #include "components/Asteroid.h"
-#include "components/Earth.h"
+#include "components/Bomb.h"
 #include "components/Health.h"
 #include "components/Hit.h"
 #include "components/Player.h"
@@ -42,7 +42,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           auto partyMember = living[randomIndex];
 
           auto health = partyMember->get<Health>();
-          health->current = glm::clamp(health->current - 25 * asteroid->points, 0, health->max);
+          health->current = glm::clamp(health->current - 50 * asteroid->points, 0, health->max);
 
           hitEntity->destroy();
         } else if (hitEntity->has<PowerUp>()) {
@@ -55,26 +55,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           }
 
           hitEntity->destroy();
-        }
-      }
-    });
-
-    findEntities<Earth, Hit>()->each([this](const Entity& earthEntity) {
-      auto hit = earthEntity.get<Hit>();
-
-      for (const auto& hitEntityId : hit->entityIds) {
-        auto hitEntity = getEntityById(hitEntityId);
-
-        if (hitEntity->has<Asteroid>()) {
-          auto asteroid = hitEntity->get<Asteroid>();
-
-          auto health = earthEntity.get<Health>();
-          health->current = glm::clamp(health->current - 25 * asteroid->points, 0, health->max);
-
-          if (health->current == 0) {
-            throw std::runtime_error("game over");
-          }
-
+        } else if (hitEntity->has<Bomb>()) {
+          _spellDatabase.getSpellById(3).action->execute(playerEntity);
           hitEntity->destroy();
         }
       }

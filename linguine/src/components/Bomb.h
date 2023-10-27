@@ -2,6 +2,6 @@
 
 namespace linguine {
 
-struct Earth {};
+struct Bomb {};
 
 }  // namespace linguine
