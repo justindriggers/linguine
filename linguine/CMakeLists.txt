@@ -13,6 +13,7 @@ add_library(linguine
         src/entity/archetype/Query.cpp
         src/entity/archetype/Store.cpp
         src/factories/ProjectileFactory.cpp
+        src/renderer/Camera.cpp
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp

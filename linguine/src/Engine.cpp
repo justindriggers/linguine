@@ -47,6 +47,11 @@ void Engine::tick() {
   update(deltaTime);
 
   _renderer->draw();
+
+  if (_pendingScene) {
+    _currentScene = std::move(_pendingScene);
+    _pendingScene = {};
+  }
 }
 
 void Engine::update(float deltaTime) {

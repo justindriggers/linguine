@@ -5,7 +5,7 @@
 namespace linguine {
 
 Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature, Layer layer) {
-  const auto id = _nextIndex++;
+  const auto id = _nextRenderableId++;
   _renderables.insert({id, std::make_unique<Renderable>(id, *this, std::move(feature), layer)});
 
   auto& renderable = _renderables[id];
@@ -15,8 +15,8 @@ Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature, Layer layer
 }
 
 Camera* Renderer::createCamera() {
-  const auto id = _cameras.size();
-  _cameras.push_back(std::make_unique<Camera>(id));
+  const auto id = _nextCameraId++;
+  _cameras.push_back(std::make_unique<Camera>(id, *this));
 
   return _cameras[id].get();
 }
@@ -37,6 +37,12 @@ void Renderer::onDestroy(Renderable& renderable) {
   }
 
   _renderables.erase(renderable.getId());
+}
+
+void Renderer::onDestroy(Camera& camera) {
+  _cameras.erase(std::remove_if(_cameras.begin(), _cameras.end(), [camera](const std::unique_ptr<Camera>& c) {
+    return c->getId() == camera.getId();
+  }), _cameras.end());
 }
 
 }  // namespace linguine

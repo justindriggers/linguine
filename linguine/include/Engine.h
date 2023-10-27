@@ -4,7 +4,6 @@
 
 #include "LifecycleManager.h"
 #include "Logger.h"
-#include "Scene.h"
 #include "TimeManager.h"
 #include "audio/AudioManager.h"
 #include "entity/EntityManagerFactory.h"
@@ -13,7 +12,7 @@
 
 namespace linguine {
 
-class Engine : public ServiceLocator {
+class Engine : public ServiceLocator, SceneManager {
   public:
     Engine(const std::shared_ptr<Logger>& logger,
            const std::shared_ptr<AudioManager>& audioManager,
@@ -53,6 +52,10 @@ class Engine : public ServiceLocator {
       return *_renderer;
     }
 
+    SceneManager& getSceneManager() override {
+      return *this;
+    }
+
     TimeManager& getTimeManager() override {
       return *_timeManager;
     }
@@ -65,7 +68,12 @@ class Engine : public ServiceLocator {
     const std::shared_ptr<Renderer> _renderer;
     const std::shared_ptr<TimeManager> _timeManager;
 
+    void load(std::unique_ptr<Scene> scene) override {
+      _pendingScene = std::move(scene);
+    }
+
     std::unique_ptr<Scene> _currentScene;
+    std::unique_ptr<Scene> _pendingScene{};
 
     void update(float deltaTime);
 

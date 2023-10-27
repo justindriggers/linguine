@@ -48,7 +48,8 @@ class Renderer {
   private:
     Viewport _viewport;
 
-    uint64_t _nextIndex = 0;
+    uint64_t _nextCameraId = 0;
+    uint64_t _nextRenderableId = 0;
 
     std::vector<std::unique_ptr<Camera>> _cameras;
     std::unordered_map<uint64_t, std::unique_ptr<Renderable>> _renderables;
@@ -57,6 +58,9 @@ class Renderer {
 
     void onDestroy(Renderable& renderable);
 
+    void onDestroy(Camera& camera);
+
+    friend class Camera;
     friend class Renderable;
 };
 

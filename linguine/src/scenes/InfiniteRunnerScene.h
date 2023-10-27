@@ -67,7 +67,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
-      registerSystem(std::make_unique<LivenessSystem>(getEntityManager()));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
 
@@ -94,6 +94,9 @@ class InfiniteRunnerScene : public Scene {
         fixture->height = 20.0f;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = { 0.007f, 0.01521f, 0.04667f };
+        fixture.setRemovalListener([fixture](const Entity& e) {
+          fixture->camera->destroy();
+        });
 
         {
           auto spawnPointEntity = createEntity();
@@ -124,6 +127,9 @@ class InfiniteRunnerScene : public Scene {
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = {};
         fixture->camera->layer = UI;
+        fixture.setRemovalListener([fixture](const Entity& e) {
+          fixture->camera->destroy();
+        });
       }
 
       {

@@ -40,6 +40,9 @@ class TestScene : public Scene {
       auto cameraEntity = createEntity();
       auto fixture = cameraEntity->add<CameraFixture>();
       fixture->camera = renderer.createCamera();
+      fixture.setRemovalListener([fixture](const Entity& e) {
+        fixture->camera->destroy();
+      });
 
       auto cameraTransform = cameraEntity->add<Transform>();
       cameraTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
