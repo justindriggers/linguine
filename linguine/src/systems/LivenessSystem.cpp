@@ -3,7 +3,7 @@
 #include "components/Alive.h"
 #include "components/EffectTracker.h"
 #include "components/Health.h"
-#include "scenes/TestScene.h"
+#include "scenes/ShopScene.h"
 
 namespace linguine {
 
@@ -27,7 +27,7 @@ void LivenessSystem::update(float deltaTime) {
   auto living = findEntities<Health, Alive>()->get();
 
   if (living.empty()) {
-    _serviceLocator.get<SceneManager>().load(std::make_unique<TestScene>(_serviceLocator));
+    _serviceLocator.get<SceneManager>().load(std::make_unique<ShopScene>(_serviceLocator));
   }
 }
 

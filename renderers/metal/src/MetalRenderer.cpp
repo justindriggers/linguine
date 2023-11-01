@@ -83,6 +83,10 @@ void MetalRendererImpl::doDraw() {
   _context.commandBuffer = _context.commandQueue->commandBuffer();
   _context.coloredRenderPassDescriptor = _view.currentRenderPassDescriptor();
 
+  for (const auto& feature : getFeatures()) {
+    feature->onFrameBegin();
+  }
+
   for (const auto& camera : getCameras()) {
     if (camera->clearColor) {
       auto clearColor = *camera->clearColor;

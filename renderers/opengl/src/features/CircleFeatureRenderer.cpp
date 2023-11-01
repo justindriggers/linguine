@@ -1,5 +1,6 @@
 #include "CircleFeatureRenderer.h"
 
+#include <list>
 #include <string>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -133,16 +134,24 @@ bool CircleFeatureRenderer::isRelevant(Renderable& renderable) {
 }
 
 void CircleFeatureRenderer::draw(Camera& camera) {
-  glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
   glUseProgram(_shaderProgram);
 
   glUniformMatrix4fv(_viewProjectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(camera.viewProjectionMatrix));
 
-  auto filteredRenderables = std::vector<Renderable*>();
+  auto cameraDepth = camera.viewMatrix[3][2];
+
+  auto filteredRenderables = std::list<Renderable*>();
 
   for (const auto& renderable : getRenderables()) {
     if (renderable.second->getLayer() == camera.layer && renderable.second->isEnabled()) {
-      filteredRenderables.push_back(renderable.second);
+      auto feature = renderable.second->getFeature<CircleFeature>();
+      auto distance = glm::abs(feature.modelMatrix[3][2] - cameraDepth);
+
+      filteredRenderables.insert(std::lower_bound(filteredRenderables.begin(), filteredRenderables.end(), distance, [cameraDepth](const Renderable* i, float value) {
+        auto feature = i->getFeature<CircleFeature>();
+        auto distance = glm::abs(feature.modelMatrix[3][2] - cameraDepth);
+        return value < distance;
+      }), renderable.second);
     }
   }
 

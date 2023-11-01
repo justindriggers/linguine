@@ -68,6 +68,7 @@ OpenGLRendererImpl::OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoa
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendEquation(GL_FUNC_ADD);
 }
 
 OpenGLRendererImpl::~OpenGLRendererImpl() {
@@ -77,6 +78,10 @@ OpenGLRendererImpl::~OpenGLRendererImpl() {
 }
 
 void OpenGLRendererImpl::draw() {
+  for (const auto& feature : getFeatures()) {
+    feature->onFrameBegin();
+  }
+
   for (const auto& camera : getCameras()) {
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
@@ -90,7 +95,6 @@ void OpenGLRendererImpl::draw() {
 
     for (const auto& feature : getFeatures()) {
       glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-      glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
       feature->draw(*camera);
     }
   }

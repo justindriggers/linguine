@@ -1,5 +1,7 @@
 #include "CircleFeatureRenderer.h"
 
+#include <list>
+
 #include "renderer/features/CircleFeature.h"
 
 namespace linguine::render {
@@ -61,7 +63,7 @@ CircleFeatureRenderer::CircleFeatureRenderer(MetalRenderContext& context,
   colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
   colorAttachment->setBlendingEnabled(true);
   colorAttachment->setRgbBlendOperation(MTL::BlendOperation::BlendOperationAdd);
-  colorAttachment->setAlphaBlendOperation(MTL::BlendOperation::BlendOperationMax);
+  colorAttachment->setAlphaBlendOperation(MTL::BlendOperation::BlendOperationAdd);
   colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
   colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
   colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
@@ -124,11 +126,20 @@ void CircleFeatureRenderer::draw(Camera& camera) {
   memcpy(&metalCamera->viewProjectionMatrix, &camera.viewProjectionMatrix, sizeof(simd::float4x4));
   commandEncoder->setVertexBuffer(cameraBuffer, 0, 1);
 
-  auto filteredRenderables = std::vector<Renderable*>();
+  auto cameraDepth = camera.viewMatrix[3][2];
+
+  auto filteredRenderables = std::list<Renderable*>();
 
   for (const auto& renderable : getRenderables()) {
     if (renderable.second->getLayer() == camera.layer && renderable.second->isEnabled()) {
-      filteredRenderables.push_back(renderable.second);
+      auto feature = renderable.second->getFeature<CircleFeature>();
+      auto distance = glm::abs(feature.modelMatrix[3][2] - cameraDepth);
+
+      filteredRenderables.insert(std::lower_bound(filteredRenderables.begin(), filteredRenderables.end(), distance, [cameraDepth](const Renderable* i, float value) {
+        auto feature = i->getFeature<CircleFeature>();
+        auto distance = glm::abs(feature.modelMatrix[3][2] - cameraDepth);
+        return value < distance;
+      }), renderable.second);
     }
   }
 

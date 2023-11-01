@@ -5,7 +5,13 @@
 namespace linguine {
 
 struct CameraFixture {
-  float height = 15.0f;
+  enum class Measurement {
+    Height,
+    Width
+  };
+
+  float size = 15.0f;
+  Measurement type = Measurement::Height;
   float speed = 1.0f;
   Camera* camera;
 };

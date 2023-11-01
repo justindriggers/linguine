@@ -12,22 +12,33 @@ void CameraSystem::update(float deltaTime) {
     const auto transform = entity.get<Transform>();
     const auto cameraFixture = entity.get<CameraFixture>();
 
-    if (cameraFixture->camera->layer == UI) {
-      cameraFixture->height = 240.0f / viewport.getAspectRatio();
-    }
-
     auto cameraModelMatrix = glm::translate(glm::mat4(1.0f), transform->position)
                              * glm::mat4_cast(transform->rotation);
 
     cameraFixture->camera->viewMatrix = glm::inverse(cameraModelMatrix);
-    cameraFixture->camera->projectionMatrix = glm::ortho(
-        -cameraFixture->height / 2.0f * viewport.getAspectRatio(),
-        cameraFixture->height / 2.0f * viewport.getAspectRatio(),
-        -cameraFixture->height / 2.0f,
-        cameraFixture->height / 2.0f,
-        0.0f,
-        10.0f
-    );
+
+    switch (cameraFixture->type) {
+    case CameraFixture::Measurement::Height:
+      cameraFixture->camera->projectionMatrix = glm::ortho(
+          -cameraFixture->size / 2.0f * viewport.getAspectRatio(),
+          cameraFixture->size / 2.0f * viewport.getAspectRatio(),
+          -cameraFixture->size / 2.0f,
+          cameraFixture->size / 2.0f,
+          0.0f,
+          10.0f
+      );
+      break;
+    case CameraFixture::Measurement::Width:
+      cameraFixture->camera->projectionMatrix = glm::ortho(
+          -cameraFixture->size / 2.0f,
+          cameraFixture->size / 2.0f,
+          -cameraFixture->size / 2.0f / viewport.getAspectRatio(),
+          cameraFixture->size / 2.0f / viewport.getAspectRatio(),
+          0.0f,
+          10.0f
+      );
+      break;
+    }
 
     cameraFixture->camera->viewProjectionMatrix = cameraFixture->camera->projectionMatrix * cameraFixture->camera->viewMatrix;
   });

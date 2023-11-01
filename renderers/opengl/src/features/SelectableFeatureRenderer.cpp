@@ -152,13 +152,17 @@ bool SelectableFeatureRenderer::isRelevant(Renderable& renderable) {
   return renderable.hasFeature<SelectableFeature>();
 }
 
-void SelectableFeatureRenderer::draw(linguine::Camera& camera) {
+void SelectableFeatureRenderer::onFrameBegin() {
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
-  if (camera.getId() == 0) {
-    auto clearColor = glm::uvec4(UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX);
-    glClearBufferuiv(GL_COLOR, 0, glm::value_ptr(clearColor));
-  }
+  auto clearColor = glm::uvec4(UINT16_MAX, UINT16_MAX, UINT16_MAX, UINT16_MAX);
+  glClearBufferuiv(GL_COLOR, 0, glm::value_ptr(clearColor));
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SelectableFeatureRenderer::draw(linguine::Camera& camera) {
+  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
   glClear(GL_DEPTH_BUFFER_BIT);
 

@@ -91,7 +91,8 @@ class InfiniteRunnerScene : public Scene {
         cameraEntity->add<Trigger>();
 
         auto fixture = cameraEntity->add<CameraFixture>();
-        fixture->height = 20.0f;
+        fixture->size = 12.0f;
+        fixture->type = CameraFixture::Measurement::Width;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = { 0.007f, 0.01521f, 0.04667f };
         fixture.setRemovalListener([fixture](const Entity& e) {
@@ -123,7 +124,8 @@ class InfiniteRunnerScene : public Scene {
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
         auto fixture = uiCameraEntity->add<CameraFixture>();
-        fixture->height = 0.0f; // Aspect-ratio scaling handled within the CameraSystem
+        fixture->size = 240.0f;
+        fixture->type = CameraFixture::Measurement::Width;
         fixture->camera = renderer.createCamera();
         fixture->camera->clearColor = {};
         fixture->camera->layer = UI;

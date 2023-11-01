@@ -18,6 +18,8 @@ class TextFeatureRenderer : public FeatureRenderer {
 
     bool isRelevant(Renderable& renderable) override;
 
+    void onFrameBegin() override {}
+
     void draw(Camera& camera) override;
 
     void resize(uint16_t width, uint16_t height) override {}
