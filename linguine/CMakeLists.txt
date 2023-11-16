@@ -46,6 +46,8 @@ add_library(linguine
         src/systems/ScoringSystem.cpp
         src/systems/SelectionDestructionSystem.cpp
         src/systems/SpawnSystem.cpp
+        src/systems/shop/UpgradeSystem.cpp
+        src/systems/shop/WalletSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
         src/systems/tutorial/WispTriggerSystem.cpp

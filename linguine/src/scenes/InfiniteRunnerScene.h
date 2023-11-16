@@ -158,14 +158,12 @@ class InfiniteRunnerScene : public Scene {
 
         auto party = playerEntity->add<Party>();
 
-        for (auto i = 0; i < 5; ++i) {
-          auto shieldEntity = createEntity();
+        auto shieldEntity = createEntity();
 
-          shieldEntity->add<Health>(1000);
-          shieldEntity->add<Alive>();
+        shieldEntity->add<Health>(1000);
+        shieldEntity->add<Alive>();
 
-          party->memberIds.push_back(shieldEntity->getId());
-        }
+        party->memberIds.push_back(shieldEntity->getId());
       }
 
       // Shields Text

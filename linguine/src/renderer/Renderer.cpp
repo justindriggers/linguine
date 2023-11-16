@@ -18,7 +18,7 @@ Camera* Renderer::createCamera() {
   const auto id = _nextCameraId++;
   _cameras.push_back(std::make_unique<Camera>(id, *this));
 
-  return _cameras[id].get();
+  return std::prev(_cameras.end())->get();
 }
 
 const Viewport& Renderer::getViewport() const {

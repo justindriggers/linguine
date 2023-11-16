@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 #include "entity/archetype/ArchetypeEntityManagerFactory.h"
-#include "scenes/InfiniteRunnerScene.h"
+#include "scenes/ShopScene.h"
 
 namespace linguine {
 
@@ -19,7 +19,7 @@ Engine::Engine(
       _logger(logger),
       _renderer(renderer),
       _timeManager(timeManager),
-      _currentScene(std::make_unique<InfiniteRunnerScene>(*this)) {}
+      _currentScene(std::make_unique<ShopScene>(*this, 0)) {}
 
 void Engine::run() {
   _currentTime = _timeManager->currentTime();
@@ -51,6 +51,9 @@ void Engine::tick() {
   if (_pendingScene) {
     _currentScene = std::move(_pendingScene);
     _pendingScene = {};
+
+    // Render a single frame in order to clear the current frame buffers
+    _renderer->draw();
   }
 }
 
