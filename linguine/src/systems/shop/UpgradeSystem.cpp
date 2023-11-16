@@ -1,8 +1,12 @@
 #include "UpgradeSystem.h"
 
+#include "components/CostLabel.h"
+#include "components/Disabled.h"
 #include "components/Drawable.h"
+#include "components/Enabled.h"
 #include "components/LongPressed.h"
 #include "components/Pressed.h"
+#include "components/RankIndicator.h"
 #include "components/Selectable.h"
 #include "components/Tapped.h"
 #include "components/Text.h"
@@ -15,14 +19,18 @@ namespace linguine {
 
 UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
                              Renderer& renderer,
+                             SaveManager& saveManager,
                              SceneManager& sceneManager,
                              ServiceLocator& serviceLocator,
                              UpgradeDatabase& upgradeDatabase)
-    : System(entityManager), _sceneManager(sceneManager),
-      _serviceLocator(serviceLocator), _upgradeDatabase(upgradeDatabase) {
+    : System(entityManager), _saveManager(saveManager),
+      _sceneManager(sceneManager), _serviceLocator(serviceLocator),
+      _upgradeDatabase(upgradeDatabase) {
   auto y = 151.0f;
 
-  for (const auto& upgrade : _upgradeDatabase.getUpgrades()) {
+  for (const auto& upgradeEntry : _upgradeDatabase.getUpgrades()) {
+    auto& upgrade = upgradeEntry.second;
+
     auto headerEntity = createEntity();
 
     auto headerTransform = headerEntity->add<Transform>();
@@ -111,11 +119,12 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
       });
     }
 
-    for (auto i = 0; i < upgrade.ranks; ++i) {
+    for (auto i = 0; i < upgrade.rankCosts.size(); ++i) {
       auto rankEntity = createEntity();
+      rankEntity->add<RankIndicator>(upgradeEntry.first, i);
 
-      auto width = 200.0f / static_cast<float>(upgrade.ranks);
-      auto spacing = 12.0f / static_cast<float>(upgrade.ranks - 1);
+      auto width = 200.0f / static_cast<float>(upgrade.rankCosts.size());
+      auto spacing = 12.0f / static_cast<float>(upgrade.rankCosts.size() - 1);
 
       auto rankTransform = rankEntity->add<Transform>();
       rankTransform->position = { -106.0f + width / 2.0f + static_cast<float>(i) * (width + spacing), y, 0.0f };
@@ -124,12 +133,6 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
       auto rankDrawable = rankEntity->add<Drawable>();
       rankDrawable->feature = new ColoredFeature();
       rankDrawable->feature->meshType = Quad;
-
-      if (i < 1) {
-        rankDrawable->feature->color = { 0.97345f, 0.36625f, 0.00561f };
-      } else {
-        rankDrawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
-      }
 
       rankDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(rankDrawable->feature), UI);
       rankDrawable.setRemovalListener([rankDrawable](const Entity e) {
@@ -141,7 +144,7 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
 
     {
       auto upgradeButton = createEntity();
-      upgradeButton->add<PurchaseButton>();
+      upgradeButton->add<PurchaseButton>()->upgradeId = upgradeEntry.first;
 
       auto upgradeTransform = upgradeButton->add<Transform>();
       upgradeTransform->position = { 0.0f, y, 0.0f };
@@ -166,6 +169,7 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
 
       {
         auto costEntity = createEntity();
+        costEntity->add<CostLabel>(upgradeEntry.first);
 
         auto costTransform = costEntity->add<Transform>();
         costTransform->position = { 0.0f, y, 0.0f };
@@ -173,8 +177,6 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
 
         auto costText = costEntity->add<Text>();
         costText->feature = new TextFeature();
-        costText->feature->text = std::to_string(upgrade.cost);
-        costTransform->position.x = -static_cast<float>(costText->feature->text.size()) / 2.0f * 10.0f + 5.0f;
         costText->renderable = renderer.create(std::unique_ptr<TextFeature>(costText->feature), UI);
         costText.setRemovalListener([costText](const Entity e) {
           costText->renderable->destroy();
@@ -187,36 +189,105 @@ UpgradeSystem::UpgradeSystem(EntityManager& entityManager,
 }
 
 void UpgradeSystem::update(float deltaTime) {
-  findEntities<PurchaseButton, Drawable>()->each([](const Entity& entity) {
+  findEntities<RankIndicator, Drawable>()->each([this](const Entity& entity) {
+    auto rankIndicator = entity.get<RankIndicator>();
+    auto drawable = entity.get<Drawable>();
+
+    if (rankIndicator->rank <= _saveManager.getRank(rankIndicator->upgradeId)) {
+      drawable->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+    } else {
+      drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+    }
+  });
+
+  findEntities<CostLabel, Text, Transform>()->each([this](const Entity& entity) {
+    auto costLabel = entity.get<CostLabel>();
+    auto text = entity.get<Text>();
+    auto transform = entity.get<Transform>();
+
+    auto& upgrade = _upgradeDatabase.getById(costLabel->upgradeId);
+    auto nextRank = _saveManager.getRank(costLabel->upgradeId) + 1;
+
+    if (nextRank < upgrade.rankCosts.size()) {
+      text->feature->text = std::to_string(upgrade.rankCosts[nextRank - 1]);
+      transform->position.x = -static_cast<float>(text->feature->text.size()) / 2.0f * 10.0f + 5.0f;
+    } else {
+      text->renderable->setEnabled(false);
+    }
+  });
+
+  findEntities<PurchaseButton>()->each([this](Entity& entity) {
+    auto purchaseButton = entity.get<PurchaseButton>();
+
+    auto& upgrade = _upgradeDatabase.getById(purchaseButton->upgradeId);
+    auto nextRank = _saveManager.getRank(purchaseButton->upgradeId) + 1;
+
+    if (nextRank < upgrade.rankCosts.size()
+        && upgrade.rankCosts[nextRank - 1] <= _saveManager.getPoints()) {
+      if (entity.has<Disabled>()) {
+        entity.remove<Disabled>();
+      }
+
+      if (!entity.has<Enabled>()) {
+        entity.add<Enabled>();
+      }
+    } else {
+      if (!entity.has<Disabled>()) {
+        entity.add<Disabled>();
+      }
+
+      if (entity.has<Enabled>()) {
+        entity.remove<Enabled>();
+      }
+    }
+  });
+
+  findEntities<PurchaseButton, Enabled>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.97345f, 0.36625f, 0.00561f };
   });
 
-  findEntities<PurchaseButton, Drawable, LongPressed>()->each([](const Entity& entity) {
+  findEntities<PurchaseButton, Drawable, Enabled, LongPressed>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.97345f, 0.36625f, 0.00561f };
   });
 
-  findEntities<PurchaseButton, Drawable, Pressed>()->each([](const Entity& entity) {
+  findEntities<PurchaseButton, Drawable, Enabled, Pressed>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
   });
 
-  findEntities<PurchaseButton, Tapped>()->each([](const Entity& entity) {
-    printf("tapped\n");
+  findEntities<PurchaseButton, Drawable, Disabled>()->each([](const Entity& entity) {
+    auto drawable = entity.get<Drawable>();
+    drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
   });
 
-  findEntities<PlayButton, Drawable>()->each([](const Entity& entity) {
+  findEntities<PurchaseButton, Enabled, Tapped>()->each([this](const Entity& entity) {
+    auto purchaseButton = entity.get<PurchaseButton>();
+
+    auto& upgrade = _upgradeDatabase.getById(purchaseButton->upgradeId);
+    auto nextRank = _saveManager.getRank(purchaseButton->upgradeId) + 1;
+
+    _saveManager.removePoints(upgrade.rankCosts[nextRank - 1]);
+    _saveManager.increaseRank(purchaseButton->upgradeId);
+  });
+
+  findEntities<PlayButton, Drawable, Enabled>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.007f, 0.01521f, 0.04667f };
   });
 
-  findEntities<PlayButton, Drawable, LongPressed>()->each([](const Entity& entity) {
+  findEntities<PlayButton, Drawable, Enabled, LongPressed>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.007f, 0.01521f, 0.04667f };
   });
 
-  findEntities<PlayButton, Drawable, Pressed>()->each([](const Entity& entity) {
+  findEntities<PlayButton, Drawable, Enabled, Pressed>()->each([](const Entity& entity) {
+    auto drawable = entity.get<Drawable>();
+    drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+  });
+
+  findEntities<PlayButton, Drawable, Disabled>()->each([](const Entity& entity) {
     auto drawable = entity.get<Drawable>();
     drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
   });

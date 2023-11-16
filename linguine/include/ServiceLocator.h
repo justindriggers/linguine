@@ -4,6 +4,7 @@
 
 #include "LifecycleManager.h"
 #include "Logger.h"
+#include "SaveManager.h"
 #include "SceneManager.h"
 #include "TimeManager.h"
 #include "audio/AudioManager.h"
@@ -51,6 +52,11 @@ class ServiceLocator {
     }
 
     template<>
+    inline SaveManager& get<SaveManager>() {
+      return getSaveManager();
+    }
+
+    template<>
     inline SceneManager& get<SceneManager>() {
       return getSceneManager();
     }
@@ -75,6 +81,8 @@ class ServiceLocator {
     virtual Logger& getLogger() = 0;
 
     virtual Renderer& getRenderer() = 0;
+
+    virtual SaveManager& getSaveManager() = 0;
 
     virtual SceneManager& getSceneManager() = 0;
 

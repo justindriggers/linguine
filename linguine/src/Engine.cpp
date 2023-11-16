@@ -19,7 +19,7 @@ Engine::Engine(
       _logger(logger),
       _renderer(renderer),
       _timeManager(timeManager),
-      _currentScene(std::make_unique<ShopScene>(*this, 0)) {}
+      _currentScene(std::make_unique<ShopScene>(*this)) {}
 
 void Engine::run() {
   _currentTime = _timeManager->currentTime();

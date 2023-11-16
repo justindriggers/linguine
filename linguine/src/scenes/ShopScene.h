@@ -21,14 +21,14 @@ namespace linguine {
 
 class ShopScene : public Scene {
   public:
-    explicit ShopScene(ServiceLocator& serviceLocator, int64_t points)
+    explicit ShopScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator.get<EntityManagerFactory>().create()),
           _upgradeDatabase(std::make_unique<UpgradeDatabase>()) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
 
-      registerSystem(std::make_unique<UpgradeSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<SceneManager>(), serviceLocator, *_upgradeDatabase));
-      registerSystem(std::make_unique<WalletSystem>(getEntityManager()));
+      registerSystem(std::make_unique<UpgradeSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<SaveManager>(), serviceLocator.get<SceneManager>(), serviceLocator, *_upgradeDatabase));
+      registerSystem(std::make_unique<WalletSystem>(getEntityManager(), serviceLocator.get<SaveManager>()));
 
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -54,9 +54,7 @@ class ShopScene : public Scene {
 
       {
         auto walletEntity = createEntity();
-
-        auto wallet = walletEntity->add<Wallet>();
-        wallet->points = points;
+        walletEntity->add<Wallet>();
 
         auto walletTransform = walletEntity->add<Transform>();
         walletTransform->position = { 72.0f, 180.0f, 0.0f };

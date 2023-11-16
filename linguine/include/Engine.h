@@ -52,6 +52,10 @@ class Engine : public ServiceLocator, SceneManager {
       return *_renderer;
     }
 
+    SaveManager& getSaveManager() override {
+      return _saveManager;
+    }
+
     SceneManager& getSceneManager() override {
       return *this;
     }
@@ -67,6 +71,8 @@ class Engine : public ServiceLocator, SceneManager {
     const std::shared_ptr<Logger> _logger;
     const std::shared_ptr<Renderer> _renderer;
     const std::shared_ptr<TimeManager> _timeManager;
+
+    SaveManager _saveManager;
 
     void load(std::unique_ptr<Scene> scene) override {
       _pendingScene = std::move(scene);

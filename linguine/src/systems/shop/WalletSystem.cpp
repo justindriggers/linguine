@@ -6,11 +6,10 @@
 namespace linguine {
 
 void WalletSystem::update(float deltaTime) {
-  findEntities<Wallet, Text>()->each([](const Entity& entity) {
-    auto wallet = entity.get<Wallet>();
+  findEntities<Wallet, Text>()->each([this](const Entity& entity) {
     auto text = entity.get<Text>();
 
-    text->feature->text = std::to_string(wallet->points);
+    text->feature->text = std::to_string(_saveManager.getPoints());
   });
 }
 

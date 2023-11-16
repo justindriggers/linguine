@@ -30,7 +30,8 @@ void LivenessSystem::update(float deltaTime) {
   if (living.empty()) {
     findEntities<Score>()->each([this](const Entity& entity) {
       auto score = entity.get<Score>();
-      _serviceLocator.get<SceneManager>().load(std::make_unique<ShopScene>(_serviceLocator, score->points));
+      _saveManager.addPoints(score->points);
+      _serviceLocator.get<SceneManager>().load(std::make_unique<ShopScene>(_serviceLocator));
     });
   }
 }

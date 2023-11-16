@@ -13,6 +13,7 @@ class UpgradeSystem : public System {
   public:
     UpgradeSystem(EntityManager& entityManager,
                   Renderer& renderer,
+                  SaveManager& saveManager,
                   SceneManager& sceneManager,
                   ServiceLocator& serviceLocator,
                   UpgradeDatabase& upgradeDatabase);
@@ -22,6 +23,7 @@ class UpgradeSystem : public System {
     void fixedUpdate(float fixedDeltaTime) override {}
 
   private:
+    SaveManager& _saveManager;
     SceneManager& _sceneManager;
     ServiceLocator& _serviceLocator;
     UpgradeDatabase& _upgradeDatabase;

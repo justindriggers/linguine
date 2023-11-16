@@ -7,8 +7,7 @@ namespace linguine {
 struct Upgrade {
   std::string name;
   std::string description;
-  int16_t cost;
-  int8_t ranks;
+  std::vector<int16_t> rankCosts;
 };
 
 }  // namespace linguine

@@ -67,7 +67,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
-      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<SaveManager>(), serviceLocator));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
 
@@ -79,6 +79,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
       auto& renderer = serviceLocator.get<Renderer>();
+      auto& saveManager = serviceLocator.get<SaveManager>();
 
       {
         auto cameraEntity = createEntity();
@@ -138,8 +139,8 @@ class InfiniteRunnerScene : public Scene {
         auto playerEntity = createEntity();
 
         auto player = playerEntity->add<Player>();
-        player->speed = 5.0f;
-        player->acceleration = 0.05f;
+        player->speed = 5.0f + 1.0f * saveManager.getRank(2);
+        player->acceleration = 0.05f + 0.02f * saveManager.getRank(3);
         player->maxSpeed = 20.0f;
 
         playerEntity->add<Transform>();
@@ -158,12 +159,14 @@ class InfiniteRunnerScene : public Scene {
 
         auto party = playerEntity->add<Party>();
 
-        auto shieldEntity = createEntity();
+        for (auto i = 0; i < saveManager.getRank(0) + 1; ++i) {
+          auto shieldEntity = createEntity();
 
-        shieldEntity->add<Health>(1000);
-        shieldEntity->add<Alive>();
+          shieldEntity->add<Health>(1000 + 250 * saveManager.getRank(1));
+          shieldEntity->add<Alive>();
 
-        party->memberIds.push_back(shieldEntity->getId());
+          party->memberIds.push_back(shieldEntity->getId());
+        }
       }
 
       // Shields Text
