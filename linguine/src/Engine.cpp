@@ -52,8 +52,10 @@ void Engine::tick() {
     _currentScene = std::move(_pendingScene);
     _pendingScene = {};
 
-    // Render a single frame in order to clear the current frame buffers
-    _renderer->draw();
+    _renderer->reset();
+
+    _currentTime = _timeManager->currentTime();
+    _accumulator = 0.0f;
   }
 }
 

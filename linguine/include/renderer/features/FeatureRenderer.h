@@ -23,6 +23,8 @@ class FeatureRenderer {
 
     virtual void resize(uint16_t width, uint16_t height) = 0;
 
+    virtual void reset() = 0;
+
   protected:
     [[nodiscard]] const std::unordered_map<uint64_t, Renderable*>& getRenderables() const {
       return _renderables;

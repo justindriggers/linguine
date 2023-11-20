@@ -50,6 +50,8 @@ class MetalRendererImpl : public MetalRenderer {
 
     void doDraw() override;
 
+    void reset() override;
+
     [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const override;
 
   protected:
@@ -67,6 +69,7 @@ class MetalRendererImpl : public MetalRenderer {
 
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
     SelectableFeatureRenderer* _selectableFeatureRenderer = nullptr;
+    bool _isFirstFrame = true;
 };
 
 void MetalRendererImpl::draw() {
@@ -115,9 +118,23 @@ void MetalRendererImpl::doDraw() {
   _context.commandBuffer->waitUntilCompleted();
 
   pool->release();
+
+  _isFirstFrame = false;
+}
+
+void MetalRendererImpl::reset() {
+  _isFirstFrame = true;
+
+  for (const auto& feature : getFeatures()) {
+    feature->reset();
+  }
 }
 
 std::optional<uint64_t> MetalRendererImpl::getEntityIdAt(float x, float y) const {
+  if (_isFirstFrame) {
+    return {};
+  }
+
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 

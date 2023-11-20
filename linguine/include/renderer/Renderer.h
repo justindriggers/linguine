@@ -31,6 +31,8 @@ class Renderer {
       }
     }
 
+    virtual void reset() = 0;
+
     /**
      * @param x Where 0.0f is the left, and 1.0f is the right
      * @param y Where 0.0f is the bottom, and 1.0f is the top

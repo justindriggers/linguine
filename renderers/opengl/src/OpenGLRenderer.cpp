@@ -21,6 +21,8 @@ class OpenGLRendererImpl : public OpenGLRenderer {
 
     void resize(uint16_t width, uint16_t height) override;
 
+    void reset() override;
+
     [[nodiscard]] std::optional<uint64_t> getEntityIdAt(float x, float y) const override;
 
   protected:
@@ -37,6 +39,7 @@ class OpenGLRendererImpl : public OpenGLRenderer {
 
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
     SelectableFeatureRenderer* _selectableFeatureRenderer;
+    bool _isFirstFrame = true;
     MeshRegistry _meshRegistry;
 
     std::unique_ptr<GammaCorrection> _gammaCorrection;
@@ -101,6 +104,8 @@ void OpenGLRendererImpl::draw() {
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   _gammaCorrection->draw();
+
+  _isFirstFrame = false;
 }
 
 void OpenGLRendererImpl::resize(uint16_t width, uint16_t height) {
@@ -123,7 +128,15 @@ void OpenGLRendererImpl::resize(uint16_t width, uint16_t height) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void OpenGLRendererImpl::reset() {
+  _isFirstFrame = true;
+}
+
 std::optional<uint64_t> OpenGLRendererImpl::getEntityIdAt(float x, float y) const {
+  if (_isFirstFrame) {
+    return {};
+  }
+
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 

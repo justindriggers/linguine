@@ -22,6 +22,8 @@ class ColoredFeatureRenderer : public FeatureRenderer {
 
     void resize(uint16_t width, uint16_t height) override {}
 
+    void reset() override {}
+
   private:
     MeshRegistry& _meshRegistry;
     GLuint _shaderProgram;

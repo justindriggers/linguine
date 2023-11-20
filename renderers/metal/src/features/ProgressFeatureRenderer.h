@@ -3,6 +3,7 @@
 #include "renderer/features/FeatureRenderer.h"
 
 #include <simd/simd.h>
+#include <unordered_map>
 #include <vector>
 
 #include <Metal/Metal.hpp>
@@ -27,16 +28,18 @@ class ProgressFeatureRenderer : public FeatureRenderer {
 
     void resize(uint16_t width, uint16_t height) override {}
 
+    void reset() override;
+
   private:
     MetalRenderContext& _context;
     MeshRegistry& _meshRegistry;
 
-    std::vector<MTL::Buffer*> _cameraBuffers;
+    std::unordered_map<uint64_t, MTL::Buffer*> _cameraBuffers;
     MTL::RenderPipelineState* _pipelineState = nullptr;
     MTL::DepthStencilState* _depthState = nullptr;
 
-    std::vector<std::vector<MTL::Buffer*>> _vertexFeatureBuffers;
-    std::vector<std::vector<MTL::Buffer*>> _fragmentFeatureBuffers;
+    std::unordered_map<uint64_t, std::vector<MTL::Buffer*>> _vertexFeatureBuffers;
+    std::unordered_map<uint64_t, std::vector<MTL::Buffer*>> _fragmentFeatureBuffers;
 
     struct MetalCamera {
       simd::float4x4 viewProjectionMatrix{};
@@ -52,7 +55,7 @@ class ProgressFeatureRenderer : public FeatureRenderer {
       float progress{};
     };
 
-    void ensureCameraBuffersCapacity(uint64_t maxId);
+    void ensureCameraBuffers(uint64_t cameraId);
 };
 
 }  // namespace linguine::render

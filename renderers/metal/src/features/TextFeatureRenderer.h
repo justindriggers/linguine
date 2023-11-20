@@ -3,6 +3,7 @@
 #include "renderer/features/FeatureRenderer.h"
 
 #include <simd/simd.h>
+#include <unordered_map>
 #include <vector>
 
 #include <Metal/Metal.hpp>
@@ -29,19 +30,21 @@ public:
 
   void resize(uint16_t width, uint16_t height) override {}
 
+  void reset() override;
+
 private:
   MetalRenderContext& _context;
   MeshRegistry& _meshRegistry;
 
   MTL::Texture* _fontTexture;
 
-  std::vector<MTL::Buffer*> _cameraBuffers;
+  std::unordered_map<uint64_t, MTL::Buffer*> _cameraBuffers;
   MTL::RenderPipelineState* _pipelineState = nullptr;
   MTL::DepthStencilState* _depthState = nullptr;
 
-  std::vector<std::vector<MTL::Buffer*>> _colorValueBuffers;
-  std::vector<std::vector<std::vector<MTL::Buffer*>>> _glyphVertexValueBuffers;
-  std::vector<std::vector<std::vector<MTL::Buffer*>>> _glyphFragmentValueBuffers;
+  std::unordered_map<uint64_t, std::vector<MTL::Buffer*>> _colorValueBuffers;
+  std::unordered_map<uint64_t, std::vector<std::vector<MTL::Buffer*>>> _glyphVertexValueBuffers;
+  std::unordered_map<uint64_t, std::vector<std::vector<MTL::Buffer*>>> _glyphFragmentValueBuffers;
 
   struct MetalCamera {
     simd::float4x4 viewProjectionMatrix{};
@@ -59,7 +62,7 @@ private:
     simd::float2 position{};
   };
 
-  void ensureCameraBuffersCapacity(uint64_t maxId);
+  void ensureCameraBuffers(uint64_t cameraId);
 
   const std::unordered_map<char, simd::float2> _glyphPositions = {
       { 'A', simd::float2{ 0.0f, 0.0f } },

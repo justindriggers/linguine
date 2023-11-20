@@ -95,15 +95,7 @@ CircleFeatureRenderer::CircleFeatureRenderer(MetalRenderContext& context,
 }
 
 CircleFeatureRenderer::~CircleFeatureRenderer() {
-  for (const auto& cameraValueBuffers : _valueBuffers) {
-    for (const auto& valueBuffer : cameraValueBuffers) {
-      valueBuffer->release();
-    }
-  }
-
-  for (const auto& cameraBuffer : _cameraBuffers) {
-    cameraBuffer->release();
-  }
+  reset();
 
   _pipelineState->release();
   _depthState->release();
@@ -119,7 +111,7 @@ void CircleFeatureRenderer::draw(Camera& camera) {
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  ensureCameraBuffersCapacity(camera.getId());
+  ensureCameraBuffers(camera.getId());
 
   auto cameraBuffer = _cameraBuffers[camera.getId()];
   auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
@@ -170,11 +162,27 @@ void CircleFeatureRenderer::draw(Camera& camera) {
   commandEncoder->endEncoding();
 }
 
-void CircleFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
-  while (_cameraBuffers.size() < maxId + 1) {
+void CircleFeatureRenderer::reset() {
+  for (const auto& cameraValueBuffers : _valueBuffers) {
+    for (const auto& valueBuffer : cameraValueBuffers.second) {
+      valueBuffer->release();
+    }
+  }
+
+  _valueBuffers.clear();
+
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer.second->release();
+  }
+
+  _cameraBuffers.clear();
+}
+
+void CircleFeatureRenderer::ensureCameraBuffers(uint64_t cameraId) {
+  if (_cameraBuffers.find(cameraId) == _cameraBuffers.end()) {
     auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-    _cameraBuffers.push_back(cameraBuffer);
-    _valueBuffers.emplace_back();
+    _cameraBuffers.emplace(cameraId, cameraBuffer);
+    _valueBuffers.emplace(cameraId, std::vector<MTL::Buffer*>());
   }
 }
 

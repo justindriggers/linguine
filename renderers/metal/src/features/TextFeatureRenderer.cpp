@@ -118,31 +118,7 @@ TextFeatureRenderer::TextFeatureRenderer(MetalRenderContext& context,
 }
 
 TextFeatureRenderer::~TextFeatureRenderer() {
-  for (const auto& cameraGlyphValueBuffers : _glyphVertexValueBuffers) {
-    for (const auto& glyphValueBuffers : cameraGlyphValueBuffers) {
-      for (const auto& glyphValueBuffer : glyphValueBuffers) {
-        glyphValueBuffer->release();
-      }
-    }
-  }
-
-  for (const auto& cameraGlyphValueBuffers : _glyphFragmentValueBuffers) {
-    for (const auto& glyphValueBuffers : cameraGlyphValueBuffers) {
-      for (const auto& glyphValueBuffer : glyphValueBuffers) {
-        glyphValueBuffer->release();
-      }
-    }
-  }
-
-  for (const auto& cameraColorValueBuffers : _colorValueBuffers) {
-    for (const auto& colorValueBuffer : cameraColorValueBuffers) {
-      colorValueBuffer->release();
-    }
-  }
-
-  for (const auto& cameraBuffer : _cameraBuffers) {
-    cameraBuffer->release();
-  }
+  reset();
 
   _pipelineState->release();
   _depthState->release();
@@ -158,7 +134,7 @@ void TextFeatureRenderer::draw(Camera& camera) {
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  ensureCameraBuffersCapacity(camera.getId());
+  ensureCameraBuffers(camera.getId());
 
   auto cameraBuffer = _cameraBuffers[camera.getId()];
   auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
@@ -248,13 +224,49 @@ void TextFeatureRenderer::draw(Camera& camera) {
   commandEncoder->endEncoding();
 }
 
-void TextFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
-  while (_cameraBuffers.size() < maxId + 1) {
+void TextFeatureRenderer::reset() {
+  for (const auto& cameraGlyphValueBuffers : _glyphVertexValueBuffers) {
+    for (const auto& glyphValueBuffers : cameraGlyphValueBuffers.second) {
+      for (const auto& glyphValueBuffer : glyphValueBuffers) {
+        glyphValueBuffer->release();
+      }
+    }
+  }
+
+  _glyphVertexValueBuffers.clear();
+
+  for (const auto& cameraGlyphValueBuffers : _glyphFragmentValueBuffers) {
+    for (const auto& glyphValueBuffers : cameraGlyphValueBuffers.second) {
+      for (const auto& glyphValueBuffer : glyphValueBuffers) {
+        glyphValueBuffer->release();
+      }
+    }
+  }
+
+  _glyphFragmentValueBuffers.clear();
+
+  for (const auto& cameraColorValueBuffers : _colorValueBuffers) {
+    for (const auto& colorValueBuffer : cameraColorValueBuffers.second) {
+      colorValueBuffer->release();
+    }
+  }
+
+  _colorValueBuffers.clear();
+
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer.second->release();
+  }
+
+  _cameraBuffers.clear();
+}
+
+void TextFeatureRenderer::ensureCameraBuffers(uint64_t cameraId) {
+  if (_cameraBuffers.find(cameraId) == _cameraBuffers.end()) {
     auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-    _cameraBuffers.push_back(cameraBuffer);
-    _colorValueBuffers.emplace_back();
-    _glyphVertexValueBuffers.emplace_back();
-    _glyphFragmentValueBuffers.emplace_back();
+    _cameraBuffers.emplace(cameraId, cameraBuffer);
+    _colorValueBuffers.emplace(cameraId, std::vector<MTL::Buffer*>());
+    _glyphVertexValueBuffers.emplace(cameraId, std::vector<std::vector<MTL::Buffer*>>());
+    _glyphFragmentValueBuffers.emplace(cameraId, std::vector<std::vector<MTL::Buffer*>>());
   }
 }
 

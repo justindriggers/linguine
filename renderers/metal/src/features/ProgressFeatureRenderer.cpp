@@ -99,21 +99,7 @@ ProgressFeatureRenderer::ProgressFeatureRenderer(MetalRenderContext& context,
 }
 
 ProgressFeatureRenderer::~ProgressFeatureRenderer() {
-  for (const auto& cameraVertexFeatureBuffers : _vertexFeatureBuffers) {
-    for (const auto& vertexFeatureBuffer : cameraVertexFeatureBuffers) {
-      vertexFeatureBuffer->release();
-    }
-  }
-
-  for (const auto& cameraFragmentFeatureBuffers : _fragmentFeatureBuffers) {
-    for (const auto& fragmentFeatureBuffer : cameraFragmentFeatureBuffers) {
-      fragmentFeatureBuffer->release();
-    }
-  }
-
-  for (const auto& cameraBuffer : _cameraBuffers) {
-    cameraBuffer->release();
-  }
+  reset();
 
   _pipelineState->release();
   _depthState->release();
@@ -129,7 +115,7 @@ void ProgressFeatureRenderer::draw(Camera& camera) {
   commandEncoder->setRenderPipelineState(_pipelineState);
   commandEncoder->setDepthStencilState(_depthState);
 
-  ensureCameraBuffersCapacity(camera.getId());
+  ensureCameraBuffers(camera.getId());
 
   auto cameraBuffer = _cameraBuffers[camera.getId()];
   auto metalCamera = static_cast<MetalCamera*>(cameraBuffer->contents());
@@ -185,12 +171,36 @@ void ProgressFeatureRenderer::draw(Camera& camera) {
   commandEncoder->endEncoding();
 }
 
-void ProgressFeatureRenderer::ensureCameraBuffersCapacity(uint64_t maxId) {
-  while (_cameraBuffers.size() < maxId + 1) {
+void ProgressFeatureRenderer::reset() {
+  for (const auto& cameraVertexFeatureBuffers : _vertexFeatureBuffers) {
+    for (const auto& vertexFeatureBuffer : cameraVertexFeatureBuffers.second) {
+      vertexFeatureBuffer->release();
+    }
+  }
+
+  _vertexFeatureBuffers.clear();
+
+  for (const auto& cameraFragmentFeatureBuffers : _fragmentFeatureBuffers) {
+    for (const auto& fragmentFeatureBuffer : cameraFragmentFeatureBuffers.second) {
+      fragmentFeatureBuffer->release();
+    }
+  }
+
+  _fragmentFeatureBuffers.clear();
+
+  for (const auto& cameraBuffer : _cameraBuffers) {
+    cameraBuffer.second->release();
+  }
+
+  _cameraBuffers.clear();
+}
+
+void ProgressFeatureRenderer::ensureCameraBuffers(uint64_t cameraId) {
+  if (_cameraBuffers.find(cameraId) == _cameraBuffers.end()) {
     auto cameraBuffer = _context.device->newBuffer(sizeof(MetalCamera), MTL::ResourceStorageModeShared);
-    _cameraBuffers.push_back(cameraBuffer);
-    _vertexFeatureBuffers.emplace_back();
-    _fragmentFeatureBuffers.emplace_back();
+    _cameraBuffers.emplace(cameraId, cameraBuffer);
+    _vertexFeatureBuffers.emplace(cameraId, std::vector<MTL::Buffer*>());
+    _fragmentFeatureBuffers.emplace(cameraId, std::vector<MTL::Buffer*>());
   }
 }
 

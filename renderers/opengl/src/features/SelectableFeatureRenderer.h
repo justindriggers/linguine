@@ -22,6 +22,8 @@ class SelectableFeatureRenderer : public FeatureRenderer {
 
     void resize(uint16_t width, uint16_t height) override;
 
+    void reset() override {}
+
     std::optional<uint64_t> getEntityIdAt(float x, float y) const;
 
   private:
