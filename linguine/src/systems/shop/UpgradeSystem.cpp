@@ -292,7 +292,7 @@ void UpgradeSystem::update(float deltaTime) {
     drawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
   });
 
-  findEntities<PlayButton, Tapped>()->each([this](const Entity& entity) {
+  findEntities<PlayButton, Enabled, Tapped>()->each([this](const Entity& entity) {
     _sceneManager.load(std::make_unique<InfiniteRunnerScene>(_serviceLocator));
   });
 }

@@ -5,6 +5,7 @@
 #include "ServiceLocator.h"
 #include "components/CameraFixture.h"
 #include "components/Drawable.h"
+#include "components/Enabled.h"
 #include "components/Selectable.h"
 #include "components/Text.h"
 #include "components/Transform.h"
@@ -140,6 +141,7 @@ class ShopScene : public Scene {
       {
         auto playButtonEntity = createEntity();
         playButtonEntity->add<PlayButton>();
+        playButtonEntity->add<Enabled>();
 
         auto playButtonTransform = playButtonEntity->add<Transform>();
         playButtonTransform->position = { 0.0f, -180.0f, 0.0f };
