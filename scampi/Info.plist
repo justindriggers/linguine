@@ -36,5 +36,7 @@
     <string>Main</string>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+    <key>CFBundleDisplayName</key>
+    <string>scampi</string>
 </dict>
 </plist>
