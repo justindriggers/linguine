@@ -37,6 +37,7 @@ add_library(linguine
         src/systems/HudSystem.cpp
         src/systems/LivenessSystem.cpp
         src/systems/OrbitSystem.cpp
+        src/systems/ParticleSystem.cpp
         src/systems/PathTraversalSystem.cpp
         src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp

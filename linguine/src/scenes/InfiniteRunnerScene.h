@@ -2,7 +2,7 @@
 
 #include "Scene.h"
 
-#include <sys/syslog.h>
+#include <random>
 
 #include "components/Ability.h"
 #include "components/AbilityLabel.h"
@@ -13,10 +13,12 @@
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
+#include "components/Emitter.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
 #include "components/Hostile.h"
+#include "components/Particle.h"
 #include "components/Party.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -42,6 +44,7 @@
 #include "systems/HealthProgressSystem.h"
 #include "systems/HudSystem.h"
 #include "systems/LivenessSystem.h"
+#include "systems/ParticleSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/ScoringSystem.h"
@@ -70,6 +73,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<SaveManager>(), serviceLocator));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
+      registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
 
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -167,6 +171,34 @@ class InfiniteRunnerScene : public Scene {
 
           party->memberIds.push_back(shieldEntity->getId());
         }
+
+        auto playerEntityId = playerEntity->getId();
+
+        auto emitter = playerEntity->add<Emitter>([this, playerEntityId, &renderer]() {
+          auto playerEntity = getEntityManager().getById(playerEntityId);
+
+          auto particleEntity = createEntity();
+
+          auto particle = particleEntity->add<Particle>();
+          particle->duration = 5.0f;
+
+          auto playerTransform = playerEntity->get<Transform>();
+
+          auto randomScale = std::uniform_real_distribution(0.1f, 0.5f);
+          auto randomX = std::uniform_real_distribution(-0.15f, 0.15f);
+
+          auto transform = particleEntity->add<Transform>();
+          transform->scale = glm::vec3(randomScale(_random));
+          transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.75f, 2.0f };
+
+          auto circle = particleEntity->add<Circle>();
+          circle->feature = new CircleFeature();
+          circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+          circle.setRemovalListener([circle](const Entity e) {
+            circle->renderable->destroy();
+          });
+        });
+        emitter->frequency = 0.05f;
       }
 
       // Shields Text
@@ -256,6 +288,7 @@ class InfiniteRunnerScene : public Scene {
     }
 
   private:
+    std::random_device _random;
     std::unique_ptr<SpellDatabase> _spellDatabase;
 };
 
