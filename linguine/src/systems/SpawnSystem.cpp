@@ -84,7 +84,7 @@ void SpawnSystem::spawnPowerUp(glm::vec3 spawnPointPosition) {
 
   auto drawable = powerUpEntity->add<Drawable>();
   drawable->feature = new ColoredFeature();
-  drawable->feature->meshType = Quad;
+  drawable->feature->meshType = Plus;
   drawable->feature->color = { 0.0f, 1.0f, 0.0f };
   drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
   drawable.setRemovalListener([drawable](const Entity e) {
@@ -135,6 +135,7 @@ void SpawnSystem::spawnObstacles(glm::vec3 spawnPointPosition) {
   obstacleEntity->add<Bomb>();
 
   auto randomX = std::uniform_int_distribution(0, 2);
+  auto randomRotation = std::uniform_real_distribution(0.0f, glm::two_pi<float>());
 
   auto transform = obstacleEntity->add<Transform>();
 
@@ -152,15 +153,18 @@ void SpawnSystem::spawnObstacles(glm::vec3 spawnPointPosition) {
     break;
   }
 
-  obstacleEntity->add<PhysicalState>(transform->position, 0.0f);
+  transform->rotation = glm::angleAxis(randomRotation(_random), glm::vec3(0.0f, 0.0f, 1.0f));
+
+  obstacleEntity->add<PhysicalState>(transform->position, transform->rotation.z);
   obstacleEntity->add<CircleCollider>();
 
-  auto circle = obstacleEntity->add<Circle>();
-  circle->feature = new CircleFeature();
-  circle->feature->color = { 1.0f, 0.0f, 0.0f };
-  circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
-  circle.setRemovalListener([circle](const Entity e) {
-    circle->renderable->destroy();
+  auto drawable = obstacleEntity->add<Drawable>();
+  drawable->feature = new ColoredFeature();
+  drawable->feature->color = { 1.0f, 0.0f, 0.0f };
+  drawable->feature->meshType = Mine;
+  drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+  drawable.setRemovalListener([drawable](const Entity e) {
+    drawable->renderable->destroy();
   });
 }
 

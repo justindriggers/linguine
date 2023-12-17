@@ -6,6 +6,8 @@ add_library(metal
         src/features/SelectableFeatureRenderer.cpp
         src/features/TextFeatureRenderer.cpp
         src/mesh/MeshRegistry.cpp
+        src/mesh/MineMesh.cpp
+        src/mesh/PlusMesh.cpp
         src/mesh/QuadMesh.cpp
         src/mesh/TriangleMesh.cpp
 )

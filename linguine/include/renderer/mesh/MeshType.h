@@ -3,6 +3,8 @@
 namespace linguine {
 
 enum MeshType {
+  Mine,
+  Plus,
   Quad,
   Triangle
 };
