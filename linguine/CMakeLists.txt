@@ -30,6 +30,7 @@ add_library(linguine
         src/systems/EnemySpawnSystem.cpp
         src/systems/EventSystem.cpp
         src/systems/FallerSystem.cpp
+        src/systems/FireSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
         src/systems/GridPositionSystem.cpp

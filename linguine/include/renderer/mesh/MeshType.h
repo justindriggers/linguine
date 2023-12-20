@@ -3,10 +3,14 @@
 namespace linguine {
 
 enum MeshType {
+  Booster,
+  Cockpit,
   Mine,
   Plus,
   Quad,
-  Triangle
+  Ship,
+  Triangle,
+  Wing
 };
 
 }  // namespace linguine

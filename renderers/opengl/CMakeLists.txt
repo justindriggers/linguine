@@ -5,12 +5,16 @@ add_library(opengl
         src/features/ProgressFeatureRenderer.cpp
         src/features/SelectableFeatureRenderer.cpp
         src/features/TextFeatureRenderer.cpp
+        src/mesh/BoosterMesh.cpp
+        src/mesh/CockpitMesh.cpp
         src/mesh/MeshRegistry.cpp
         src/mesh/MineMesh.cpp
         src/mesh/PlusMesh.cpp
         src/mesh/QuadMesh.cpp
         src/mesh/ScreenMesh.cpp
+        src/mesh/ShipMesh.cpp
         src/mesh/TriangleMesh.cpp
+        src/mesh/WingMesh.cpp
         src/postprocessing/GammaCorrection.cpp
 )
 

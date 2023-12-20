@@ -14,6 +14,7 @@
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
 #include "components/Emitter.h"
+#include "components/Fire.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
@@ -39,6 +40,7 @@
 #include "systems/CollisionSystem.h"
 #include "systems/CooldownProgressSystem.h"
 #include "systems/EffectSystem.h"
+#include "systems/FireSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/HealthProgressSystem.h"
@@ -74,6 +76,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
+      registerSystem(std::make_unique<FireSystem>(getEntityManager()));
 
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -147,19 +150,134 @@ class InfiniteRunnerScene : public Scene {
         player->acceleration = 0.05f + 0.02f * saveManager.getRank(3);
         player->maxSpeed = 20.0f;
 
-        playerEntity->add<Transform>();
+        auto transform = playerEntity->add<Transform>();
+        transform->scale = glm::vec3(2.0f);
+        transform->position.z = 0.1f;
+
         playerEntity->add<PhysicalState>();
-        playerEntity->add<CircleCollider>();
+
+        auto circleCollider = playerEntity->add<CircleCollider>();
+        circleCollider->radius = transform->scale.x / 2.0f;
+
         playerEntity->add<Velocity>();
         playerEntity->add<Trigger>();
 
         auto drawable = playerEntity->add<Drawable>();
         drawable->feature = new ColoredFeature();
-        drawable->feature->meshType = Triangle;
+        drawable->feature->meshType = Ship;
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
         drawable.setRemovalListener([drawable](const Entity e) {
           drawable->renderable->destroy();
         });
+
+        {
+          auto wingEntity = createEntity();
+
+          auto wingTransform = wingEntity->add<Transform>();
+          wingTransform->scale = transform->scale;
+          wingTransform->position.z = 1.0f;
+
+          wingEntity->add<PhysicalState>();
+
+          auto attachment = wingEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+
+          auto wingDrawable = wingEntity->add<Drawable>();
+          wingDrawable->feature = new ColoredFeature();
+          wingDrawable->feature->meshType = Wing;
+          wingDrawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+          wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature));
+          wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
+            wingDrawable->renderable->destroy();
+          });
+        }
+
+        {
+          auto cockpitEntity = createEntity();
+
+          auto cockpitTransform = cockpitEntity->add<Transform>();
+          cockpitTransform->scale = transform->scale;
+
+          cockpitEntity->add<PhysicalState>();
+
+          auto attachment = cockpitEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+
+          auto cockpitDrawable = cockpitEntity->add<Drawable>();
+          cockpitDrawable->feature = new ColoredFeature();
+          cockpitDrawable->feature->meshType = Cockpit;
+          cockpitDrawable->feature->color = { 0.007f, 0.01521f, 0.04667f };
+          cockpitDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(cockpitDrawable->feature));
+          cockpitDrawable.setRemovalListener([cockpitDrawable](const Entity e) {
+            cockpitDrawable->renderable->destroy();
+          });
+        }
+
+        {
+          auto boosterEntity = createEntity();
+
+          auto boosterTransform = boosterEntity->add<Transform>();
+          boosterTransform->scale = transform->scale;
+
+          boosterEntity->add<PhysicalState>();
+
+          auto attachment = boosterEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+
+          auto boosterDrawable = boosterEntity->add<Drawable>();
+          boosterDrawable->feature = new ColoredFeature();
+          boosterDrawable->feature->meshType = Booster;
+          boosterDrawable->feature->color = { 0.0f, 0.0f, 0.0f };
+          boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature));
+          boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
+            boosterDrawable->renderable->destroy();
+          });
+        }
+
+        {
+          auto engineFireEntity = createEntity();
+          engineFireEntity->add<Fire>();
+
+          auto engineFireTransform = engineFireEntity->add<Transform>();
+          engineFireTransform->position.z = 1.0f;
+
+          engineFireEntity->add<PhysicalState>();
+
+          auto attachment = engineFireEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+          attachment->offset = { -0.13f * transform->scale.x, -0.24f * transform->scale.y};
+
+          auto circle = engineFireEntity->add<Circle>();
+          circle->feature = new CircleFeature();
+          circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+          circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+          circle.setRemovalListener([circle](const Entity e) {
+            circle->renderable->destroy();
+          });
+        }
+
+        {
+          auto engineFireEntity = createEntity();
+          engineFireEntity->add<Fire>();
+
+          auto engineFireTransform = engineFireEntity->add<Transform>();
+          engineFireTransform->scale = glm::vec3(0.25f);
+          engineFireTransform->position.z = 1.0f;
+
+          engineFireEntity->add<PhysicalState>();
+
+          auto attachment = engineFireEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+          attachment->offset = { 0.13f * transform->scale.x, -0.24f * transform->scale.y};
+
+          auto circle = engineFireEntity->add<Circle>();
+          circle->feature = new CircleFeature();
+          circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+          circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+          circle.setRemovalListener([circle](const Entity e) {
+            circle->renderable->destroy();
+          });
+        }
 
         auto party = playerEntity->add<Party>();
 
@@ -184,21 +302,28 @@ class InfiniteRunnerScene : public Scene {
 
           auto playerTransform = playerEntity->get<Transform>();
 
-          auto randomScale = std::uniform_real_distribution(0.1f, 0.5f);
-          auto randomX = std::uniform_real_distribution(-0.15f, 0.15f);
+          auto randomScale = std::uniform_real_distribution(0.125f * playerTransform->scale.x, 0.25f * playerTransform->scale.x);
+          auto randomX = std::uniform_real_distribution(-0.2f * playerTransform->scale.x, 0.2f * playerTransform->scale.y);
 
           auto transform = particleEntity->add<Transform>();
           transform->scale = glm::vec3(randomScale(_random));
-          transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.75f, 2.0f };
+          transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.45f * playerTransform->scale.y, 2.0f };
+
+          auto randomColor = std::uniform_int_distribution(0, 1);
 
           auto circle = particleEntity->add<Circle>();
           circle->feature = new CircleFeature();
+
+          if (randomColor(_random) > 0) {
+            circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+          }
+
           circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
           circle.setRemovalListener([circle](const Entity e) {
             circle->renderable->destroy();
           });
         });
-        emitter->frequency = 0.05f;
+        emitter->frequency = 0.035f;
       }
 
       // Shields Text
