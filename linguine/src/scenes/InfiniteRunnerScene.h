@@ -80,7 +80,7 @@ class InfiniteRunnerScene : public Scene {
 
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
-      registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase));
+      registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<Renderer>()));
 
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -197,6 +197,7 @@ class InfiniteRunnerScene : public Scene {
 
           auto cockpitTransform = cockpitEntity->add<Transform>();
           cockpitTransform->scale = transform->scale;
+          cockpitTransform->position.z = 0.05f;
 
           cockpitEntity->add<PhysicalState>();
 
@@ -218,6 +219,7 @@ class InfiniteRunnerScene : public Scene {
 
           auto boosterTransform = boosterEntity->add<Transform>();
           boosterTransform->scale = transform->scale;
+          boosterTransform->position.z = 0.05f;
 
           boosterEntity->add<PhysicalState>();
 

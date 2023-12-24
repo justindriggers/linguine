@@ -11,8 +11,10 @@ namespace linguine {
 class ScoringSystem : public System {
   public:
     explicit ScoringSystem(EntityManager& entityManager,
-                           SpellDatabase& spellDatabase)
-        : System(entityManager), _spellDatabase(spellDatabase) {}
+                           SpellDatabase& spellDatabase,
+                           Renderer& renderer)
+        : System(entityManager), _spellDatabase(spellDatabase),
+          _renderer(renderer) {}
 
     void update(float deltaTime) override;
 
@@ -22,6 +24,7 @@ class ScoringSystem : public System {
     std::random_device _random;
 
     SpellDatabase& _spellDatabase;
+    Renderer& _renderer;
 };
 
 }  // namespace linguine

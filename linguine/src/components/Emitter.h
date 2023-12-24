@@ -11,6 +11,8 @@ struct Emitter {
   std::function<void()> particleFactory;
   float frequency = 1.0f;
   float elapsed = 0.0f;
+  float totalLifetime = 0.0f;
+  float elapsedLifetime = 0.0f;
 };
 
 }  // namespace linguine
