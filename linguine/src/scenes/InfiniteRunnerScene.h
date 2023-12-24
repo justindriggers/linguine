@@ -26,6 +26,7 @@
 #include "components/Progressable.h"
 #include "components/Score.h"
 #include "components/Selectable.h"
+#include "components/Shake.h"
 #include "components/SpawnPoint.h"
 #include "components/TargetIndicator.h"
 #include "components/Text.h"
@@ -50,6 +51,7 @@
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/PlayerControllerSystem.h"
 #include "systems/ScoringSystem.h"
+#include "systems/ShakeSystem.h"
 #include "systems/SpawnSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/VelocitySystem.h"
@@ -77,6 +79,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
       registerSystem(std::make_unique<FireSystem>(getEntityManager()));
+      registerSystem(std::make_unique<ShakeSystem>(getEntityManager()));
 
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
@@ -90,6 +93,7 @@ class InfiniteRunnerScene : public Scene {
 
       {
         auto cameraEntity = createEntity();
+        cameraEntity->add<Shake>();
 
         auto transform = cameraEntity->add<Transform>();
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);

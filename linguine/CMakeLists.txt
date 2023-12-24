@@ -47,6 +47,7 @@ add_library(linguine
         src/systems/RotatorSystem.cpp
         src/systems/ScoringSystem.cpp
         src/systems/SelectionDestructionSystem.cpp
+        src/systems/ShakeSystem.cpp
         src/systems/SpawnSystem.cpp
         src/systems/shop/UpgradeSystem.cpp
         src/systems/shop/WalletSystem.cpp

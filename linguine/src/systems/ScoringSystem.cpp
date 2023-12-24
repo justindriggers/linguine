@@ -3,6 +3,7 @@
 #include "components/Alive.h"
 #include "components/Asteroid.h"
 #include "components/Bomb.h"
+#include "components/CameraFixture.h"
 #include "components/Circle.h"
 #include "components/Emitter.h"
 #include "components/Health.h"
@@ -12,6 +13,7 @@
 #include "components/Player.h"
 #include "components/PowerUp.h"
 #include "components/Score.h"
+#include "components/Shake.h"
 #include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
@@ -50,6 +52,18 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           auto health = partyMember->get<Health>();
           health->current = glm::clamp(health->current - 50 * asteroid->points, 0, health->max);
 
+          auto magnitude = 0.05f * static_cast<float>(asteroid->points);
+
+          findEntities<CameraFixture, Shake>()->each([magnitude](const Entity& entity) {
+            auto shake = entity.get<Shake>();
+
+            if (shake->magnitude <= magnitude) {
+              shake->magnitude = magnitude;
+              shake->duration = 0.5f;
+              shake->elapsed = 0.0f;
+            }
+          });
+
           auto asteroidTransform = hitEntity->get<Transform>();
 
           auto randomScale = std::uniform_real_distribution(0.1f, 0.25f);
@@ -82,6 +96,16 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           hitEntity->destroy();
         } else if (hitEntity->has<PowerUp>()) {
           auto powerUp = hitEntity->get<PowerUp>();
+
+          findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
+            auto shake = entity.get<Shake>();
+
+            if (shake->magnitude <= 0.1f) {
+              shake->magnitude = 0.1f;
+              shake->duration = 0.25f;
+              shake->elapsed = 0.0f;
+            }
+          });
 
           switch (powerUp->type) {
           case PowerUp::MassHeal:
@@ -120,6 +144,16 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           hitEntity->destroy();
         } else if (hitEntity->has<Bomb>()) {
           _spellDatabase.getSpellById(3).action->execute(playerEntity);
+
+          findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
+            auto shake = entity.get<Shake>();
+
+            if (shake->magnitude <= 0.5f) {
+              shake->magnitude = 0.5f;
+              shake->duration = 0.65f;
+              shake->elapsed = 0.0f;
+            }
+          });
 
           auto bombTransform = hitEntity->get<Transform>();
 
