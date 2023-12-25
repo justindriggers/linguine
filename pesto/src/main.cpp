@@ -10,6 +10,7 @@
 #include "platform/WebLogger.h"
 #include "platform/WebOpenALFileLoader.h"
 #include "platform/WebOpenGLFileLoader.h"
+#include "platform/WebSaveManager.h"
 #include "platform/WebTimeManager.h"
 
 using namespace linguine;
@@ -27,6 +28,7 @@ int main() {
   auto audioManager = std::make_shared<audio::OpenALAudioManager>(
       std::make_unique<WebOpenALFileLoader>());
   auto lifecycleManager = std::make_shared<WebLifecycleManager>();
+  auto saveManager = std::make_shared<WebSaveManager>();
   auto timeManager = std::make_shared<WebTimeManager>();
 
   EmscriptenWebGLContextAttributes attributes;
@@ -63,7 +65,8 @@ int main() {
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport());
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
-                                    lifecycleManager, renderer, timeManager);
+                                    lifecycleManager, renderer, saveManager,
+                                    timeManager);
 
   emscripten_set_main_loop(tick, 0, false);
   return 0;

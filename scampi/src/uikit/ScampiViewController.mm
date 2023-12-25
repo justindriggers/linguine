@@ -5,12 +5,13 @@
 #import <AudioEngineAudioManager.h>
 #import <MetalRenderer.h>
 
+#import "ScampiAppDelegate.h"
 #import "../metalkit/ScampiViewDelegate.h"
 #import "../platform/IosAudioEngineFileLoader.h"
 #import "../platform/IosInputManager.h"
 #import "../platform/IosLifecycleManager.h"
 #import "../platform/IosMetalTextureLoader.h"
-#import "../platform/IosTimeManager.h"
+#import "../platform/IosSaveManager.h"
 #import "../platform/NSLogger.h"
 
 @implementation ScampiViewController {
@@ -81,9 +82,11 @@
   _textureLoader = std::make_unique<linguine::scampi::IosMetalTextureLoader>(mtkTextureLoader);
   auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true, *_textureLoader));
 
-  auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
+  auto saveManager = std::make_shared<linguine::scampi::IosSaveManager>();
 
-  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, timeManager);
+  auto appDelegate = (ScampiAppDelegate *)[[UIApplication sharedApplication] delegate];
+
+  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, saveManager, appDelegate.timeManager);
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
                                                     renderer:renderer];

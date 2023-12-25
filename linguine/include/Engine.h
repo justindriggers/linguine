@@ -19,6 +19,7 @@ class Engine : public ServiceLocator, SceneManager {
            const std::shared_ptr<InputManager>& inputManager,
            const std::shared_ptr<LifecycleManager>& lifecycleManager,
            const std::shared_ptr<Renderer>& renderer,
+           const std::shared_ptr<SaveManager>& saveManager,
            const std::shared_ptr<TimeManager>& timeManager);
 
     virtual ~Engine() = default;
@@ -53,7 +54,7 @@ class Engine : public ServiceLocator, SceneManager {
     }
 
     SaveManager& getSaveManager() override {
-      return _saveManager;
+      return *_saveManager;
     }
 
     SceneManager& getSceneManager() override {
@@ -70,9 +71,8 @@ class Engine : public ServiceLocator, SceneManager {
     const std::shared_ptr<LifecycleManager> _lifecycleManager;
     const std::shared_ptr<Logger> _logger;
     const std::shared_ptr<Renderer> _renderer;
+    const std::shared_ptr<SaveManager> _saveManager;
     const std::shared_ptr<TimeManager> _timeManager;
-
-    SaveManager _saveManager;
 
     void load(std::unique_ptr<Scene> scene) override {
       _pendingScene = std::move(scene);
@@ -84,9 +84,6 @@ class Engine : public ServiceLocator, SceneManager {
     void update(float deltaTime);
 
     void fixedUpdate(float fixedDeltaTime);
-
-    time_t _currentTime = _timeManager->currentTime();
-    float _accumulator = 0.0f;
 };
 
 }  // namespace linguine

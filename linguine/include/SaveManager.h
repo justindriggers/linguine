@@ -7,37 +7,40 @@ namespace linguine {
 
 class SaveManager {
   public:
+    SaveManager() = default;
+
+    virtual ~SaveManager() = default;
+
     void addPoints(int32_t points) {
       _points += points;
+      save();
     }
 
     void removePoints(int32_t points) {
       _points -= points;
+      save();
     }
 
-    uint8_t getRank(uint8_t upgradeId) const {
-      if (_upgradeRanks.find(upgradeId) != _upgradeRanks.end()) {
-        return _upgradeRanks.at(upgradeId);
-      } else {
-        return 0;
-      }
+    [[nodiscard]] uint8_t getRank(uint8_t upgradeId) const {
+      return _upgradeRanks.at(upgradeId);
     }
 
     void increaseRank(uint8_t upgradeId) {
-      if (_upgradeRanks.find(upgradeId) != _upgradeRanks.end()) {
-        _upgradeRanks[upgradeId]++;
-      } else {
-        _upgradeRanks[upgradeId] = 1;
-      }
+      _upgradeRanks[upgradeId]++;
+      save();
     }
 
-    int32_t getPoints() const {
+    [[nodiscard]] int32_t getPoints() const {
       return _points;
     }
 
-  private:
+  protected:
     int32_t _points{};
     std::unordered_map<uint8_t, uint8_t> _upgradeRanks;
+
+    virtual void load() = 0;
+
+    virtual void save() = 0;
 };
 
 }  // namespace linguine

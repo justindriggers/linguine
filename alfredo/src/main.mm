@@ -10,6 +10,7 @@
 #import "platform/MacInputManager.h"
 #import "platform/MacLifecycleManager.h"
 #import "platform/MacLogger.h"
+#import "platform/MacSaveManager.h"
 #import "platform/MacTimeManager.h"
 
 using namespace linguine;
@@ -31,8 +32,9 @@ int main(int argc, const char *argv[]) {
     auto inputManager = std::make_shared<MacInputManager>();
     auto lifecycleManager = std::make_shared<MacLifecycleManager>();
     auto renderer = std::shared_ptr<Renderer>(appDelegate.metalRenderer);
+    auto saveManager = std::make_shared<MacSaveManager>();
     auto timeManager = std::make_shared<MacTimeManager>();
-    auto engine = Engine(logger, audioManager, inputManager, lifecycleManager, renderer, timeManager);
+    auto engine = Engine(logger, audioManager, inputManager, lifecycleManager, renderer, saveManager, timeManager);
 
     engine.run();
 
