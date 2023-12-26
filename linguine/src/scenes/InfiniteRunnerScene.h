@@ -32,6 +32,7 @@
 #include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
+#include "components/TutorialState.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
 #include "systems/AttachmentSystem.h"
@@ -54,6 +55,7 @@
 #include "systems/ShakeSystem.h"
 #include "systems/SpawnSystem.h"
 #include "systems/TransformationSystem.h"
+#include "systems/TutorialSystem.h"
 #include "systems/VelocitySystem.h"
 
 namespace linguine {
@@ -84,12 +86,18 @@ class InfiniteRunnerScene : public Scene {
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
       auto& renderer = serviceLocator.get<Renderer>();
       auto& saveManager = serviceLocator.get<SaveManager>();
+
+      if (saveManager.isNewPlayer()) {
+        auto tutorialEntity = createEntity();
+        tutorialEntity->add<TutorialState>();
+      }
 
       {
         auto cameraEntity = createEntity();
@@ -150,8 +158,8 @@ class InfiniteRunnerScene : public Scene {
         auto playerEntity = createEntity();
 
         auto player = playerEntity->add<Player>();
-        player->speed = 5.0f + 1.0f * saveManager.getRank(2);
-        player->acceleration = 0.05f + 0.02f * saveManager.getRank(3);
+        player->speed = 5.0f + 1.0f * static_cast<float>(saveManager.getRank(2));
+        player->acceleration = 0.05f + 0.02f * static_cast<float>(saveManager.getRank(3));
         player->maxSpeed = 20.0f;
 
         auto transform = playerEntity->add<Transform>();

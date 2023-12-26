@@ -12,6 +12,7 @@ class SaveManager {
     virtual ~SaveManager() = default;
 
     void addPoints(int32_t points) {
+      _isNewPlayer = false;
       _points += points;
       save();
     }
@@ -34,9 +35,14 @@ class SaveManager {
       return _points;
     }
 
+    [[nodiscard]] bool isNewPlayer() const {
+      return _isNewPlayer;
+    }
+
   protected:
     int32_t _points{};
     std::unordered_map<uint8_t, uint8_t> _upgradeRanks;
+    bool _isNewPlayer{};
 
     virtual void load() = 0;
 

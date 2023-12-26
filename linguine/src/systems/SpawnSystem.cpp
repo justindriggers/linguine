@@ -8,8 +8,10 @@
 #include "components/PhysicalState.h"
 #include "components/PowerUp.h"
 #include "components/SpawnPoint.h"
+#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
+#include "components/TutorialState.h"
 #include "components/Velocity.h"
 
 namespace linguine {
@@ -26,22 +28,95 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
     auto spawnPoint = entity.get<SpawnPoint>();
     auto physicalState = entity.get<PhysicalState>();
 
-    spawnPoint->powerUpElapsed += fixedDeltaTime;
+    auto isTutorial = false;
 
-    if (physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
-      spawnPoint->lastSpawnPoint = physicalState->currentPosition.y;
+    findEntities<TutorialState>()->each([this, fixedDeltaTime, &isTutorial, &entity](Entity& tutorialStateEntity) {
+      isTutorial = true;
 
-      auto randomSpawn = std::uniform_real_distribution(0.0f, 1.0f);
+      auto tutorialState = tutorialStateEntity.get<TutorialState>();
+      tutorialState->elapsed += fixedDeltaTime;
 
-      if (randomSpawn(_random) <= spawnPoint->spawnChance) {
-        if (spawnPoint->powerUpElapsed >= spawnPoint->powerUpInterval) {
-          spawnPoint->powerUpElapsed = 0.0f;
-          spawnPowerUp(entity.get<Transform>()->position);
-        } else {
-          if (randomSpawn(_random) < 0.65f) {
-            spawnObstacles(entity.get<Transform>()->position);
+      switch (tutorialState->currentState) {
+      case TutorialState::State::Movement:
+        spawnMovementText(entity.get<Transform>()->position);
+        tutorialState->currentState = TutorialState::State::WaitingForMovement;
+        tutorialState->elapsed = 0.0f;
+        break;
+      case TutorialState::State::WaitingForMovement:
+        if (tutorialState->hasMoved) {
+          tutorialState->currentState = TutorialState::State::Scoring;
+          tutorialState->elapsed = 0.0f;
+        } else if (tutorialState->elapsed >= 5.0f) {
+          spawnMovementText(entity.get<Transform>()->position);
+          tutorialState->elapsed = 0.0f;
+        }
+        break;
+      case TutorialState::State::Scoring:
+        spawnScoringText(entity.get<Transform>()->position);
+        tutorialState->currentState = TutorialState::State::WaitingForScore;
+        tutorialState->elapsed = 0.0f;
+        break;
+      case TutorialState::State::WaitingForScore:
+        if (tutorialState->hasScored) {
+          tutorialState->currentState = TutorialState::State::Healing;
+          tutorialState->elapsed = 0.0f;
+        } else if (tutorialState->asteroidsSpawned >= 3) {
+          if (tutorialState->elapsed >= 3.0f) {
+            spawnScoringText(entity.get<Transform>()->position);
+            tutorialState->asteroidsSpawned = 0;
+            tutorialState->elapsed = 0.0f;
+          }
+        } else if (tutorialState->elapsed >= 3.0f) {
+          spawnAsteroid(entity.get<Transform>()->position);
+          tutorialState->asteroidsSpawned++;
+          tutorialState->elapsed = 0.0f;
+        }
+        break;
+      case TutorialState::State::Healing:
+        spawnHealingText(entity.get<Transform>()->position);
+        tutorialState->currentState = TutorialState::State::WaitingForHeal;
+        tutorialState->elapsed = 0.0f;
+        break;
+      case TutorialState::State::WaitingForHeal:
+        if (tutorialState->hasHealed) {
+          tutorialState->currentState = TutorialState::State::Evasion;
+          tutorialState->elapsed = 0.0f;
+        } else if (tutorialState->elapsed >= 5.0f) {
+          spawnHealingText(entity.get<Transform>()->position);
+          tutorialState->elapsed = 0.0f;
+        }
+        break;
+      case TutorialState::State::Evasion:
+        spawnEvasionText(entity.get<Transform>()->position);
+        tutorialState->currentState = TutorialState::State::Finished;
+        tutorialState->elapsed = 0.0f;
+        break;
+      case TutorialState::State::Finished:
+        if (tutorialState->elapsed >= 2.0f) {
+          tutorialStateEntity.destroy();
+        }
+        break;
+      }
+    });
+
+    if (!isTutorial) {
+      spawnPoint->powerUpElapsed += fixedDeltaTime;
+
+      if (physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
+        spawnPoint->lastSpawnPoint = physicalState->currentPosition.y;
+
+        auto randomSpawn = std::uniform_real_distribution(0.0f, 1.0f);
+
+        if (randomSpawn(_random) <= spawnPoint->spawnChance) {
+          if (spawnPoint->powerUpElapsed >= spawnPoint->powerUpInterval) {
+            spawnPoint->powerUpElapsed = 0.0f;
+            spawnPowerUp(entity.get<Transform>()->position);
           } else {
-            spawnAsteroid(entity.get<Transform>()->position);
+            if (randomSpawn(_random) < 0.65f) {
+              spawnObstacles(entity.get<Transform>()->position);
+            } else {
+              spawnAsteroid(entity.get<Transform>()->position);
+            }
           }
         }
       }
@@ -192,6 +267,145 @@ void SpawnSystem::spawnStars(glm::vec3 spawnPointPosition) {
     circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
     circle.setRemovalListener([circle](const Entity e) { circle->renderable->destroy(); });
   }
+}
+
+void SpawnSystem::spawnMovementText(glm::vec3 spawnPointPosition) {
+  auto tutorialEntity1 = createEntity();
+
+  auto transform1 = tutorialEntity1->add<Transform>();
+  transform1->scale = glm::vec3(0.5f);
+  transform1->position = { -4.5f, spawnPointPosition.y + 1.5f, 7.0f };
+
+  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
+  tutorialEntity1->add<CircleCollider>();
+  tutorialEntity1->add<Trigger>();
+
+  auto text1 = tutorialEntity1->add<Text>();
+  text1->feature = new TextFeature();
+  text1->feature->text = "Swipe left or right";
+  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
+  text1.setRemovalListener([text1](const Entity& entity) {
+    text1->renderable->destroy();
+  });
+
+  auto tutorialEntity2 = createEntity();
+
+  auto transform2 = tutorialEntity2->add<Transform>();
+  transform2->scale = glm::vec3(0.5f);
+  transform2->position = { -1.5f, spawnPointPosition.y, 7.0f };
+
+  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
+  tutorialEntity2->add<CircleCollider>();
+  tutorialEntity2->add<Trigger>();
+
+  auto text2 = tutorialEntity2->add<Text>();
+  text2->feature = new TextFeature();
+  text2->feature->text = "to move";
+  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
+  text2.setRemovalListener([text2](const Entity& entity) {
+    text2->renderable->destroy();
+  });
+}
+
+void SpawnSystem::spawnScoringText(glm::vec3 spawnPointPosition) {
+  auto tutorialEntity1 = createEntity();
+
+  auto transform1 = tutorialEntity1->add<Transform>();
+  transform1->scale = glm::vec3(0.5f);
+  transform1->position = { -5.25f, spawnPointPosition.y + 1.5f, 7.0f };
+
+  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
+  tutorialEntity1->add<CircleCollider>();
+  tutorialEntity1->add<Trigger>();
+
+  auto text1 = tutorialEntity1->add<Text>();
+  text1->feature = new TextFeature();
+  text1->feature->text = "Collide with asteroids";
+  text1->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
+  text1.setRemovalListener([text1](const Entity& entity) {
+    text1->renderable->destroy();
+  });
+
+  auto tutorialEntity2 = createEntity();
+
+  auto transform2 = tutorialEntity2->add<Transform>();
+  transform2->scale = glm::vec3(0.5f);
+  transform2->position = { -3.25f, spawnPointPosition.y, 7.0f };
+
+  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
+  tutorialEntity2->add<CircleCollider>();
+  tutorialEntity2->add<Trigger>();
+
+  auto text2 = tutorialEntity2->add<Text>();
+  text2->feature = new TextFeature();
+  text2->feature->text = "to gain points";
+  text2->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
+  text2.setRemovalListener([text2](const Entity& entity) {
+    text2->renderable->destroy();
+  });
+}
+
+void SpawnSystem::spawnHealingText(glm::vec3 spawnPointPosition) {
+  auto tutorialEntity1 = createEntity();
+
+  auto transform1 = tutorialEntity1->add<Transform>();
+  transform1->scale = glm::vec3(0.5f);
+  transform1->position = { -3.75f, spawnPointPosition.y + 1.5f, 7.0f };
+
+  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
+  tutorialEntity1->add<CircleCollider>();
+  tutorialEntity1->add<Trigger>();
+
+  auto text1 = tutorialEntity1->add<Text>();
+  text1->feature = new TextFeature();
+  text1->feature->text = "Tap your shields";
+  text1->feature->color = { 0.0f, 1.0f, 0.0f };
+  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
+  text1.setRemovalListener([text1](const Entity& entity) {
+    text1->renderable->destroy();
+  });
+
+  auto tutorialEntity2 = createEntity();
+
+  auto transform2 = tutorialEntity2->add<Transform>();
+  transform2->scale = glm::vec3(0.5f);
+  transform2->position = { -4.25f, spawnPointPosition.y, 7.0f };
+
+  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
+  tutorialEntity2->add<CircleCollider>();
+  tutorialEntity2->add<Trigger>();
+
+  auto text2 = tutorialEntity2->add<Text>();
+  text2->feature = new TextFeature();
+  text2->feature->text = "to regenerate them";
+  text2->feature->color = { 0.0f, 1.0f, 0.0f };
+  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
+  text2.setRemovalListener([text2](const Entity& entity) {
+    text2->renderable->destroy();
+  });
+}
+
+void SpawnSystem::spawnEvasionText(glm::vec3 spawnPointPosition) {
+  auto tutorialEntity1 = createEntity();
+
+  auto transform1 = tutorialEntity1->add<Transform>();
+  transform1->scale = glm::vec3(0.5f);
+  transform1->position = { -3.75f, spawnPointPosition.y, 7.0f };
+
+  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
+  tutorialEntity1->add<CircleCollider>();
+  tutorialEntity1->add<Trigger>();
+
+  auto text1 = tutorialEntity1->add<Text>();
+  text1->feature = new TextFeature();
+  text1->feature->text = "Avoid the mines!";
+  text1->feature->color = { 1.0f, 0.0f, 0.0f };
+  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
+  text1.setRemovalListener([text1](const Entity& entity) {
+    text1->renderable->destroy();
+  });
 }
 
 }  // namespace linguine

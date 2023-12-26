@@ -53,6 +53,7 @@ add_library(linguine
         src/systems/shop/WalletSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
+        src/systems/TutorialSystem.cpp
         src/systems/tutorial/WispTriggerSystem.cpp
         src/systems/VelocitySystem.cpp
 )

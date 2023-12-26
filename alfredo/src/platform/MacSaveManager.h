@@ -19,6 +19,7 @@ class MacSaveManager : public SaveManager {
       _upgradeRanks[1] = 0;
       _upgradeRanks[2] = 0;
       _upgradeRanks[3] = 0;
+      _isNewPlayer = true;
     }
 
     void save() override {}

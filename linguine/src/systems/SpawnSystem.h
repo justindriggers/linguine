@@ -28,6 +28,14 @@ class SpawnSystem : public System {
     void spawnObstacles(glm::vec3 spawnPointPosition);
 
     void spawnStars(glm::vec3 spawnPointPosition);
+
+    void spawnMovementText(glm::vec3 spawnPointPosition);
+
+    void spawnScoringText(glm::vec3 spawnPointPosition);
+
+    void spawnHealingText(glm::vec3 spawnPointPosition);
+
+    void spawnEvasionText(glm::vec3 spawnPointPosition);
 };
 
 }  // namespace linguine
