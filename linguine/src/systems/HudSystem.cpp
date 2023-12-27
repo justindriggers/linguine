@@ -2,6 +2,7 @@
 
 #include "components/Ability.h"
 #include "components/AbilityLabel.h"
+#include "components/GameOver.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
 #include "components/Party.h"
@@ -79,21 +80,34 @@ void HudSystem::update(float deltaTime) {
 
   findEntities<Text, AbilityLabel>()->each([this](const Entity& entity) {
     auto text = entity.get<Text>();
+
+    auto isGameOver = false;
+
+    findEntities<Player>()->each([&isGameOver](const Entity& playerEntity) {
+      isGameOver = playerEntity.has<GameOver>();
+    });
+
     auto abilityLabel = entity.get<AbilityLabel>();
     auto abilityEntity = getEntityById(abilityLabel->abilityId);
-    auto ability = abilityEntity->get<Ability>();
-
-    if (ability->remainingCooldown > 0.0f) {
-      text->feature->text = "Recharging";
-    } else {
-      text->feature->text = "Ready";
-    }
-
-    auto progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
     auto progressable = abilityEntity->get<Progressable>();
-    auto red = 1.0f - (progress > 0.5 ? (progress - 0.5f) * 2.0f : 0.0f);
-    auto green = 0.0f + (progress < 0.5 ? progress * 2.0f : 1.0f);
-    progressable->feature->color = { red, green, 0.0f };
+
+    if (isGameOver) {
+      text->feature->text = "Signal Lost...";
+      progressable->feature->color = { 1.0f, 0.0f, 0.0f };
+    } else {
+      auto ability = abilityEntity->get<Ability>();
+
+      if (ability->remainingCooldown > 0.0f) {
+        text->feature->text = "Recharging";
+      } else {
+        text->feature->text = "Ready";
+      }
+
+      auto progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
+      auto red = 1.0f - (progress > 0.5 ? (progress - 0.5f) * 2.0f : 0.0f);
+      auto green = 0.0f + (progress < 0.5 ? progress * 2.0f : 1.0f);
+      progressable->feature->color = { red, green, 0.0f };
+    }
   });
 }
 
