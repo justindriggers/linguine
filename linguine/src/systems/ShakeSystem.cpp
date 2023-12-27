@@ -10,15 +10,19 @@ void ShakeSystem::update(float deltaTime) {
     auto transform = entity.get<Transform>();
     auto shake = entity.get<Shake>();
 
-    shake->elapsed += deltaTime;
+    if (shake->duration > 0.0f) {
+      shake->elapsed += deltaTime;
 
-    if (shake->elapsed >= shake->duration) {
-      shake->magnitude = 0.0f;
-    } else {
-      auto randomOffset = std::uniform_real_distribution(0.0f, shake->magnitude - shake->magnitude / shake->duration * shake->elapsed);
-      auto randomDirection = std::uniform_real_distribution(0.0f, glm::two_pi<float>());
+      if (shake->elapsed >= shake->duration) {
+        shake->magnitude = 0.0f;
+        shake->elapsed = 0.0f;
+        shake->duration = 0.0f;
+      } else {
+        auto randomOffset = std::uniform_real_distribution(0.0f, shake->magnitude - shake->magnitude / shake->duration * shake->elapsed);
+        auto randomDirection = std::uniform_real_distribution(0.0f, glm::two_pi<float>());
 
-      transform->position += glm::angleAxis(randomDirection(_random), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec3(1.0f, 0.0f, 0.0f) * randomOffset(_random);
+        transform->position += glm::angleAxis(randomDirection(_random), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec3(1.0f, 0.0f, 0.0f) * randomOffset(_random);
+      }
     }
   });
 }

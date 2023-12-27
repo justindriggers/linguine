@@ -56,12 +56,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           findEntities<CameraFixture, Shake>()->each([magnitude](const Entity& entity) {
             auto shake = entity.get<Shake>();
-
-            if (shake->magnitude <= magnitude) {
-              shake->magnitude = magnitude;
-              shake->duration = 0.5f;
-              shake->elapsed = 0.0f;
-            }
+            shake->magnitude += magnitude;
+            shake->duration += 0.5f;
           });
 
           auto asteroidTransform = hitEntity->get<Transform>();
@@ -99,12 +95,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
             auto shake = entity.get<Shake>();
-
-            if (shake->magnitude <= 0.1f) {
-              shake->magnitude = 0.1f;
-              shake->duration = 0.25f;
-              shake->elapsed = 0.0f;
-            }
+            shake->magnitude += 0.1f;
+            shake->duration += 0.25f;
           });
 
           switch (powerUp->type) {
@@ -147,12 +139,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
             auto shake = entity.get<Shake>();
-
-            if (shake->magnitude <= 0.5f) {
-              shake->magnitude = 0.5f;
-              shake->duration = 0.65f;
-              shake->elapsed = 0.0f;
-            }
+            shake->magnitude += 0.5f;
+            shake->duration += 0.65f;
           });
 
           auto bombTransform = hitEntity->get<Transform>();

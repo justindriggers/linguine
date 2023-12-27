@@ -27,6 +27,7 @@
 #include "components/Score.h"
 #include "components/Selectable.h"
 #include "components/Shake.h"
+#include "components/ShipPart.h"
 #include "components/SpawnPoint.h"
 #include "components/TargetIndicator.h"
 #include "components/Text.h"
@@ -76,7 +77,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
-      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<SaveManager>(), serviceLocator));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<SaveManager>(), serviceLocator));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
@@ -174,16 +175,31 @@ class InfiniteRunnerScene : public Scene {
         playerEntity->add<Velocity>();
         playerEntity->add<Trigger>();
 
-        auto drawable = playerEntity->add<Drawable>();
-        drawable->feature = new ColoredFeature();
-        drawable->feature->meshType = Ship;
-        drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
-        drawable.setRemovalListener([drawable](const Entity e) {
-          drawable->renderable->destroy();
-        });
+        {
+          auto shipEntity = createEntity();
+          shipEntity->add<ShipPart>();
+
+          auto shipTransform = shipEntity->add<Transform>();
+          shipTransform->scale = transform->scale;
+          shipTransform->position.z = 0.1f;
+
+          shipEntity->add<PhysicalState>();
+
+          auto attachment = shipEntity->add<Attachment>();
+          attachment->parentId = playerEntity->getId();
+
+          auto shipDrawable = shipEntity->add<Drawable>();
+          shipDrawable->feature = new ColoredFeature();
+          shipDrawable->feature->meshType = Ship;
+          shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature));
+          shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
+            shipDrawable->renderable->destroy();
+          });
+        }
 
         {
           auto wingEntity = createEntity();
+          wingEntity->add<ShipPart>();
 
           auto wingTransform = wingEntity->add<Transform>();
           wingTransform->scale = transform->scale;
@@ -206,6 +222,7 @@ class InfiniteRunnerScene : public Scene {
 
         {
           auto cockpitEntity = createEntity();
+          cockpitEntity->add<ShipPart>();
 
           auto cockpitTransform = cockpitEntity->add<Transform>();
           cockpitTransform->scale = transform->scale;
@@ -228,6 +245,7 @@ class InfiniteRunnerScene : public Scene {
 
         {
           auto boosterEntity = createEntity();
+          boosterEntity->add<ShipPart>();
 
           auto boosterTransform = boosterEntity->add<Transform>();
           boosterTransform->scale = transform->scale;
@@ -246,10 +264,46 @@ class InfiniteRunnerScene : public Scene {
           boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
             boosterDrawable->renderable->destroy();
           });
+
+          auto playerEntityId = playerEntity->getId();
+
+          auto emitter = boosterEntity->add<Emitter>([this, playerEntityId, &renderer]() {
+            auto playerEntity = getEntityManager().getById(playerEntityId);
+
+            auto particleEntity = createEntity();
+
+            auto particle = particleEntity->add<Particle>();
+            particle->duration = 5.0f;
+
+            auto playerTransform = playerEntity->get<Transform>();
+
+            auto randomScale = std::uniform_real_distribution(0.125f * playerTransform->scale.x, 0.25f * playerTransform->scale.x);
+            auto randomX = std::uniform_real_distribution(-0.2f * playerTransform->scale.x, 0.2f * playerTransform->scale.y);
+
+            auto transform = particleEntity->add<Transform>();
+            transform->scale = glm::vec3(randomScale(_random));
+            transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.45f * playerTransform->scale.y, 2.0f };
+
+            auto randomColor = std::uniform_int_distribution(0, 1);
+
+            auto circle = particleEntity->add<Circle>();
+            circle->feature = new CircleFeature();
+
+            if (randomColor(_random) > 0) {
+              circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+            }
+
+            circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+            circle.setRemovalListener([circle](const Entity e) {
+              circle->renderable->destroy();
+            });
+          });
+          emitter->frequency = 0.035f;
         }
 
         {
           auto engineFireEntity = createEntity();
+          engineFireEntity->add<ShipPart>();
           engineFireEntity->add<Fire>();
 
           auto engineFireTransform = engineFireEntity->add<Transform>();
@@ -272,6 +326,7 @@ class InfiniteRunnerScene : public Scene {
 
         {
           auto engineFireEntity = createEntity();
+          engineFireEntity->add<ShipPart>();
           engineFireEntity->add<Fire>();
 
           auto engineFireTransform = engineFireEntity->add<Transform>();
@@ -303,41 +358,6 @@ class InfiniteRunnerScene : public Scene {
 
           party->memberIds.push_back(shieldEntity->getId());
         }
-
-        auto playerEntityId = playerEntity->getId();
-
-        auto emitter = playerEntity->add<Emitter>([this, playerEntityId, &renderer]() {
-          auto playerEntity = getEntityManager().getById(playerEntityId);
-
-          auto particleEntity = createEntity();
-
-          auto particle = particleEntity->add<Particle>();
-          particle->duration = 5.0f;
-
-          auto playerTransform = playerEntity->get<Transform>();
-
-          auto randomScale = std::uniform_real_distribution(0.125f * playerTransform->scale.x, 0.25f * playerTransform->scale.x);
-          auto randomX = std::uniform_real_distribution(-0.2f * playerTransform->scale.x, 0.2f * playerTransform->scale.y);
-
-          auto transform = particleEntity->add<Transform>();
-          transform->scale = glm::vec3(randomScale(_random));
-          transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.45f * playerTransform->scale.y, 2.0f };
-
-          auto randomColor = std::uniform_int_distribution(0, 1);
-
-          auto circle = particleEntity->add<Circle>();
-          circle->feature = new CircleFeature();
-
-          if (randomColor(_random) > 0) {
-            circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
-          }
-
-          circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
-          circle.setRemovalListener([circle](const Entity e) {
-            circle->renderable->destroy();
-          });
-        });
-        emitter->frequency = 0.035f;
       }
 
       // Shields Text

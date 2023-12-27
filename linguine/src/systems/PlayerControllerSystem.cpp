@@ -6,6 +6,7 @@
 #include "components/Alive.h"
 #include "components/CameraFixture.h"
 #include "components/Cast.h"
+#include "components/GameOver.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
 #include "components/PhysicalState.h"
@@ -17,6 +18,10 @@ namespace linguine {
 
 void PlayerControllerSystem::update(float deltaTime) {
   findEntities<Player>()->each([this](const Entity& entity) {
+    if (entity.has<GameOver>()) {
+      return;
+    }
+
     auto player = entity.get<Player>();
 
     switch (player->state) {
