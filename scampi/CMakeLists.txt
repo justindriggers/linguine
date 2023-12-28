@@ -8,6 +8,22 @@ file(GLOB RESOURCE_FILES
 set(RESOURCES
         resources/LaunchScreen.storyboard
         resources/Main.storyboard
+        resources/icons/Icon.png
+        resources/icons/Icon-57.png
+        resources/icons/Icon-57@2x.png
+        resources/icons/Icon-57@3x.png
+        resources/icons/Icon-60.png
+        resources/icons/Icon-60@2x.png
+        resources/icons/Icon-60@3x.png
+        resources/icons/Icon-114.png
+        resources/icons/Icon-114@2x.png
+        resources/icons/Icon-114@3x.png
+        resources/icons/Icon-120.png
+        resources/icons/Icon-120@2x.png
+        resources/icons/Icon-120@3x.png
+        resources/icons/Icon-180.png
+        resources/icons/Icon-180@2x.png
+        resources/icons/Icon-180@3x.png
         ${RESOURCE_FILES}
 )
 

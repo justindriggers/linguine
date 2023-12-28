@@ -8,8 +8,15 @@
 	<string>scampi</string>
 	<key>CFBundleGetInfoString</key>
 	<string></string>
-	<key>CFBundleIconFile</key>
-	<string></string>
+    <key>CFBundleIconFiles</key>
+    <array>
+        <string>Icon</string>
+        <string>Icon-57</string>
+        <string>Icon-60</string>
+        <string>Icon-114</string>
+        <string>Icon-120</string>
+        <string>Icon-180</string>
+    </array>
 	<key>CFBundleIdentifier</key>
 	<string>com.justindriggers.scampi</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -37,6 +44,6 @@
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>CFBundleDisplayName</key>
-    <string>scampi</string>
+    <string>Aegis</string>
 </dict>
 </plist>
