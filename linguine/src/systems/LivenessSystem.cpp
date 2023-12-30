@@ -44,7 +44,7 @@ void LivenessSystem::update(float deltaTime) {
         entity.remove<CircleCollider>();
 
         auto player = entity.get<Player>();
-        player->acceleration = player->speed / -8.0f;
+        player->acceleration = player->speed / -4.0f;
 
         entity.add<GameOver>();
 

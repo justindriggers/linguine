@@ -10,7 +10,8 @@ namespace linguine {
 
 class SpawnSystem : public System {
   public:
-    SpawnSystem(EntityManager& entityManager, Renderer& renderer);
+    SpawnSystem(EntityManager& entityManager, Renderer& renderer)
+        : System(entityManager), _renderer(renderer) {}
 
     void update(float deltaTime) override {}
 
@@ -21,21 +22,21 @@ class SpawnSystem : public System {
 
     Renderer& _renderer;
 
-    void spawnPowerUp(glm::vec3 spawnPointPosition);
+    void spawnPowerUp(float y);
 
-    void spawnAsteroid(glm::vec3 spawnPointPosition);
+    void spawnAsteroid(float y);
 
-    void spawnObstacles(glm::vec3 spawnPointPosition);
+    void spawnObstacles(float y);
 
-    void spawnStars(glm::vec3 spawnPointPosition);
+    void spawnStars(float y);
 
-    void spawnMovementText(glm::vec3 spawnPointPosition);
+    void spawnMovementText(float y);
 
-    void spawnScoringText(glm::vec3 spawnPointPosition);
+    void spawnScoringText(float y);
 
-    void spawnHealingText(glm::vec3 spawnPointPosition);
+    void spawnHealingText(float y);
 
-    void spawnEvasionText(glm::vec3 spawnPointPosition);
+    void spawnEvasionText(float y);
 };
 
 }  // namespace linguine

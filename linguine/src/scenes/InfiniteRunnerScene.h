@@ -29,6 +29,7 @@
 #include "components/Shake.h"
 #include "components/ShipPart.h"
 #include "components/SpawnPoint.h"
+#include "components/StarSpawnPoint.h"
 #include "components/TargetIndicator.h"
 #include "components/Text.h"
 #include "components/Transform.h"
@@ -36,6 +37,7 @@
 #include "components/TutorialState.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
+#include "data/Palette.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
@@ -124,8 +126,12 @@ class InfiniteRunnerScene : public Scene {
           auto spawnPointEntity = createEntity();
 
           auto spawnPoint = spawnPointEntity->add<SpawnPoint>();
-          spawnPoint->distance = 5.0f;
+          spawnPoint->distance = 6.25f;
+          spawnPoint->lastSpawnPoint = 10.0f;
           spawnPoint->spawnChance = 0.85f;
+
+          auto starSpawnPoint = spawnPointEntity->add<StarSpawnPoint>();
+          starSpawnPoint->lastSpawnPoint = -15.0f;
 
           auto spawnPointTransform = spawnPointEntity->add<Transform>();
           spawnPointTransform->position = { 0.0f, 15.0f, 0.0f };
@@ -159,12 +165,12 @@ class InfiniteRunnerScene : public Scene {
         auto playerEntity = createEntity();
 
         auto player = playerEntity->add<Player>();
-        player->speed = 5.0f + 1.0f * static_cast<float>(saveManager.getRank(2));
+        player->speed = 2.0f + 1.0f * static_cast<float>(saveManager.getRank(2));
         player->acceleration = 0.05f + 0.02f * static_cast<float>(saveManager.getRank(3));
         player->maxSpeed = 20.0f;
 
         auto transform = playerEntity->add<Transform>();
-        transform->scale = glm::vec3(2.0f);
+        transform->scale = glm::vec3(2.5f);
         transform->position.z = 0.1f;
 
         playerEntity->add<PhysicalState>();
@@ -283,6 +289,11 @@ class InfiniteRunnerScene : public Scene {
             auto transform = particleEntity->add<Transform>();
             transform->scale = glm::vec3(randomScale(_random));
             transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.45f * playerTransform->scale.y, 2.0f };
+
+            particleEntity->add<PhysicalState>(transform->position, 0.0f);
+
+            auto velocity = particleEntity->add<Velocity>();
+            velocity->velocity = { 0.0f, -3.0f };
 
             auto randomColor = std::uniform_int_distribution(0, 1);
 

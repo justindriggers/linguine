@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 #include "entity/archetype/ArchetypeEntityManagerFactory.h"
-#include "scenes/ShopScene.h"
+#include "scenes/TitleScene.h"
 
 namespace linguine {
 
@@ -21,7 +21,7 @@ Engine::Engine(
       _renderer(renderer),
       _saveManager(saveManager),
       _timeManager(timeManager),
-      _currentScene(std::make_unique<ShopScene>(*this)) {}
+      _currentScene(std::make_unique<TitleScene>(*this)) {}
 
 void Engine::run() {
   while (_lifecycleManager->isRunning()) {

@@ -18,11 +18,13 @@ add_library(linguine
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
         src/systems/AttachmentSystem.cpp
+        src/systems/ButtonSystem.cpp
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
         src/systems/CastSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
+        src/systems/DialogSystem.cpp
         src/systems/DirectionalMovementSystem.cpp
         src/systems/EffectSystem.cpp
         src/systems/EnemyAttackSystem.cpp
@@ -31,6 +33,7 @@ add_library(linguine
         src/systems/EventSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FireSystem.cpp
+        src/systems/FooterSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
         src/systems/GridPositionSystem.cpp

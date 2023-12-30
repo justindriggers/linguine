@@ -39,6 +39,16 @@ class SaveManager {
       return _isNewPlayer;
     }
 
+    void restart() {
+      _points = 0;
+      _upgradeRanks[0] = 0;
+      _upgradeRanks[1] = 0;
+      _upgradeRanks[2] = 0;
+      _upgradeRanks[3] = 0;
+      _isNewPlayer = true;
+      save();
+    }
+
   protected:
     int32_t _points{};
     std::unordered_map<uint8_t, uint8_t> _upgradeRanks;
