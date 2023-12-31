@@ -32,12 +32,15 @@
 #include "components/StarSpawnPoint.h"
 #include "components/TargetIndicator.h"
 #include "components/Text.h"
+#include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
 #include "components/TutorialState.h"
 #include "components/Unit.h"
 #include "components/Velocity.h"
 #include "data/Palette.h"
+#include "data/upgrades/LevelCurve.h"
+#include "data/upgrades/UpgradeDatabase.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
@@ -57,6 +60,7 @@
 #include "systems/ScoringSystem.h"
 #include "systems/ShakeSystem.h"
 #include "systems/SpawnSystem.h"
+#include "systems/ToastSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/TutorialSystem.h"
 #include "systems/VelocitySystem.h"
@@ -84,6 +88,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
       registerSystem(std::make_unique<FireSystem>(getEntityManager()));
+      registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ShakeSystem>(getEntityManager()));
 
       // Scene-specific
@@ -161,12 +166,15 @@ class InfiniteRunnerScene : public Scene {
         });
       }
 
+      auto points = saveManager.getPoints();
+      auto level = LevelCurve::getLevelForXp(points);
+
       {
         auto playerEntity = createEntity();
 
         auto player = playerEntity->add<Player>();
-        player->speed = 2.0f + 1.0f * static_cast<float>(saveManager.getRank(2));
-        player->acceleration = 0.05f + 0.02f * static_cast<float>(saveManager.getRank(3));
+        player->speed = 3.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(2, level));
+        player->acceleration = 0.05f + 0.02f * static_cast<float>(_upgradeDatabase.getRankByLevel(3, level));
         player->maxSpeed = 20.0f;
 
         auto transform = playerEntity->add<Transform>();
@@ -361,10 +369,10 @@ class InfiniteRunnerScene : public Scene {
 
         auto party = playerEntity->add<Party>();
 
-        for (auto i = 0; i < saveManager.getRank(0) + 1; ++i) {
+        for (auto i = 0; i < _upgradeDatabase.getRankByLevel(0, level); ++i) {
           auto shieldEntity = createEntity();
 
-          shieldEntity->add<Health>(1000 + 250 * saveManager.getRank(1));
+          shieldEntity->add<Health>(1000 + 250 * _upgradeDatabase.getRankByLevel(1, level));
           shieldEntity->add<Alive>();
 
           party->memberIds.push_back(shieldEntity->getId());
@@ -455,11 +463,29 @@ class InfiniteRunnerScene : public Scene {
           text->renderable->destroy();
         });
       }
+
+      {
+        auto toastEntity = createEntity();
+        toastEntity->add<Transform>();
+
+        auto toast = toastEntity->add<Toast>();
+        toast->startPosition = { 0.0f, 48.0f, 0.0f };
+
+        auto text = toastEntity->add<Text>();
+        text->feature = new TextFeature();
+        text->feature->color = Palette::White;
+        text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+        text.setRemovalListener([text](const Entity& e) {
+          text->renderable->destroy();
+        });
+        text->renderable->setEnabled(false);
+      }
     }
 
   private:
     std::random_device _random;
     std::unique_ptr<SpellDatabase> _spellDatabase;
+    UpgradeDatabase _upgradeDatabase;
 };
 
 }  // namespace linguine

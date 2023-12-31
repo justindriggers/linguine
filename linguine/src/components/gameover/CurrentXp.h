@@ -2,8 +2,6 @@
 
 namespace linguine {
 
-struct PurchaseButton {
-  uint8_t upgradeId{};
-};
+struct CurrentXp {};
 
 }  // namespace linguine

@@ -2,6 +2,6 @@
 
 namespace linguine {
 
-struct Wallet {};
+struct RequiredXp {};
 
 }  // namespace linguine

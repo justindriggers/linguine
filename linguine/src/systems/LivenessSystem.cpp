@@ -2,6 +2,7 @@
 
 #include "components/Alive.h"
 #include "components/Attachment.h"
+#include "components/CameraFixture.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/EffectTracker.h"
@@ -14,8 +15,9 @@
 #include "components/Score.h"
 #include "components/Shake.h"
 #include "components/ShipPart.h"
+#include "components/Transform.h"
 #include "components/Velocity.h"
-#include "scenes/ShopScene.h"
+#include "scenes/GameOverScene.h"
 
 namespace linguine {
 
@@ -125,8 +127,7 @@ void LivenessSystem::update(float deltaTime) {
       if (gameOver->elapsed >= gameOver->duration) {
         findEntities<Score>()->each([this](const Entity& entity) {
           auto score = entity.get<Score>();
-          _saveManager.addPoints(score->points);
-          _serviceLocator.get<SceneManager>().load(std::make_unique<ShopScene>(_serviceLocator));
+          _serviceLocator.get<SceneManager>().load(std::make_unique<GameOverScene>(_serviceLocator, score->points));
         });
       }
     });

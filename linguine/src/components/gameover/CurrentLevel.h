@@ -2,6 +2,6 @@
 
 namespace linguine {
 
-struct PlayButton {};
+struct CurrentLevel {};
 
 }  // namespace linguine

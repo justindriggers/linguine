@@ -15,6 +15,7 @@
 #include "components/Score.h"
 #include "components/Shake.h"
 #include "components/Text.h"
+#include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
 
@@ -61,6 +62,15 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           });
 
           auto asteroidTransform = hitEntity->get<Transform>();
+
+          findEntities<Toast, Text>()->each([&asteroid, &asteroidTransform](const Entity& entity) {
+            auto toast = entity.get<Toast>();
+            toast->elapsed = 0.0f;
+            toast->startPosition.x = asteroidTransform->position.x * 20.0f;
+
+            auto text = entity.get<Text>();
+            text->feature->text = "+" + std::to_string(asteroid->points);
+          });
 
           auto randomScale = std::uniform_real_distribution(0.1f, 0.25f);
           auto randomDirection = std::uniform_real_distribution(0.0f, glm::two_pi<float>());

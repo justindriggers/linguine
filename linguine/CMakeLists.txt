@@ -39,6 +39,7 @@ add_library(linguine
         src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
         src/systems/HudSystem.cpp
+        src/systems/LevelTrackingSystem.cpp
         src/systems/LivenessSystem.cpp
         src/systems/OrbitSystem.cpp
         src/systems/ParticleSystem.cpp
@@ -52,8 +53,7 @@ add_library(linguine
         src/systems/SelectionDestructionSystem.cpp
         src/systems/ShakeSystem.cpp
         src/systems/SpawnSystem.cpp
-        src/systems/shop/UpgradeSystem.cpp
-        src/systems/shop/WalletSystem.cpp
+        src/systems/ToastSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
         src/systems/TutorialSystem.cpp

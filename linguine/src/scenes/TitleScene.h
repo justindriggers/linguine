@@ -99,6 +99,9 @@ class TitleScene : public Scene {
         });
       }
 
+      auto points = saveManager.getPoints();
+      auto level = LevelCurve::getLevelForXp(points);
+
       {
         auto playerEntity = createEntity();
 
@@ -110,7 +113,7 @@ class TitleScene : public Scene {
         auto offset = glm::vec2(0.0f, 2.5f);
 
         auto player = playerEntity->add<Player>();
-        player->speed = 2.0f + 1.0f * static_cast<float>(saveManager.getRank(2));
+        player->speed = 3.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(2, level));
         player->acceleration = 0.0f;
 
         playerEntity->add<Velocity>();
@@ -560,6 +563,7 @@ class TitleScene : public Scene {
 
   private:
     std::random_device _random;
+    UpgradeDatabase _upgradeDatabase;
 };
 
 }  // namespace linguine
