@@ -480,6 +480,9 @@ class InfiniteRunnerScene : public Scene {
         });
         text->renderable->setEnabled(false);
       }
+
+      auto& audioManager = serviceLocator.get<AudioManager>();
+      audioManager.play(SongType::Theme, Mode::Repeat);
     }
 
   private:

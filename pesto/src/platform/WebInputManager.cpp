@@ -4,7 +4,17 @@
 
 namespace linguine::pesto {
 
-WebInputManager::WebInputManager(const Viewport& viewport) : _viewport(viewport) {
+WebInputManager::WebInputManager(const Viewport& viewport, AudioManager& audioManager) : _viewport(viewport) {
+  emscripten_set_mousedown_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, &audioManager, false, [](int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData) -> EM_BOOL {
+    static_cast<AudioManager*>(userData)->resume();
+    return true;
+  });
+
+  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, &audioManager, false, [](int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData) -> EM_BOOL {
+    static_cast<AudioManager*>(userData)->resume();
+    return true;
+  });
+
   emscripten_set_mousedown_callback("canvas", this, false, [](int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData) -> EM_BOOL {
     static_cast<WebInputManager*>(userData)->onMouseDown(mouseEvent->button, mouseEvent->targetX, mouseEvent->targetY);
     return true;

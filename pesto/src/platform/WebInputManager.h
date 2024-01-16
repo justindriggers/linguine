@@ -4,13 +4,15 @@
 
 #include <bitset>
 
+#include <audio/AudioManager.h>
 #include <renderer/Viewport.h>
 
 namespace linguine::pesto {
 
 class WebInputManager : public InputManager {
   public:
-    WebInputManager(const Viewport& viewport);
+    WebInputManager(const Viewport& viewport,
+                    AudioManager& audioManager);
 
     ~WebInputManager() override = default;
 

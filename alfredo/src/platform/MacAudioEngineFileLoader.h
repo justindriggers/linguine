@@ -9,6 +9,8 @@ namespace linguine::alfredo {
 class MacAudioEngineFileLoader : public audio::AudioEngineFileLoader {
   public:
     NSURL* getUrlForEffect(EffectType effectType) override;
+
+    NSURL* getUrlForSong(SongType songType) override;
 };
 
 }  // namespace linguine::alfredo

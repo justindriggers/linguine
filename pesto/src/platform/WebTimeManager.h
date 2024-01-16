@@ -6,7 +6,7 @@ namespace linguine::pesto {
 
 class WebTimeManager : public TimeManager {
   public:
-    WebTimeManager();
+    WebTimeManager() : TimeManager(currentTime()) {}
 
     ~WebTimeManager() override = default;
 

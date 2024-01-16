@@ -30,6 +30,10 @@ void Engine::run() {
 }
 
 void Engine::tick() {
+  if (_lifecycleManager->isPaused()) {
+    return;
+  }
+
   _inputManager->pollEvents();
 
   auto deltaTime = _timeManager->tick();
@@ -41,6 +45,7 @@ void Engine::tick() {
   update(deltaTime);
 
   _renderer->draw();
+  _audioManager->poll();
 
   if (_pendingScene) {
     _currentScene = std::move(_pendingScene);
@@ -49,6 +54,18 @@ void Engine::tick() {
     _renderer->reset();
     _timeManager->reset();
   }
+}
+
+void Engine::pause() {
+  _lifecycleManager->pause();
+  _timeManager->pause();
+  _audioManager->pause();
+}
+
+void Engine::resume() {
+  _lifecycleManager->resume();
+  _audioManager->resume();
+  _timeManager->resume();
 }
 
 void Engine::update(float deltaTime) {

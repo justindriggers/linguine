@@ -45,6 +45,7 @@ class TitleScene : public Scene {
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
 
+      auto& audioManager = serviceLocator.get<AudioManager>();
       auto& renderer = serviceLocator.get<Renderer>();
       auto& sceneManager = serviceLocator.get<SceneManager>();
       auto& saveManager = serviceLocator.get<SaveManager>();
@@ -492,8 +493,8 @@ class TitleScene : public Scene {
         button->minSize = { 128.0f, 32.0f };
         button->text = "Options";
         button->textSize = 12.0f;
-        button->clickHandler = []() {
-          printf("Click!");
+        button->clickHandler = [&audioManager]() {
+          audioManager.play(EffectType::Select);
         };
       }
 
@@ -559,6 +560,8 @@ class TitleScene : public Scene {
           });
         }
       }
+
+      audioManager.play(SongType::Title, Mode::Repeat);
     }
 
   private:

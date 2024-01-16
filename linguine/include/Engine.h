@@ -28,6 +28,10 @@ class Engine : public ServiceLocator, SceneManager {
 
     void tick();
 
+    void pause();
+
+    void resume();
+
   private:
     EntityManagerFactory& getEntityManagerFactory() override {
       return *_entityManagerFactory;

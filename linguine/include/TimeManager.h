@@ -33,6 +33,16 @@ class TimeManager {
       return _fixedDeltaTime;
     }
 
+    inline void pause() {
+      setTimeScale(0.0f);
+    }
+
+    inline void resume() {
+      setTimeScale(1.0f);
+      _lastTickTime = currentTime();
+      _currentTickTime = _lastTickTime;
+    }
+
     inline void reset() {
       _lastTickTime = currentTime();
       _currentTickTime = _lastTickTime;

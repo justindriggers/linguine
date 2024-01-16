@@ -19,19 +19,48 @@ class AudioEngineAudioManager : public AudioManager {
 
     ~AudioEngineAudioManager() override;
 
+    void poll() override {};
+
     void play(EffectType effectType) override;
 
+    void play(SongType songType, Mode mode) override;
+
+    void pause() override;
+
+    void resume() override;
+
   private:
-    static constexpr uint8_t _maxChannels = 32;
+    static constexpr uint8_t _maxEffectChannels = 8;
 
     std::unique_ptr<AudioEngineFileLoader> _fileLoader;
     AVAudioEngine* _audioEngine;
     NSMutableArray<AVAudioPlayerNode*>* _playerNodes;
+    AVAudioFormat* _inputFormat;
+
+    std::array<AVAudioPlayerNode*, 2> _songNodes;
+    int _currentSongNode = 0;
+    int64_t _lastSongStartSample = 0;
+    int64_t _generation = 0;
+
+    std::unordered_map<EffectType, AVAudioPCMBuffer*> _effectBuffers;
+    std::unordered_map<SongType, AVAudioPCMBuffer*> _songBuffers;
 
     std::queue<AVAudioPlayerNode*> _nodePool;
     std::mutex _poolMutex;
 
+    void initSongNodes();
+
+    void initEffectNodes();
+
+    void loadBuffer(EffectType effectType);
+
+    void loadBuffer(SongType songType);
+
     AVAudioPlayerNode* getPlayerNode();
+
+    AVAudioPlayerNode* getNextSongNode();
+
+    void loop(SongType songType, int64_t generation);
 };
 
 }  // namespace linguine::audio

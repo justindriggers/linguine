@@ -25,11 +25,12 @@ inline void tick() {
 
 int main() {
   auto logger = std::make_shared<WebLogger>();
-  auto audioManager = std::make_shared<audio::OpenALAudioManager>(
-      std::make_unique<WebOpenALFileLoader>());
   auto lifecycleManager = std::make_shared<WebLifecycleManager>();
   auto saveManager = std::make_shared<WebSaveManager>();
   auto timeManager = std::make_shared<WebTimeManager>();
+  auto audioManager = std::make_shared<audio::OpenALAudioManager>(
+      std::make_unique<WebOpenALFileLoader>(), *timeManager);
+  audioManager->pause();
 
   EmscriptenWebGLContextAttributes attributes;
   emscripten_webgl_init_context_attributes(&attributes);
@@ -62,11 +63,23 @@ int main() {
       std::make_unique<WebOpenGLFileLoader>()));
   renderer->resize(width, height);
 
-  auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport());
+  auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport(), *audioManager);
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
                                     lifecycleManager, renderer, saveManager,
                                     timeManager);
+
+  emscripten_set_visibilitychange_callback(engine.get(), false, [](int eventType, const EmscriptenVisibilityChangeEvent* visibilityChangeEvent, void* userData) -> EM_BOOL {
+    auto& engine = *static_cast<Engine*>(userData);
+
+    if (visibilityChangeEvent->visibilityState == EMSCRIPTEN_VISIBILITY_VISIBLE) {
+      engine.resume();
+    } else {
+      engine.pause();
+    }
+
+    return true;
+  });
 
   emscripten_set_main_loop(tick, 0, false);
   return 0;

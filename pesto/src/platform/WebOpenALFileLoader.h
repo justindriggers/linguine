@@ -6,7 +6,9 @@ namespace linguine::pesto {
 
 class WebOpenALFileLoader : public audio::OpenALFileLoader {
   public:
-    std::vector<std::byte> getAudioDataForEffect(EffectType effectType) const override;
+    [[nodiscard]] std::vector<std::byte> getAudioDataForEffect(EffectType effectType) const override;
+
+    [[nodiscard]] std::vector<std::byte> getAudioDataForSong(SongType songType) const override;
 };
 
 }  // namespace linguine::pesto

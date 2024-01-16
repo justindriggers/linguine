@@ -12,6 +12,7 @@
 #import "../platform/IosLifecycleManager.h"
 #import "../platform/IosMetalTextureLoader.h"
 #import "../platform/IosSaveManager.h"
+#import "../platform/IosTimeManager.h"
 #import "../platform/NSLogger.h"
 
 @implementation ScampiViewController {
@@ -72,11 +73,11 @@
   [swipeRight setDirection: UISwipeGestureRecognizerDirectionRight];
   [_view addGestureRecognizer:swipeRight];
 
-  auto audioFileLoader = std::make_unique<linguine::scampi::IosAudioEngineFileLoader>();
-
   auto logger = std::make_shared<linguine::scampi::NSLogger>();
-  auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>(std::move(audioFileLoader));
   auto lifecycleManager = std::make_shared<linguine::scampi::IosLifecycleManager>();
+  auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
+  auto audioFileLoader = std::make_unique<linguine::scampi::IosAudioEngineFileLoader>();
+  auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>(std::move(audioFileLoader));
 
   auto mtkTextureLoader = [[MTKTextureLoader alloc] initWithDevice:_view.device];
   _textureLoader = std::make_unique<linguine::scampi::IosMetalTextureLoader>(mtkTextureLoader);
@@ -86,7 +87,8 @@
 
   auto appDelegate = (ScampiAppDelegate *)[[UIApplication sharedApplication] delegate];
 
-  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, saveManager, appDelegate.timeManager);
+  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, saveManager, timeManager);
+  appDelegate.engine = engine;
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
                                                     renderer:renderer];

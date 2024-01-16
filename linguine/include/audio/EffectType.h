@@ -2,7 +2,7 @@
 
 namespace linguine {
 
-enum EffectType {
+enum class EffectType {
   Pop,
   Select
 };

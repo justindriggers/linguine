@@ -194,6 +194,9 @@ class GameOverScene : public Scene {
         });
         text->renderable->setEnabled(false);
       }
+
+      auto& audioManager = serviceLocator.get<AudioManager>();
+      audioManager.play(SongType::GameOver, Mode::Once);
     }
 
   private:
