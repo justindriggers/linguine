@@ -48,6 +48,14 @@ void LevelTrackingSystem::update(float deltaTime) {
     auto endXp = glm::min(levelTracker->endXp, levelUpXp);
 
     auto currentXp = glm::lerp(static_cast<float>(levelTracker->startXp), static_cast<float>(endXp), lerp);
+    auto currentXpInt = static_cast<int32_t>(glm::floor(currentXp));
+
+    if (levelTracker->elapsed - levelTracker->lastAudible > 0.05f
+        && currentXpInt > levelTracker->lastAudibleXp) {
+      levelTracker->lastAudible = levelTracker->elapsed;
+      levelTracker->lastAudibleXp = currentXpInt;
+      _audioManager.play(EffectType::Xp);
+    }
 
     auto current = currentXp - static_cast<float>(lastLevelXp);
     auto levelXp = levelUpXp - lastLevelXp;
@@ -56,7 +64,7 @@ void LevelTrackingSystem::update(float deltaTime) {
 
     findEntities<CurrentXp, Text>()->each([current](const Entity& currentXpEntity) {
       auto text = currentXpEntity.get<Text>();
-      text->feature->text = std::to_string(static_cast<int32_t>(glm::round(current)));
+      text->feature->text = std::to_string(static_cast<int32_t>(glm::floor(current)));
     });
 
     findEntities<RequiredXp, Text, Transform>()->each([levelXp](const Entity& requiredXpEntity) {
@@ -67,10 +75,13 @@ void LevelTrackingSystem::update(float deltaTime) {
       transform->position.x = 88.0f - static_cast<float>(text->feature->text.size() - 1) * 8.0f;
     });
 
-    if (lerp >= 1.0f && levelTracker->endXp > levelUpXp) {
+    if (lerp >= 1.0f && levelTracker->endXp >= levelUpXp) {
+      _audioManager.play(EffectType::Level);
+
       currentLevel = nextLevel;
       levelTracker->startXp = levelUpXp;
       levelTracker->elapsed = 0.0f;
+      levelTracker->lastAudible = 0.0f;
 
       findEntities<CurrentLevel, Text, Transform>()->each([currentLevel](const Entity& levelEntity) {
         auto text = levelEntity.get<Text>();

@@ -10,11 +10,12 @@ namespace linguine {
 
 class ScoringSystem : public System {
   public:
-    explicit ScoringSystem(EntityManager& entityManager,
-                           SpellDatabase& spellDatabase,
-                           Renderer& renderer)
+    ScoringSystem(EntityManager& entityManager,
+                  SpellDatabase& spellDatabase,
+                  Renderer& renderer,
+                  AudioManager& audioManager)
         : System(entityManager), _spellDatabase(spellDatabase),
-          _renderer(renderer) {}
+          _renderer(renderer), _audioManager(audioManager) {}
 
     void update(float deltaTime) override;
 
@@ -25,6 +26,7 @@ class ScoringSystem : public System {
 
     SpellDatabase& _spellDatabase;
     Renderer& _renderer;
+    AudioManager& _audioManager;
 };
 
 }  // namespace linguine

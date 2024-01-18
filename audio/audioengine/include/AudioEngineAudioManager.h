@@ -2,7 +2,6 @@
 
 #include "audio/AudioManager.h"
 
-#include <mutex>
 #include <queue>
 
 #import <AVFoundation/AVAudioEngine.h>
@@ -25,6 +24,8 @@ class AudioEngineAudioManager : public AudioManager {
 
     void play(SongType songType, Mode mode) override;
 
+    void stopSongs() override;
+
     void pause() override;
 
     void resume() override;
@@ -35,7 +36,6 @@ class AudioEngineAudioManager : public AudioManager {
     std::unique_ptr<AudioEngineFileLoader> _fileLoader;
     AVAudioEngine* _audioEngine;
     NSMutableArray<AVAudioPlayerNode*>* _playerNodes;
-    AVAudioFormat* _inputFormat;
 
     std::array<AVAudioPlayerNode*, 2> _songNodes;
     int _currentSongNode = 0;
@@ -45,8 +45,7 @@ class AudioEngineAudioManager : public AudioManager {
     std::unordered_map<EffectType, AVAudioPCMBuffer*> _effectBuffers;
     std::unordered_map<SongType, AVAudioPCMBuffer*> _songBuffers;
 
-    std::queue<AVAudioPlayerNode*> _nodePool;
-    std::mutex _poolMutex;
+    std::queue<AVAudioPlayerNode*> _effectLruPool;
 
     void initSongNodes();
 

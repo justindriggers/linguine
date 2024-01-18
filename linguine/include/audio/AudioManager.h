@@ -16,6 +16,8 @@ class AudioManager {
 
     virtual void play(SongType songType, Mode mode) = 0;
 
+    virtual void stopSongs() = 0;
+
     virtual void pause() = 0;
 
     virtual void resume() = 0;

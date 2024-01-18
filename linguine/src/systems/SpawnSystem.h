@@ -24,7 +24,7 @@ class SpawnSystem : public System {
 
     void spawnPowerUp(float y);
 
-    void spawnAsteroid(float y);
+    void spawnAsteroid(float y, int size = 0);
 
     void spawnObstacles(float y);
 

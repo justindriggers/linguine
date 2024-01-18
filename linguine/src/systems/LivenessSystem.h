@@ -12,10 +12,11 @@ class LivenessSystem : public System {
   public:
     LivenessSystem(EntityManager& entityManager,
                    Renderer& renderer,
+                   AudioManager& audioManager,
                    SaveManager& saveManager,
                    ServiceLocator& serviceLocator)
         : System(entityManager), _renderer(renderer),
-          _saveManager(saveManager),
+          _audioManager(audioManager), _saveManager(saveManager),
           _serviceLocator(serviceLocator) {}
 
     void update(float deltaTime) override;
@@ -26,6 +27,7 @@ class LivenessSystem : public System {
     std::random_device _random;
 
     Renderer& _renderer;
+    AudioManager& _audioManager;
     SaveManager& _saveManager;
     ServiceLocator& _serviceLocator;
 };

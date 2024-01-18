@@ -7,13 +7,73 @@ NSURL* IosAudioEngineFileLoader::getUrlForEffect(EffectType effectType) {
   NSString* extension;
 
   switch (effectType) {
-    case EffectType::Pop: {
-      name = @"Balloon Pop 1";
+    case EffectType::ButtonDown: {
+      name = @"select-16bit-44_1khz_1";
       extension = @"wav";
       break;
     }
-    case EffectType::Select: {
-      name = @"Select 1";
+    case EffectType::ButtonUp: {
+      name = @"select-16bit-44_1khz_2";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Collect1: {
+      name = @"collect1-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Collect2: {
+      name = @"collect2-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Collect3: {
+      name = @"collect3-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Collect4: {
+      name = @"collect4-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Collect5: {
+      name = @"collect5-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Detonate: {
+      name = @"detonation-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Explosion: {
+      name = @"explosion-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Heal: {
+      name = @"heal-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Level: {
+      name = @"level-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::PowerUp: {
+      name = @"powerup-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Swoop: {
+      name = @"swoop-16bit-44_1khz";
+      extension = @"wav";
+      break;
+    }
+    case EffectType::Xp: {
+      name = @"xp-16bit-44_1khz";
       extension = @"wav";
       break;
     }

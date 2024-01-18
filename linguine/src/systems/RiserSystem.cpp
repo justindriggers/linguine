@@ -15,7 +15,7 @@ void RiserSystem::update(float deltaTime) {
     auto falling = entity.add<Falling>();
     falling->speed = speed;
 
-    _audioManager.play(EffectType::Select);
+    _audioManager.play(EffectType::ButtonDown);
   });
 
   findEntities<Rising, Transform>()->each([deltaTime](const Entity& entity) {

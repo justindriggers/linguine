@@ -59,6 +59,12 @@ void ButtonSystem::update(float deltaTime) {
     auto drawable = entity.get<Drawable>();
 
     if (entity.has<Pressed>()) {
+      auto pressed = entity.get<Pressed>();
+
+      if (pressed->isFirstFrame) {
+        _audioManager.play(EffectType::ButtonDown);
+      }
+
       drawable->feature->color = button->activeColor;
     } else {
       drawable->feature->color = button->color;
@@ -79,6 +85,7 @@ void ButtonSystem::update(float deltaTime) {
     text->renderable->setEnabled(drawable->renderable->isEnabled());
 
     if (entity.has<Tapped>()) {
+      _audioManager.play(EffectType::ButtonUp);
       button->clickHandler();
     }
   });

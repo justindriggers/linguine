@@ -11,16 +11,19 @@ OpenALAudioManager::OpenALAudioManager(std::unique_ptr<OpenALFileLoader> fileLoa
   _context = alcCreateContext(_device, nullptr);
   alcMakeContextCurrent(_context);
 
-  alGenSources(static_cast<ALsizei>(_effectSources.size()), _effectSources.data());
+  for (auto& effectSource : _effectSources) {
+    alGenSources(1, &effectSource.source);
 
-  for (auto source : _effectSources) {
-    alSourcef(source, AL_PITCH, 1.0f);
-    alSourcef(source, AL_GAIN, 1.0f);
-    alSource3f(source, AL_POSITION, 0.0f, 0.0f, 0.0f);
-    alSource3f(source, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-    alSourcei(source, AL_LOOPING, AL_FALSE);
+    effectSource.state = AL_STOPPED;
+    effectSource.callback = [](ALint newState) {};
 
-    _effectLruPool.push(source);
+    alSourcef(effectSource.source, AL_PITCH, 1.0f);
+    alSourcef(effectSource.source, AL_GAIN, 1.0f);
+    alSource3f(effectSource.source, AL_POSITION, 0.0f, 0.0f, 0.0f);
+    alSource3f(effectSource.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+    alSourcei(effectSource.source, AL_LOOPING, AL_FALSE);
+
+    _effectLruPool.push(&effectSource);
   }
 
   for (auto& songSource : _songSources) {
@@ -36,8 +39,20 @@ OpenALAudioManager::OpenALAudioManager(std::unique_ptr<OpenALFileLoader> fileLoa
     alSourcei(songSource.source, AL_LOOPING, AL_FALSE);
   }
 
-  loadBuffer(EffectType::Pop);
-  loadBuffer(EffectType::Select);
+  loadBuffer(EffectType::ButtonDown);
+  loadBuffer(EffectType::ButtonUp);
+  loadBuffer(EffectType::Collect1);
+  loadBuffer(EffectType::Collect2);
+  loadBuffer(EffectType::Collect3);
+  loadBuffer(EffectType::Collect4);
+  loadBuffer(EffectType::Collect5);
+  loadBuffer(EffectType::Detonate);
+  loadBuffer(EffectType::Explosion);
+  loadBuffer(EffectType::Heal);
+  loadBuffer(EffectType::Level);
+  loadBuffer(EffectType::PowerUp);
+  loadBuffer(EffectType::Swoop);
+  loadBuffer(EffectType::Xp);
   loadBuffer(SongType::Theme);
   loadBuffer(SongType::Title);
   loadBuffer(SongType::GameOver);
@@ -52,7 +67,9 @@ OpenALAudioManager::~OpenALAudioManager() {
     alDeleteBuffers(1, &buffer.second);
   }
 
-  alDeleteSources(static_cast<ALsizei>(_effectSources.size()), _effectSources.data());
+  for (auto& effectSource : _effectSources) {
+    alDeleteSources(1, &effectSource.source);
+  }
 
   for (auto& songSource : _songSources) {
     alDeleteSources(1, &songSource.source);
@@ -90,6 +107,16 @@ void OpenALAudioManager::poll() {
     _scheduled.pop();
   }
 
+  for (auto& effectSource : _effectSources) {
+    ALint newState;
+    alGetSourcei(effectSource.source, AL_SOURCE_STATE, &newState);
+
+    if (newState != effectSource.state) {
+      effectSource.state = newState;
+      effectSource.callback(newState);
+    }
+  }
+
   for (auto& songSource : _songSources) {
     ALint newState;
     alGetSourcei(songSource.source, AL_SOURCE_STATE, &newState);
@@ -102,24 +129,20 @@ void OpenALAudioManager::poll() {
 }
 
 void OpenALAudioManager::play(EffectType effectType) {
-  auto source = _effectLruPool.front();
+  auto effectSource = _effectLruPool.front();
   _effectLruPool.pop();
-  _effectLruPool.push(source);
+  _effectLruPool.push(effectSource);
 
-  alSourcei(source, AL_BUFFER, static_cast<ALint>(_effectBuffers[effectType]));
-  alSourcePlay(source);
+  alSourceStop(effectSource->source);
+
+  alSourcei(effectSource->source, AL_BUFFER, static_cast<ALint>(_effectBuffers[effectType]));
+  alSourcePlay(effectSource->source);
 }
 
 void OpenALAudioManager::play(SongType songType, Mode mode) {
-  auto generation = ++_generation;
-  _time = 0.0f;
-  _lastSongStartTime = 0.0f;
-  _scheduled = {};
+  stopSongs();
 
-  for (auto& songSource : _songSources) {
-    alSourceStop(songSource.source);
-  }
-
+  auto generation = _generation;
 
   auto& sourceState = getNextSongSource();
   alSourcei(sourceState.source, AL_BUFFER, static_cast<ALint>(_songBuffers[songType]));
@@ -138,11 +161,27 @@ void OpenALAudioManager::play(SongType songType, Mode mode) {
   }
 }
 
+void OpenALAudioManager::stopSongs() {
+  ++_generation;
+
+  _time = 0.0f;
+  _lastSongStartTime = 0.0f;
+  _scheduled = {};
+
+  for (auto& songSource : _songSources) {
+    alSourceStop(songSource.source);
+  }
+}
+
 void OpenALAudioManager::pause() {
   alcSuspendContext(_context);
   _suspended = true;
 
-  alSourcePausev(static_cast<ALsizei>(_effectSources.size()), _effectSources.data());
+  for (auto& effectSource : _effectSources) {
+    if (effectSource.state == AL_PLAYING) {
+      alSourcePause(effectSource.source);
+    }
+  }
 
   for (auto& songSource : _songSources) {
     if (songSource.state == AL_PLAYING) {
@@ -159,7 +198,11 @@ void OpenALAudioManager::resume() {
   alcProcessContext(_context);
   _suspended = false;
 
-  alSourcePlayv(static_cast<ALsizei>(_effectSources.size()), _effectSources.data());
+  for (auto& effectSource : _effectSources) {
+    if (effectSource.state == AL_PLAYING) {
+      alSourcePlay(effectSource.source);
+    }
+  }
 
   for (auto& songSource : _songSources) {
     if (songSource.state == AL_PLAYING) {
@@ -188,7 +231,7 @@ void OpenALAudioManager::loadBuffer(SongType songType) {
   _songBuffers[songType] = buffer;
 }
 
-OpenALAudioManager::SongSourceState& OpenALAudioManager::getNextSongSource() {
+OpenALAudioManager::SourceState& OpenALAudioManager::getNextSongSource() {
   if (_currentSongSource == 1) {
     _currentSongSource = 0;
   } else {

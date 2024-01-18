@@ -44,6 +44,26 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           auto asteroid = hitEntity->get<Asteroid>();
           score->points += asteroid->points;
 
+          switch (asteroid->points) {
+          case 1:
+            _audioManager.play(EffectType::Collect1);
+            break;
+          case 2:
+            _audioManager.play(EffectType::Collect2);
+            break;
+          case 3:
+            _audioManager.play(EffectType::Collect3);
+            break;
+          case 4:
+            _audioManager.play(EffectType::Collect4);
+            break;
+          case 5:
+            _audioManager.play(EffectType::Collect5);
+            break;
+          default:
+            break;
+          }
+
           auto living = findEntities<Health, Alive>()->get();
           auto distribution = std::uniform_int_distribution(0, static_cast<int>(living.size() - 1));
 
@@ -102,6 +122,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           hitEntity->destroy();
         } else if (hitEntity->has<PowerUp>()) {
           auto powerUp = hitEntity->get<PowerUp>();
+          _audioManager.play(EffectType::PowerUp);
 
           findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
             auto shake = entity.get<Shake>();
@@ -146,6 +167,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           hitEntity->destroy();
         } else if (hitEntity->has<Bomb>()) {
           _spellDatabase.getSpellById(3).action->execute(playerEntity);
+          _audioManager.play(EffectType::Detonate);
 
           findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
             auto shake = entity.get<Shake>();

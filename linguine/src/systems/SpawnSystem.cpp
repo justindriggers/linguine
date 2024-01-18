@@ -37,7 +37,7 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
         tutorialState->elapsed = 0.0f;
         break;
       case TutorialState::State::WaitingForMovement:
-        if (tutorialState->hasMoved) {
+        if (tutorialState->hasMoved && tutorialState->elapsed >= 2.0f) {
           tutorialState->currentState = TutorialState::State::Scoring;
           tutorialState->elapsed = 0.0f;
         } else if (tutorialState->elapsed >= 5.0f) {
@@ -61,7 +61,7 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
             tutorialState->elapsed = 0.0f;
           }
         } else if (tutorialState->elapsed >= 3.0f) {
-          spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y);
+          spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, 4);
           tutorialState->asteroidsSpawned++;
           tutorialState->elapsed = 0.0f;
         }
@@ -74,16 +74,17 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
       case TutorialState::State::WaitingForHeal:
         if (tutorialState->hasHealed) {
           tutorialState->currentState = TutorialState::State::Evasion;
-          tutorialState->elapsed = 0.0f;
         } else if (tutorialState->elapsed >= 5.0f) {
           spawnHealingText(entity.get<PhysicalState>()->currentPosition.y);
           tutorialState->elapsed = 0.0f;
         }
         break;
       case TutorialState::State::Evasion:
-        spawnEvasionText(entity.get<PhysicalState>()->currentPosition.y);
-        tutorialState->currentState = TutorialState::State::Finished;
-        tutorialState->elapsed = 0.0f;
+        if (tutorialState->elapsed >= 2.0f) {
+          spawnEvasionText(entity.get<PhysicalState>()->currentPosition.y);
+          tutorialState->currentState = TutorialState::State::Finished;
+          tutorialState->elapsed = 0.0f;
+        }
         break;
       case TutorialState::State::Finished:
         if (tutorialState->elapsed >= 2.0f) {
@@ -166,13 +167,18 @@ void SpawnSystem::spawnPowerUp(float y) {
   });
 }
 
-void SpawnSystem::spawnAsteroid(float y) {
+void SpawnSystem::spawnAsteroid(float y, int size) {
   auto asteroidEntity = createEntity();
 
-  auto randomSize = std::uniform_int_distribution(1, 5);
-
   auto asteroid = asteroidEntity->add<Asteroid>();
-  asteroid->points = randomSize(_random);
+
+  if (size > 0) {
+    asteroid->points = size;
+  } else {
+    auto randomSize = std::uniform_int_distribution(1, 5);
+    asteroid->points = randomSize(_random);
+  }
+
 
   auto randomX = std::uniform_int_distribution(0, 2);
 

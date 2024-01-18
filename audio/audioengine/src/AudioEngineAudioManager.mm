@@ -9,10 +9,6 @@ AudioEngineAudioManager::AudioEngineAudioManager(std::unique_ptr<AudioEngineFile
       _audioEngine([[AVAudioEngine alloc] init]),
       _playerNodes([[NSMutableArray alloc] init]) {
   auto outputFormat = [_audioEngine.outputNode inputFormatForBus:0];
-  _inputFormat = [[AVAudioFormat alloc] initWithCommonFormat:outputFormat.commonFormat
-                                                  sampleRate:outputFormat.sampleRate
-                                                    channels:2
-                                                 interleaved:outputFormat.isInterleaved];
 
   [_audioEngine connect:_audioEngine.mainMixerNode
                      to:_audioEngine.outputNode
@@ -27,8 +23,20 @@ AudioEngineAudioManager::AudioEngineAudioManager(std::unique_ptr<AudioEngineFile
     return;
   }
 
-  loadBuffer(EffectType::Pop);
-  loadBuffer(EffectType::Select);
+  loadBuffer(EffectType::ButtonDown);
+  loadBuffer(EffectType::ButtonUp);
+  loadBuffer(EffectType::Collect1);
+  loadBuffer(EffectType::Collect2);
+  loadBuffer(EffectType::Collect3);
+  loadBuffer(EffectType::Collect4);
+  loadBuffer(EffectType::Collect5);
+  loadBuffer(EffectType::Detonate);
+  loadBuffer(EffectType::Explosion);
+  loadBuffer(EffectType::Heal);
+  loadBuffer(EffectType::Level);
+  loadBuffer(EffectType::PowerUp);
+  loadBuffer(EffectType::Swoop);
+  loadBuffer(EffectType::Xp);
   loadBuffer(SongType::Theme);
   loadBuffer(SongType::Title);
   loadBuffer(SongType::GameOver);
@@ -54,23 +62,14 @@ void AudioEngineAudioManager::play(EffectType effectType) {
                         atTime:nil
                        options:AVAudioPlayerNodeBufferInterrupts
         completionCallbackType:AVAudioPlayerNodeCompletionDataPlayedBack
-             completionHandler:^(AVAudioPlayerNodeCompletionCallbackType callbackType) {
-               std::unique_lock<std::mutex> lock(_poolMutex);
-               _nodePool.push(playerNode);
-             }];
+             completionHandler:nil];
   }
 }
 
 void AudioEngineAudioManager::play(SongType songType, Mode mode) {
-  auto generation = ++_generation;
+  stopSongs();
 
-  for (auto songNode : _songNodes) {
-    if (songNode.isPlaying) {
-      [songNode stop];
-    }
-
-    [songNode play];
-  }
+  auto generation = _generation;
 
   auto songNode = getNextSongNode();
 
@@ -100,6 +99,18 @@ void AudioEngineAudioManager::play(SongType songType, Mode mode) {
                    loop(songType, generation);
                  }
                }];
+  }
+}
+
+void AudioEngineAudioManager::stopSongs() {
+  ++_generation;
+
+  for (auto songNode : _songNodes) {
+    if (songNode.isPlaying) {
+      [songNode stop];
+    }
+
+    [songNode play];
   }
 }
 
@@ -147,7 +158,7 @@ void AudioEngineAudioManager::initEffectNodes() {
                    format:[[AVAudioFormat alloc] initStandardFormatWithSampleRate:44100
                                                                          channels:2]];
 
-    _nodePool.push(playerNode);
+    _effectLruPool.push(playerNode);
   }
 }
 
@@ -155,7 +166,7 @@ void AudioEngineAudioManager::loadBuffer(EffectType effectType) {
   auto file = _fileLoader->getAudioFileForEffect(effectType);
 
   auto buffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:file.processingFormat
-                                              frameCapacity:file.length];
+                                              frameCapacity:static_cast<AVAudioFrameCount>(file.length)];
 
   NSError* error;
   if (![file readIntoBuffer:buffer error:&error]) {
@@ -170,7 +181,7 @@ void AudioEngineAudioManager::loadBuffer(SongType songType) {
   auto file = _fileLoader->getAudioFileForSong(songType);
 
   auto buffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:file.processingFormat
-                                              frameCapacity:file.length];
+                                              frameCapacity:static_cast<AVAudioFrameCount>(file.length)];
 
   NSError* error;
   if (![file readIntoBuffer:buffer error:&error]) {
@@ -182,14 +193,9 @@ void AudioEngineAudioManager::loadBuffer(SongType songType) {
 }
 
 AVAudioPlayerNode* AudioEngineAudioManager::getPlayerNode() {
-  if (_nodePool.empty()) {
-    return nullptr;
-  }
-
-  std::unique_lock<std::mutex> lock(_poolMutex);
-
-  auto result = _nodePool.front();
-  _nodePool.pop();
+  auto result = _effectLruPool.front();
+  _effectLruPool.pop();
+  _effectLruPool.push(result);
 
   return result;
 }

@@ -74,7 +74,7 @@ class InfiniteRunnerScene : public Scene {
           _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), serviceLocator.get<InputManager>()));
+      registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
       registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
@@ -83,7 +83,7 @@ class InfiniteRunnerScene : public Scene {
       registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
       registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
       registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
-      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<SaveManager>(), serviceLocator));
+      registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>(), serviceLocator.get<SaveManager>(), serviceLocator));
       registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
       registerSystem(std::make_unique<CastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
@@ -93,7 +93,7 @@ class InfiniteRunnerScene : public Scene {
 
       // Scene-specific
       registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
-      registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));

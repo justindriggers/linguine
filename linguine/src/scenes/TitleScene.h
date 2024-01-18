@@ -31,7 +31,7 @@ class TitleScene : public Scene {
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
-      registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
@@ -493,9 +493,7 @@ class TitleScene : public Scene {
         button->minSize = { 128.0f, 32.0f };
         button->text = "Options";
         button->textSize = 12.0f;
-        button->clickHandler = [&audioManager]() {
-          audioManager.play(EffectType::Select);
-        };
+        button->clickHandler = []() {};
       }
 
       {

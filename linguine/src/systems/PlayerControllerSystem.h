@@ -10,8 +10,10 @@ namespace linguine {
 class PlayerControllerSystem : public System {
   public:
     PlayerControllerSystem(EntityManager& entityManager,
-                           InputManager& inputManager)
-        : System(entityManager), _inputManager(inputManager) {}
+                           InputManager& inputManager,
+                           AudioManager& audioManager)
+        : System(entityManager), _inputManager(inputManager),
+          _audioManager(audioManager) {}
 
     void update(float deltaTime) override;
 
@@ -19,6 +21,7 @@ class PlayerControllerSystem : public System {
 
   private:
     InputManager& _inputManager;
+    AudioManager& _audioManager;
 };
 
 }  // namespace linguine

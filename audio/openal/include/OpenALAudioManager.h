@@ -26,12 +26,14 @@ class OpenALAudioManager : public AudioManager {
 
     void play(SongType songType, Mode mode) override;
 
+    void stopSongs() override;
+
     void pause() override;
 
     void resume() override;
 
   private:
-    struct SongSourceState {
+    struct SourceState {
       ALint state;
       ALuint source;
       std::function<void(ALint)> callback;
@@ -55,10 +57,10 @@ class OpenALAudioManager : public AudioManager {
     ALCdevice* _device;
     ALCcontext* _context;
 
-    std::array<ALuint, 8> _effectSources{};
-    std::array<SongSourceState, 2> _songSources{};
+    std::array<SourceState, 8> _effectSources{};
+    std::array<SourceState, 2> _songSources{};
 
-    std::queue<ALuint> _effectLruPool{};
+    std::queue<SourceState*> _effectLruPool{};
     int _currentSongSource = 0;
     float _time = 0.0f;
     float _lastSongStartTime = 0.0f;
@@ -73,7 +75,7 @@ class OpenALAudioManager : public AudioManager {
 
     void loadBuffer(SongType songType);
 
-    SongSourceState& getNextSongSource();
+    SourceState& getNextSongSource();
 };
 
 }  // namespace linguine::audio

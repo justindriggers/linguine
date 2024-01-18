@@ -44,6 +44,8 @@ void LivenessSystem::update(float deltaTime) {
     findEntities<Player>()->each([this](Entity& entity) {
       if (entity.has<CircleCollider>()) {
         entity.remove<CircleCollider>();
+        _audioManager.play(EffectType::Explosion);
+        _audioManager.stopSongs();
 
         auto player = entity.get<Player>();
         player->acceleration = player->speed / -4.0f;

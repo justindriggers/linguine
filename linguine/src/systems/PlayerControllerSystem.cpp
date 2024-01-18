@@ -29,21 +29,25 @@ void PlayerControllerSystem::update(float deltaTime) {
       if (_inputManager.isKeyPressed(Key::D)
           || _inputManager.isSwipeDetected(InputManager::Direction::Right)) {
         player->state = Player::LeftToCenter;
+        _audioManager.play(EffectType::Swoop);
       }
       break;
     case Player::Center:
       if ((_inputManager.isKeyPressed(Key::D) && !_inputManager.isKeyPressed(Key::A))
           || _inputManager.isSwipeDetected(InputManager::Direction::Right)) {
         player->state = Player::CenterToRight;
+        _audioManager.play(EffectType::Swoop);
       } else if ((_inputManager.isKeyPressed(Key::A) && !_inputManager.isKeyPressed(Key::D))
                  || _inputManager.isSwipeDetected(InputManager::Direction::Left)) {
         player->state = Player::CenterToLeft;
+        _audioManager.play(EffectType::Swoop);
       }
       break;
     case Player::Right:
       if (_inputManager.isKeyPressed(Key::A)
           || _inputManager.isSwipeDetected(InputManager::Direction::Left)) {
         player->state = Player::RightToCenter;
+        _audioManager.play(EffectType::Swoop);
       }
       break;
     default:
@@ -65,7 +69,7 @@ void PlayerControllerSystem::update(float deltaTime) {
           auto target = getEntityById(healthBar->entityId);
 
           if (target->has<Alive>()) {
-            findEntities<GlobalCooldown>()->each([&cast, &healthBar, &isCanceled, &abilityEntity](const Entity& entity) {
+            findEntities<GlobalCooldown>()->each([this, &cast, &healthBar, &isCanceled, &abilityEntity](const Entity& entity) {
               auto globalCooldown = entity.get<GlobalCooldown>();
 
               if (globalCooldown->remaining <= 0.0f) {
@@ -73,6 +77,7 @@ void PlayerControllerSystem::update(float deltaTime) {
                 cast->targetEntityId = healthBar->entityId;
                 globalCooldown->remaining = globalCooldown->total;
                 isCanceled = false;
+                _audioManager.play(EffectType::Heal);
               }
             });
           }

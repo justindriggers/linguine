@@ -1,6 +1,8 @@
 #pragma once
 
 #include "System.h"
+
+#include "audio/AudioManager.h"
 #include "data/upgrades/UpgradeDatabase.h"
 
 namespace linguine {
@@ -8,8 +10,9 @@ namespace linguine {
 class LevelTrackingSystem : public System {
   public:
     LevelTrackingSystem(EntityManager& entityManager,
+                        AudioManager& audioManager,
                         UpgradeDatabase& upgradeDatabase)
-        : System(entityManager),
+        : System(entityManager), _audioManager(audioManager),
           _upgradeDatabase(upgradeDatabase) {}
 
     void update(float deltaTime) override;
@@ -17,6 +20,7 @@ class LevelTrackingSystem : public System {
     void fixedUpdate(float fixedDeltaTime) override {}
 
   private:
+    AudioManager& _audioManager;
     UpgradeDatabase& _upgradeDatabase;
 };
 

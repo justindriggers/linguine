@@ -28,11 +28,11 @@ class GameOverScene : public Scene {
       registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
       registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
       registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
       registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
       registerSystem(std::make_unique<ShakeSystem>(getEntityManager()));
 
-      registerSystem(std::make_unique<LevelTrackingSystem>(getEntityManager(), _upgradeDatabase));
+      registerSystem(std::make_unique<LevelTrackingSystem>(getEntityManager(), serviceLocator.get<AudioManager>(), _upgradeDatabase));
 
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
       registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));

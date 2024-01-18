@@ -10,11 +10,47 @@ std::vector<std::byte> WebOpenALFileLoader::getAudioDataForEffect(EffectType eff
   std::string filename;
 
   switch (effectType) {
-  case EffectType::Pop:
-    filename = "/assets/audio/Balloon Pop 1.wav";
+  case EffectType::ButtonDown:
+    filename = "/assets/audio/select-16bit-44_1khz_1.wav";
     break;
-  case EffectType::Select:
-    filename = "/assets/audio/Select 1.wav";
+  case EffectType::ButtonUp:
+    filename = "/assets/audio/select-16bit-44_1khz_2.wav";
+    break;
+  case EffectType::Collect1:
+    filename = "/assets/audio/collect1-16bit-44_1khz.wav";
+    break;
+  case EffectType::Collect2:
+    filename = "/assets/audio/collect2-16bit-44_1khz.wav";
+    break;
+  case EffectType::Collect3:
+    filename = "/assets/audio/collect3-16bit-44_1khz.wav";
+    break;
+  case EffectType::Collect4:
+    filename = "/assets/audio/collect4-16bit-44_1khz.wav";
+    break;
+  case EffectType::Collect5:
+    filename = "/assets/audio/collect5-16bit-44_1khz.wav";
+    break;
+  case EffectType::Detonate:
+    filename = "/assets/audio/detonation-16bit-44_1khz.wav";
+    break;
+  case EffectType::Explosion:
+    filename = "/assets/audio/explosion-16bit-44_1khz.wav";
+    break;
+  case EffectType::Heal:
+    filename = "/assets/audio/heal-16bit-44_1khz.wav";
+    break;
+  case EffectType::Level:
+    filename = "/assets/audio/level-16bit-44_1khz.wav";
+    break;
+  case EffectType::PowerUp:
+    filename = "/assets/audio/powerup-16bit-44_1khz.wav";
+    break;
+  case EffectType::Swoop:
+    filename = "/assets/audio/swoop-16bit-44_1khz.wav";
+    break;
+  case EffectType::Xp:
+    filename = "/assets/audio/xp-16bit-44_1khz.wav";
     break;
   }
 
