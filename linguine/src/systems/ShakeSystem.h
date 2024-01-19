@@ -4,12 +4,16 @@
 
 #include <random>
 
+#include "SaveManager.h"
+
 namespace linguine {
 
 class ShakeSystem : public System {
   public:
-    explicit ShakeSystem(EntityManager& entityManager)
-        : System(entityManager) {}
+    ShakeSystem(EntityManager& entityManager,
+                SaveManager& saveManager)
+        : System(entityManager),
+          _saveManager(saveManager) {}
 
     void update(float deltaTime) override;
 
@@ -17,6 +21,8 @@ class ShakeSystem : public System {
 
   private:
     std::random_device _random;
+
+    SaveManager& _saveManager;
 };
 
 }  // namespace linguine

@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 #include "data/Palette.h"
@@ -19,7 +20,7 @@ struct Button {
   glm::vec3 textColor = glm::vec3(1.0f);
   float textSize = 1.0f;
 
-  std::function<void()> clickHandler;
+  std::function<void()> clickHandler = [](){};
 };
 
 }  // namespace linguine

@@ -22,9 +22,15 @@ class OpenALAudioManager : public AudioManager {
 
     void poll() override;
 
+    void setMusicEnabled(bool enabled) override;
+
+    void setSoundEffectsEnabled(bool enabled) override;
+
     void play(EffectType effectType) override;
 
     void play(SongType songType, Mode mode) override;
+
+    [[nodiscard]] std::optional<SongType> getCurrentSongType() const override;
 
     void stopSongs() override;
 
@@ -50,6 +56,8 @@ class OpenALAudioManager : public AudioManager {
     };
 
     bool _suspended = false;
+    bool _isMusicEnabled = true;
+    bool _isSoundEffectsEnabled = true;
 
     std::unique_ptr<OpenALFileLoader> _fileLoader;
     TimeManager& _timeManager;
@@ -62,6 +70,7 @@ class OpenALAudioManager : public AudioManager {
 
     std::queue<SourceState*> _effectLruPool{};
     int _currentSongSource = 0;
+    std::optional<SongType> _currentSongType{};
     float _time = 0.0f;
     float _lastSongStartTime = 0.0f;
     int64_t _generation = 0;

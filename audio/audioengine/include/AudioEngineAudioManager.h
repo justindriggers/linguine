@@ -20,9 +20,15 @@ class AudioEngineAudioManager : public AudioManager {
 
     void poll() override {};
 
+    void setMusicEnabled(bool enabled) override;
+
+    void setSoundEffectsEnabled(bool enabled) override;
+
     void play(EffectType effectType) override;
 
     void play(SongType songType, Mode mode) override;
+
+    [[nodiscard]] std::optional<SongType> getCurrentSongType() const override;
 
     void stopSongs() override;
 
@@ -37,8 +43,12 @@ class AudioEngineAudioManager : public AudioManager {
     AVAudioEngine* _audioEngine;
     NSMutableArray<AVAudioPlayerNode*>* _playerNodes;
 
+    bool _isMusicEnabled = true;
+    bool _isSoundEffectsEnabled = true;
+
     std::array<AVAudioPlayerNode*, 2> _songNodes;
     int _currentSongNode = 0;
+    std::optional<SongType> _currentSongType{};
     int64_t _lastSongStartSample = 0;
     int64_t _generation = 0;
 

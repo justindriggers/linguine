@@ -28,6 +28,33 @@ class SaveManager {
       return _points == 0;
     }
 
+    void setMusicEnabled(bool enabled) {
+      _isMusicEnabled = enabled;
+      save();
+    }
+
+    [[nodiscard]] bool isMusicEnabled() const {
+      return _isMusicEnabled;
+    }
+
+    void setSoundEffectsEnabled(bool enabled) {
+      _isSoundEffectsEnabled = enabled;
+      save();
+    }
+
+    [[nodiscard]] bool isSoundEffectsEnabled() const {
+      return _isSoundEffectsEnabled;
+    }
+
+    void setScreenShakeEnabled(bool enabled) {
+      _isScreenShakeEnabled = enabled;
+      save();
+    }
+
+    [[nodiscard]] bool isScreenShakeEnabled() const {
+      return _isScreenShakeEnabled;
+    }
+
     void restart() {
       _points = 0;
       save();
@@ -35,6 +62,9 @@ class SaveManager {
 
   protected:
     int32_t _points{};
+    bool _isMusicEnabled{};
+    bool _isSoundEffectsEnabled{};
+    bool _isScreenShakeEnabled{};
 
     virtual void load() = 0;
 

@@ -48,7 +48,7 @@
   auto audioSession = [AVAudioSession sharedInstance];
 
   NSError* error;
-  if (![audioSession setCategory:AVAudioSessionCategoryPlayback
+  if (![audioSession setCategory:AVAudioSessionCategoryAmbient
                            error:&error]) {
     NSLog(@"%@", [error localizedDescription]);
     return;

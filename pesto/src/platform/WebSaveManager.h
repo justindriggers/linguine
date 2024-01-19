@@ -15,6 +15,9 @@ class WebSaveManager : public SaveManager {
   protected:
     void load() override {
       _points = 0;
+      _isMusicEnabled = true;
+      _isSoundEffectsEnabled = true;
+      _isScreenShakeEnabled = true;
     }
 
     void save() override {}

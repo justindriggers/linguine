@@ -50,7 +50,23 @@ AudioEngineAudioManager::~AudioEngineAudioManager() {
   [_audioEngine stop];
 }
 
+void AudioEngineAudioManager::setMusicEnabled(bool enabled) {
+  _isMusicEnabled = enabled;
+
+  if (!_isMusicEnabled) {
+    stopSongs();
+  }
+}
+
+void AudioEngineAudioManager::setSoundEffectsEnabled(bool enabled) {
+  _isSoundEffectsEnabled = enabled;
+}
+
 void AudioEngineAudioManager::play(EffectType effectType) {
+  if (!_isSoundEffectsEnabled) {
+    return;
+  }
+
   auto playerNode = getPlayerNode();
 
   if (playerNode) {
@@ -67,6 +83,10 @@ void AudioEngineAudioManager::play(EffectType effectType) {
 }
 
 void AudioEngineAudioManager::play(SongType songType, Mode mode) {
+  if (!_isMusicEnabled) {
+    return;
+  }
+
   stopSongs();
 
   auto generation = _generation;
@@ -74,6 +94,7 @@ void AudioEngineAudioManager::play(SongType songType, Mode mode) {
   auto songNode = getNextSongNode();
 
   auto buffer = _songBuffers[songType];
+  _currentSongType = songType;
 
   _lastSongStartSample = 0;
   [songNode scheduleBuffer:buffer
@@ -83,6 +104,8 @@ void AudioEngineAudioManager::play(SongType songType, Mode mode) {
            completionHandler:^(AVAudioPlayerNodeCompletionCallbackType callbackType) {
              if (generation == _generation && mode == Mode::Repeat) {
                loop(songType, generation);
+             } else {
+               _currentSongType = {};
              }
            }];
 
@@ -102,8 +125,13 @@ void AudioEngineAudioManager::play(SongType songType, Mode mode) {
   }
 }
 
+std::optional<SongType> AudioEngineAudioManager::getCurrentSongType() const {
+  return _currentSongType;
+}
+
 void AudioEngineAudioManager::stopSongs() {
   ++_generation;
+  _currentSongType = {};
 
   for (auto songNode : _songNodes) {
     if (songNode.isPlaying) {

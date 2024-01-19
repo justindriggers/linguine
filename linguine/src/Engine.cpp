@@ -20,8 +20,11 @@ Engine::Engine(
       _logger(logger),
       _renderer(renderer),
       _saveManager(saveManager),
-      _timeManager(timeManager),
-      _currentScene(std::make_unique<TitleScene>(*this)) {}
+      _timeManager(timeManager) {
+  _audioManager->setMusicEnabled(_saveManager->isMusicEnabled());
+  _audioManager->setSoundEffectsEnabled(_saveManager->isSoundEffectsEnabled());
+  _currentScene = std::make_unique<TitleScene>(*this);
+}
 
 void Engine::run() {
   while (_lifecycleManager->isRunning()) {

@@ -6,6 +6,10 @@
 namespace linguine {
 
 void ShakeSystem::update(float deltaTime) {
+  if (!_saveManager.isScreenShakeEnabled()) {
+    return;
+  }
+
   findEntities<Transform, Shake>()->each([this, deltaTime](const Entity& entity) {
     auto transform = entity.get<Transform>();
     auto shake = entity.get<Shake>();

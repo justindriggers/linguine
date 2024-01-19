@@ -17,6 +17,10 @@ add_library(linguine
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
         src/renderer/features/FeatureRenderer.cpp
+        src/scenes/GameOverScene.cpp
+        src/scenes/InfiniteRunnerScene.cpp
+        src/scenes/OptionsScene.cpp
+        src/scenes/TitleScene.cpp
         src/systems/AttachmentSystem.cpp
         src/systems/ButtonSystem.cpp
         src/systems/CameraFollowSystem.cpp
@@ -54,6 +58,7 @@ add_library(linguine
         src/systems/ShakeSystem.cpp
         src/systems/SpawnSystem.cpp
         src/systems/ToastSystem.cpp
+        src/systems/ToggleSystem.cpp
         src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
         src/systems/TutorialSystem.cpp

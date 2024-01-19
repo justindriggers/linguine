@@ -128,7 +128,23 @@ void OpenALAudioManager::poll() {
   }
 }
 
+void OpenALAudioManager::setMusicEnabled(bool enabled) {
+  _isMusicEnabled = enabled;
+
+  if (!_isMusicEnabled) {
+    stopSongs();
+  }
+}
+
+void OpenALAudioManager::setSoundEffectsEnabled(bool enabled) {
+  _isSoundEffectsEnabled = enabled;
+}
+
 void OpenALAudioManager::play(EffectType effectType) {
+  if (!_isSoundEffectsEnabled) {
+    return;
+  }
+
   auto effectSource = _effectLruPool.front();
   _effectLruPool.pop();
   _effectLruPool.push(effectSource);
@@ -140,18 +156,27 @@ void OpenALAudioManager::play(EffectType effectType) {
 }
 
 void OpenALAudioManager::play(SongType songType, Mode mode) {
+  if (!_isMusicEnabled) {
+    return;
+  }
+
   stopSongs();
 
   auto generation = _generation;
+  _currentSongType = songType;
 
   auto& sourceState = getNextSongSource();
   alSourcei(sourceState.source, AL_BUFFER, static_cast<ALint>(_songBuffers[songType]));
   alSourcePlay(sourceState.source);
 
-  sourceState.callback = [this, generation, songType](ALint newState) {
+  sourceState.callback = [this, generation, songType, mode](ALint newState) {
     if (generation == _generation && newState == AL_STOPPED) {
       _lastSongStartTime += _fileLoader->getSongLoopPoint(songType);
       _scheduled.push({songType, generation, _lastSongStartTime});
+    }
+
+    if (mode != Mode::Repeat) {
+      _currentSongType = {};
     }
   };
 
@@ -161,8 +186,13 @@ void OpenALAudioManager::play(SongType songType, Mode mode) {
   }
 }
 
+std::optional<SongType> OpenALAudioManager::getCurrentSongType() const {
+  return _currentSongType;
+}
+
 void OpenALAudioManager::stopSongs() {
   ++_generation;
+  _currentSongType = {};
 
   _time = 0.0f;
   _lastSongStartTime = 0.0f;

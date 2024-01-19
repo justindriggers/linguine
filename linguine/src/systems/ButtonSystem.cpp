@@ -85,8 +85,8 @@ void ButtonSystem::update(float deltaTime) {
     text->renderable->setEnabled(drawable->renderable->isEnabled());
 
     if (entity.has<Tapped>()) {
-      _audioManager.play(EffectType::ButtonUp);
       button->clickHandler();
+      _audioManager.play(EffectType::ButtonUp);
     }
   });
 }
