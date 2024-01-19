@@ -28,23 +28,23 @@
 
 namespace linguine {
 
-GameOverScene::GameOverScene(ServiceLocator& serviceLocator, int32_t points)
-    : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
-  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
-  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
+void GameOverScene::init() {
+  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
+  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
+  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
+  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
   registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
-  registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), serviceLocator.get<SaveManager>()));
+  registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), get<SaveManager>()));
 
-  registerSystem(std::make_unique<LevelTrackingSystem>(getEntityManager(), serviceLocator.get<AudioManager>(), _upgradeDatabase));
+  registerSystem(std::make_unique<LevelTrackingSystem>(getEntityManager(), get<AudioManager>(), _upgradeDatabase));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
-  auto& renderer = serviceLocator.get<Renderer>();
-  auto& sceneManager = serviceLocator.get<SceneManager>();
-  auto& saveManager = serviceLocator.get<SaveManager>();
+  auto& renderer = get<Renderer>();
+  auto& sceneManager = get<SceneManager>();
+  auto& saveManager = get<SaveManager>();
+  auto& serviceLocator = get<ServiceLocator>();
 
   {
     auto uiCameraEntity = createEntity();
@@ -101,9 +101,9 @@ GameOverScene::GameOverScene(ServiceLocator& serviceLocator, int32_t points)
 
   {
     auto progressBarEntity = createEntity();
-    progressBarEntity->add<LevelTracker>(saveManager.getPoints(), saveManager.getPoints() + points);
+    progressBarEntity->add<LevelTracker>(saveManager.getPoints(), saveManager.getPoints() + _points);
 
-    saveManager.addPoints(points);
+    saveManager.addPoints(_points);
 
     auto transform = progressBarEntity->add<Transform>();
     transform->scale = { 192.0f, 12.0f, 1.0f };
@@ -200,7 +200,7 @@ GameOverScene::GameOverScene(ServiceLocator& serviceLocator, int32_t points)
     text->renderable->setEnabled(false);
   }
 
-  auto& audioManager = serviceLocator.get<AudioManager>();
+  auto& audioManager = get<AudioManager>();
   audioManager.play(SongType::GameOver, Mode::Once);
 }
 

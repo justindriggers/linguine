@@ -58,38 +58,36 @@
 
 namespace linguine {
 
-InfiniteRunnerScene::InfiniteRunnerScene(ServiceLocator& serviceLocator)
-    : Scene(serviceLocator.get<EntityManagerFactory>().create()),
-      _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {
-  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-  registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<AudioManager>()));
+void InfiniteRunnerScene::init() {
+  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
+  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
+  registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), get<InputManager>(), get<AudioManager>()));
   registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
+  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
-  registerSystem(std::make_unique<HudSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
-  registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>(), serviceLocator.get<SaveManager>(), serviceLocator));
+  registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>(), get<SaveManager>(), get<ServiceLocator>()));
   registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
   registerSystem(std::make_unique<CastSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
   registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
-  registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), serviceLocator.get<SaveManager>()));
+  registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), get<SaveManager>()));
 
   // Scene-specific
-  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
-  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
+  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>()));
   registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
-  auto& renderer = serviceLocator.get<Renderer>();
-  auto& saveManager = serviceLocator.get<SaveManager>();
+  auto& renderer = get<Renderer>();
+  auto& saveManager = get<SaveManager>();
 
   if (saveManager.isNewPlayer()) {
     auto tutorialEntity = createEntity();
@@ -470,7 +468,7 @@ InfiniteRunnerScene::InfiniteRunnerScene(ServiceLocator& serviceLocator)
     text->renderable->setEnabled(false);
   }
 
-  auto& audioManager = serviceLocator.get<AudioManager>();
+  auto& audioManager = get<AudioManager>();
   audioManager.play(SongType::Theme, Mode::Repeat);
 }
 

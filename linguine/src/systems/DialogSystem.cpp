@@ -1,4 +1,6 @@
 #include "DialogSystem.h"
+
+#include "components/Button.h"
 #include "components/Dialog.h"
 #include "components/Drawable.h"
 #include "components/Selectable.h"
@@ -23,6 +25,12 @@ void DialogSystem::update(float deltaTime) {
     auto dialog = entity.get<Dialog>();
     auto selectable = entity.get<Selectable>();
     selectable->renderable->setEnabled(dialog->enabled);
+  });
+
+  findEntities<Dialog, Button>()->each([](const Entity& entity) {
+    auto dialog = entity.get<Dialog>();
+    auto button = entity.get<Button>();
+    button->visible = dialog->enabled;
   });
 }
 

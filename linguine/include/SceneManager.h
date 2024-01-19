@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "Scene.h"
-
 namespace linguine {
+
+class Scene;
 
 class SceneManager {
   public:

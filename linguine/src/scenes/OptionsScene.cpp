@@ -15,20 +15,20 @@
 
 namespace linguine {
 
-OptionsScene::OptionsScene(ServiceLocator& serviceLocator)
-    : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
-  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
+void OptionsScene::init() {
+  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
+  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
   registerSystem(std::make_unique<ToggleSystem>(getEntityManager()));
-  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
+  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
-  auto& audioManager = serviceLocator.get<AudioManager>();
-  auto& renderer = serviceLocator.get<Renderer>();
-  auto& saveManager = serviceLocator.get<SaveManager>();
-  auto& sceneManager = serviceLocator.get<SceneManager>();
+  auto& audioManager = get<AudioManager>();
+  auto& renderer = get<Renderer>();
+  auto& saveManager = get<SaveManager>();
+  auto& sceneManager = get<SceneManager>();
+  auto& serviceLocator = get<ServiceLocator>();
 
   {
     auto uiCameraEntity = createEntity();

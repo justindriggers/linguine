@@ -62,6 +62,11 @@ class ServiceLocator {
     }
 
     template<>
+    inline ServiceLocator& get<ServiceLocator>() {
+      return *this;
+    }
+
+    template<>
     inline TimeManager& get<TimeManager>() {
       return getTimeManager();
     }

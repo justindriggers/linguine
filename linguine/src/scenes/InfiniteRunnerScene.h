@@ -12,7 +12,11 @@ namespace linguine {
 
 class InfiniteRunnerScene : public Scene {
   public:
-    explicit InfiniteRunnerScene(ServiceLocator& serviceLocator);
+    explicit InfiniteRunnerScene(ServiceLocator& serviceLocator)
+        : Scene(serviceLocator),
+          _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())) {}
+
+    void init() override;
 
   private:
     std::random_device _random;

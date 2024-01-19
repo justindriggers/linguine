@@ -4,14 +4,20 @@
 
 #include "System.h"
 
+#include "ServiceLocator.h"
+#import "entity/EntityManagerFactory.h"
+
 namespace linguine {
 
 class Scene {
   public:
-    explicit Scene(std::unique_ptr<EntityManager> entityManager)
-        : _entityManager(std::move(entityManager)) {}
+    explicit Scene(ServiceLocator& serviceLocator)
+        : _serviceLocator(serviceLocator),
+          _entityManager(serviceLocator.get<EntityManagerFactory>().create()) {}
 
     virtual ~Scene() = default;
+
+    virtual void init() = 0;
 
     void update(float deltaTime) {
       for (const auto& system : _systems) {
@@ -26,6 +32,10 @@ class Scene {
     }
 
   protected:
+    template<typename T> inline T& get() {
+      return _serviceLocator.get<T>();
+    }
+
     inline EntityManager& getEntityManager() {
       return *_entityManager;
     }
@@ -39,6 +49,7 @@ class Scene {
     }
 
   private:
+    ServiceLocator& _serviceLocator;
     std::unique_ptr<EntityManager> _entityManager;
     std::vector<std::unique_ptr<System>> _systems;
 };

@@ -41,30 +41,30 @@
 
 namespace linguine {
 
-TitleScene::TitleScene(ServiceLocator &serviceLocator)
-    : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
-  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
+void TitleScene::init() {
+  registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
+  registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
   registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
-  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), serviceLocator.get<Renderer>(), serviceLocator.get<AudioManager>()));
+  registerSystem(std::make_unique<DialogSystem>(getEntityManager()));
+  registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
+  registerSystem(std::make_unique<FooterSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), serviceLocator.get<TimeManager>()));
+  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
 
-  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
-  registerSystem(std::make_unique<DialogSystem>(getEntityManager()));
-  registerSystem(std::make_unique<FooterSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+  registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
-  auto& audioManager = serviceLocator.get<AudioManager>();
-  auto& renderer = serviceLocator.get<Renderer>();
-  auto& sceneManager = serviceLocator.get<SceneManager>();
-  auto& saveManager = serviceLocator.get<SaveManager>();
+  auto& audioManager = get<AudioManager>();
+  auto& renderer = get<Renderer>();
+  auto& sceneManager = get<SceneManager>();
+  auto& saveManager = get<SaveManager>();
+  auto& serviceLocator = get<ServiceLocator>();
 
   {
     auto cameraEntity = createEntity();
@@ -522,8 +522,6 @@ TitleScene::TitleScene(ServiceLocator &serviceLocator)
     transform->position = { 0.0f, 0.0f, 10.0f };
     transform->scale = { 240.0f, 48.0f, 1.0f };
 
-    footerPanelEntity->add<PhysicalState>(transform->position, 0.0f);
-
     auto drawable = footerPanelEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
     drawable->feature->color = Palette::SecondaryAccent;
@@ -539,11 +537,10 @@ TitleScene::TitleScene(ServiceLocator &serviceLocator)
       footerTextTransform->position = { 0.0f, 0.0f, 5.0f };
       footerTextTransform->scale = { 8.0f, 8.0f, 1.0f };
 
-      footerTextEntity->add<PhysicalState>(footerTextTransform->position, 0.0f);
-
       auto attachment = footerTextEntity->add<Attachment>();
       attachment->parentId = footerPanelEntity->getId();
       attachment->offset = { -56.0f, 8.0f };
+      attachment->useFixedUpdate = false;
 
       auto text = footerTextEntity->add<Text>();
       text->feature = new TextFeature();
@@ -561,11 +558,10 @@ TitleScene::TitleScene(ServiceLocator &serviceLocator)
       footerTextTransform->position = { 0.0f, 0.0f, 5.0f };
       footerTextTransform->scale = { 5.0f, 5.0f, 1.0f };
 
-      footerTextEntity->add<PhysicalState>(footerTextTransform->position, 0.0f);
-
       auto attachment = footerTextEntity->add<Attachment>();
       attachment->parentId = footerPanelEntity->getId();
       attachment->offset = { -72.5f, -8.0f };
+      attachment->useFixedUpdate = false;
 
       auto text = footerTextEntity->add<Text>();
       text->feature = new TextFeature();

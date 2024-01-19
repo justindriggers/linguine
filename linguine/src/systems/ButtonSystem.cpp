@@ -57,6 +57,7 @@ void ButtonSystem::update(float deltaTime) {
     transform->scale = { width, height, 1.0f };
 
     auto drawable = entity.get<Drawable>();
+    drawable->renderable->setEnabled(button->visible);
 
     if (entity.has<Pressed>()) {
       auto pressed = entity.get<Pressed>();
@@ -82,7 +83,7 @@ void ButtonSystem::update(float deltaTime) {
     auto text = textEntity->get<Text>();
     text->feature->text = button->text;
     text->feature->color = button->textColor;
-    text->renderable->setEnabled(drawable->renderable->isEnabled());
+    text->renderable->setEnabled(button->visible);
 
     if (entity.has<Tapped>()) {
       button->clickHandler();

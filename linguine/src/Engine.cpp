@@ -24,6 +24,7 @@ Engine::Engine(
   _audioManager->setMusicEnabled(_saveManager->isMusicEnabled());
   _audioManager->setSoundEffectsEnabled(_saveManager->isSoundEffectsEnabled());
   _currentScene = std::make_unique<TitleScene>(*this);
+  _currentScene->init();
 }
 
 void Engine::run() {
@@ -56,6 +57,8 @@ void Engine::tick() {
 
     _renderer->reset();
     _timeManager->reset();
+
+    _currentScene->init();
   }
 }
 

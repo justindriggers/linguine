@@ -11,7 +11,10 @@ namespace linguine {
 
 class TitleScene : public Scene {
   public:
-    explicit TitleScene(ServiceLocator& serviceLocator);
+    explicit TitleScene(ServiceLocator& serviceLocator)
+        : Scene(serviceLocator) {}
+
+    void init() override;
 
   private:
     std::random_device _random;

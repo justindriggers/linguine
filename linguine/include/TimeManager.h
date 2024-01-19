@@ -46,7 +46,7 @@ class TimeManager {
     inline void reset() {
       _lastTickTime = currentTime();
       _currentTickTime = _lastTickTime;
-      _accumulator = 0.0f;
+      _accumulator = _fixedDeltaTime;
     }
 
     inline float tick() {
@@ -75,7 +75,7 @@ class TimeManager {
   private:
     constexpr static float _fixedDeltaTime = 0.02f;
 
-    float _accumulator = 0.0f;
+    float _accumulator = _fixedDeltaTime;
     float _timeScale = 1.0f;
 
     time_t _startTime;

@@ -15,6 +15,7 @@ struct Button {
   glm::vec2 minSize = glm::vec2(1.0f);
   glm::vec3 color = Palette::Primary;
   glm::vec3 activeColor = Palette::PrimaryAccent;
+  bool visible = true;
 
   std::string text;
   glm::vec3 textColor = glm::vec3(1.0f);

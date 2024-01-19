@@ -9,7 +9,7 @@ class AttachmentSystem : public System {
     explicit AttachmentSystem(EntityManager& entityManager)
         : System(entityManager) {}
 
-    void update(float deltaTime) override {}
+    void update(float deltaTime) override;
 
     void fixedUpdate(float fixedDeltaTime) override;
 };
