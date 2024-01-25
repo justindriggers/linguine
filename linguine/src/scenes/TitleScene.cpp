@@ -1,6 +1,7 @@
 #include "TitleScene.h"
 
 #include "InfiniteRunnerScene.h"
+#include "NewPlayerScene.h"
 #include "OptionsScene.h"
 #include "components/Attachment.h"
 #include "components/Button.h"
@@ -11,6 +12,7 @@
 #include "components/Drawable.h"
 #include "components/Emitter.h"
 #include "components/Fire.h"
+#include "components/Follow.h"
 #include "components/Footer.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
@@ -72,6 +74,7 @@ void TitleScene::init() {
     cameraEntity->add<PhysicalState>();
     cameraEntity->add<CircleCollider>()->radius = 20.0f;
     cameraEntity->add<Trigger>();
+    cameraEntity->add<Follow>();
 
     auto fixture = cameraEntity->add<CameraFixture>();
     fixture->size = 12.0f;
@@ -492,7 +495,7 @@ void TitleScene::init() {
           entity.get<Dialog>()->enabled = true;
         });
       } else {
-        sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
+        sceneManager.load(std::make_unique<NewPlayerScene>(serviceLocator));
       }
     };
 

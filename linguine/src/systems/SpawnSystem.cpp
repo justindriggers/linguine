@@ -55,12 +55,12 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
           tutorialState->currentState = TutorialState::State::Healing;
           tutorialState->elapsed = 0.0f;
         } else if (tutorialState->asteroidsSpawned >= 3) {
-          if (tutorialState->elapsed >= 3.0f) {
+          if (tutorialState->elapsed >= 4.0f) {
             spawnScoringText(entity.get<PhysicalState>()->currentPosition.y);
             tutorialState->asteroidsSpawned = 0;
             tutorialState->elapsed = 0.0f;
           }
-        } else if (tutorialState->elapsed >= 3.0f) {
+        } else if (tutorialState->elapsed >= 4.0f) {
           spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, 4);
           tutorialState->asteroidsSpawned++;
           tutorialState->elapsed = 0.0f;
@@ -254,7 +254,7 @@ void SpawnSystem::spawnStars(float y) {
   for (auto i = 0; i < count; ++i) {
     auto starEntity = createEntity();
 
-    auto randomX = std::uniform_real_distribution(-6.0f, 6.0f);
+    auto randomX = std::uniform_real_distribution(-7.6f, 7.6f);
 
     auto transform = starEntity->add<Transform>();
     transform->position = { randomX(_random), y, 10.0f };

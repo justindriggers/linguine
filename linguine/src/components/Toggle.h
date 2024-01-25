@@ -12,6 +12,7 @@ namespace linguine {
 
 struct Toggle {
   bool isEnabled = false;
+  bool stickySelection = false;
 
   glm::vec3 position = glm::vec3(0.0f);
   glm::vec2 minSize = glm::vec2(1.0f);

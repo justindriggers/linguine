@@ -22,11 +22,16 @@
 namespace linguine {
 
 void ScoringSystem::update(float deltaTime) {
-  findEntities<Score, Text>()->each([](const Entity& entity) {
+  findEntities<Score, Text, Transform>()->each([this](const Entity& entity) {
     auto score = entity.get<Score>();
     auto text = entity.get<Text>();
+    auto transform = entity.get<Transform>();
 
     text->feature->text = std::to_string(score->points);
+
+    if (_saveManager.getHandedness() == SaveManager::Handedness::Right) {
+      transform->position.x = 102.0f - static_cast<float>(text->feature->text.size() - 1) * 20.0f;
+    }
   });
 }
 
@@ -83,10 +88,19 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           auto asteroidTransform = hitEntity->get<Transform>();
 
-          findEntities<Toast, Text>()->each([&asteroid, &asteroidTransform](const Entity& entity) {
+          findEntities<Toast, Text>()->each([this, &asteroid, &asteroidTransform](const Entity& entity) {
             auto toast = entity.get<Toast>();
             toast->elapsed = 0.0f;
-            toast->startPosition.x = asteroidTransform->position.x * 20.0f;
+            toast->startPosition.x = asteroidTransform->position.x * 240.0f / 15.2f;
+
+            switch (_saveManager.getHandedness()) {
+            case SaveManager::Handedness::Right:
+              toast->startPosition.x -= 1.6f * 240.0f / 15.2f;
+              break;
+            case SaveManager::Handedness::Left:
+              toast->startPosition.x += 1.6f * 240.0f / 15.2f;
+              break;
+            }
 
             auto text = entity.get<Text>();
             text->feature->text = "+" + std::to_string(asteroid->points);

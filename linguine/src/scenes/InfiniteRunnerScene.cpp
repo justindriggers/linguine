@@ -1,7 +1,6 @@
 #include "InfiniteRunnerScene.h"
 
 #include "components/Ability.h"
-#include "components/AbilityLabel.h"
 #include "components/Alive.h"
 #include "components/Attachment.h"
 #include "components/CameraFixture.h"
@@ -11,6 +10,7 @@
 #include "components/Drawable.h"
 #include "components/Emitter.h"
 #include "components/Fire.h"
+#include "components/Follow.h"
 #include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Health.h"
@@ -68,7 +68,7 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
-  registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
   registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
   registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>(), get<SaveManager>(), get<ServiceLocator>()));
   registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
@@ -80,7 +80,7 @@ void InfiniteRunnerScene::init() {
 
   // Scene-specific
   registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>()));
-  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>()));
+  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
   registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
@@ -98,15 +98,26 @@ void InfiniteRunnerScene::init() {
     auto cameraEntity = createEntity();
     cameraEntity->add<Shake>();
 
+    auto follow = cameraEntity->add<Follow>();
+
+    switch (saveManager.getHandedness()) {
+    case SaveManager::Handedness::Right:
+      follow->offset = { 1.6f, 1.81578947368421f };
+      break;
+    case SaveManager::Handedness::Left:
+      follow->offset = { -1.6f, 1.81578947368421f };
+      break;
+    }
+
     auto transform = cameraEntity->add<Transform>();
     transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
 
     cameraEntity->add<PhysicalState>();
-    cameraEntity->add<CircleCollider>()->radius = 20.0f;
+    cameraEntity->add<CircleCollider>()->radius = 40.0f;
     cameraEntity->add<Trigger>();
 
     auto fixture = cameraEntity->add<CameraFixture>();
-    fixture->size = 12.0f;
+    fixture->size = 15.2f;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
     fixture->camera->clearColor = { 0.007f, 0.01521f, 0.04667f };
@@ -119,20 +130,18 @@ void InfiniteRunnerScene::init() {
 
       auto spawnPoint = spawnPointEntity->add<SpawnPoint>();
       spawnPoint->distance = 6.25f;
-      spawnPoint->lastSpawnPoint = 10.0f;
+      spawnPoint->lastSpawnPoint = 20.0f;
       spawnPoint->spawnChance = 0.85f;
 
       auto starSpawnPoint = spawnPointEntity->add<StarSpawnPoint>();
-      starSpawnPoint->lastSpawnPoint = -15.0f;
+      starSpawnPoint->lastSpawnPoint = -20.0f;
 
-      auto spawnPointTransform = spawnPointEntity->add<Transform>();
-      spawnPointTransform->position = { 0.0f, 15.0f, 0.0f };
-
-      spawnPointEntity->add<PhysicalState>(spawnPointTransform->position, 0.0f);
+      spawnPointEntity->add<Transform>();
+      spawnPointEntity->add<PhysicalState>();
 
       auto attachment = spawnPointEntity->add<Attachment>();
       attachment->parentId = cameraEntity->getId();
-      attachment->offset = { 0.0f, 15.0f };
+      attachment->offset = { 0.0f, 20.0f };
     }
   }
 
@@ -155,6 +164,7 @@ void InfiniteRunnerScene::init() {
 
   auto points = saveManager.getPoints();
   auto level = LevelCurve::getLevelForXp(points);
+  auto shieldCount = _upgradeDatabase.getRankByLevel(0, level);
 
   {
     auto playerEntity = createEntity();
@@ -274,6 +284,7 @@ void InfiniteRunnerScene::init() {
         auto particleEntity = createEntity();
 
         auto particle = particleEntity->add<Particle>();
+        particle->scalePerSecond = -0.35f;
         particle->duration = 5.0f;
 
         auto playerTransform = playerEntity->get<Transform>();
@@ -356,7 +367,7 @@ void InfiniteRunnerScene::init() {
 
     auto party = playerEntity->add<Party>();
 
-    for (auto i = 0; i < _upgradeDatabase.getRankByLevel(0, level); ++i) {
+    for (auto i = 0; i < shieldCount; ++i) {
       auto shieldEntity = createEntity();
 
       shieldEntity->add<Health>(1000 + 250 * _upgradeDatabase.getRankByLevel(1, level));
@@ -371,8 +382,17 @@ void InfiniteRunnerScene::init() {
     auto textEntity = createEntity();
 
     auto transform = textEntity->add<Transform>();
-    transform->position = { -15.0f, -156.0f, 0.0f };
+    transform->position = { 0.0f, (static_cast<float>(shieldCount) / 2.0f - static_cast<float>(shieldCount - 1) - 0.5f) * 46.0f - 51.0f, 0.0f };
     transform->scale = { 5.0f, 5.0f, 0.0f };
+
+    switch (saveManager.getHandedness()) {
+    case SaveManager::Handedness::Right:
+      transform->position.x = 77.0f;
+      break;
+    case SaveManager::Handedness::Left:
+      transform->position.x = -107.0f;
+      break;
+    }
 
     auto text = textEntity->add<Text>();
     text->feature = new TextFeature();
@@ -389,35 +409,28 @@ void InfiniteRunnerScene::init() {
     healEntity->add<Ability>(_spellDatabase->getSpellById(1));
 
     auto transform = healEntity->add<Transform>();
-    transform->position = { 0.0f, -96.0f, 0.0f};
-    transform->scale = { 224.0f, 12.0f, 0.0f };
+    transform->position = { 0.0f, -23.0f, 0.0f};
+    transform->rotation = glm::angleAxis(glm::pi<float>() / 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    transform->scale = { static_cast<float>(shieldCount) * 40.0f + static_cast<float>(shieldCount - 1) * 6.0f, 4.0f, 0.0f };
+
+    switch (saveManager.getHandedness()) {
+    case SaveManager::Handedness::Right:
+      transform->position.x = 118.0f;
+      break;
+    case SaveManager::Handedness::Left:
+      transform->position.x = -118.0f;
+      break;
+    }
 
     auto progressable = healEntity->add<Progressable>();
     progressable->feature = new ProgressFeature();
     progressable->feature->meshType = Quad;
     progressable->feature->color = { 0.0f, 1.0f, 0.0f };
+    progressable->feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f };
     progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
     progressable.setRemovalListener([progressable](const Entity e) {
       progressable->renderable->destroy();
     });
-
-    // Text
-    {
-      auto textEntity = createEntity();
-      textEntity->add<AbilityLabel>()->abilityId = healEntity->getId();
-
-      auto textTransform = textEntity->add<Transform>();
-      textTransform->position.x = -109.0f;
-      textTransform->position.y = -80.0f;
-      textTransform->scale = { 5.0f, 5.0f, 0.0f };
-
-      auto text = textEntity->add<Text>();
-      text->feature = new TextFeature();
-      text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-      text.setRemovalListener([text](const Entity e) {
-        text->renderable->destroy();
-      });
-    }
   }
 
   {
@@ -440,7 +453,7 @@ void InfiniteRunnerScene::init() {
     scoreEntity->add<Score>();
 
     auto transform = scoreEntity->add<Transform>();
-    transform->position = { -102.0f, 150.0f, 0.0f };
+    transform->position = { -102.0f, 148.0f, 0.0f };
     transform->scale = glm::vec3(20.0f);
 
     auto text = scoreEntity->add<Text>();
@@ -456,7 +469,7 @@ void InfiniteRunnerScene::init() {
     toastEntity->add<Transform>();
 
     auto toast = toastEntity->add<Toast>();
-    toast->startPosition = { 0.0f, 48.0f, 0.0f };
+    toast->startPosition = { 0.0f, 1.81578947368421f * 240.0f / 15.2f, 0.0f };
 
     auto text = toastEntity->add<Text>();
     text->feature = new TextFeature();

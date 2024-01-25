@@ -1,7 +1,6 @@
 #include "HudSystem.h"
 
 #include "components/Ability.h"
-#include "components/AbilityLabel.h"
 #include "components/GameOver.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
@@ -9,7 +8,6 @@
 #include "components/Player.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
-#include "components/Text.h"
 #include "components/Transform.h"
 
 namespace linguine {
@@ -44,7 +42,6 @@ void HudSystem::update(float deltaTime) {
 
         auto healthTransform = healthEntity->add<Transform>();
         healthTransform->scale = glm::vec3(40.0f, 40.0f, 0.0f);
-        healthTransform->rotation = glm::angleAxis(glm::pi<float>() / 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 
         auto healthProgressable = healthEntity->add<Progressable>();
         healthProgressable->feature = new ProgressFeature();
@@ -74,34 +71,32 @@ void HudSystem::update(float deltaTime) {
       healthBar->entityId = memberEntity->getId();
 
       auto healthTransform = healthBarEntity->get<Transform>();
-      healthTransform->position = glm::vec3((-static_cast<float>(count) / 2.0f + static_cast<float>(i) + 0.5f) * 46.0f, -128.0f, 5.0f);
+      healthTransform->position = glm::vec3(0.0f, (static_cast<float>(count) / 2.0f - static_cast<float>(i) - 0.5f) * 46.0f - 23.0f, 5.0f);
+
+      switch (_saveManager.getHandedness()) {
+      case SaveManager::Handedness::Right:
+        healthTransform->position.x = 92.0f;
+        break;
+      case SaveManager::Handedness::Left:
+        healthTransform->position.x = -92.0f;
+        break;
+      }
     }
   });
 
-  findEntities<Text, AbilityLabel>()->each([this](const Entity& entity) {
-    auto text = entity.get<Text>();
-
+  findEntities<Ability, Progressable>()->each([this](const Entity& entity) {
     auto isGameOver = false;
 
     findEntities<Player>()->each([&isGameOver](const Entity& playerEntity) {
       isGameOver = playerEntity.has<GameOver>();
     });
 
-    auto abilityLabel = entity.get<AbilityLabel>();
-    auto abilityEntity = getEntityById(abilityLabel->abilityId);
-    auto progressable = abilityEntity->get<Progressable>();
+    auto progressable = entity.get<Progressable>();
 
     if (isGameOver) {
-      text->feature->text = "Signal Lost...";
       progressable->feature->color = { 1.0f, 0.0f, 0.0f };
     } else {
-      auto ability = abilityEntity->get<Ability>();
-
-      if (ability->remainingCooldown > 0.0f) {
-        text->feature->text = "Recharging";
-      } else {
-        text->feature->text = "Ready";
-      }
+      auto ability = entity.get<Ability>();
 
       auto progress = 1.0f - ability->remainingCooldown / ability->spell.cooldown;
       auto red = 1.0f - (progress > 0.5 ? (progress - 0.5f) * 2.0f : 0.0f);

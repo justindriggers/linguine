@@ -18,6 +18,7 @@ class MacSaveManager : public SaveManager {
       _isMusicEnabled = true;
       _isSoundEffectsEnabled = true;
       _isScreenShakeEnabled = true;
+      _handedness = Handedness::Right;
     }
 
     void save() override {}

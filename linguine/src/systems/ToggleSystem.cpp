@@ -23,7 +23,12 @@ void ToggleSystem::update(float deltaTime) {
       onButton->clickHandler = [this, toggleEntityId]() {
         auto toggleEntity = getEntityById(toggleEntityId);
         auto toggle = toggleEntity->get<Toggle>();
-        toggle->isEnabled = !toggle->isEnabled;
+
+        if (toggle->stickySelection) {
+          toggle->isEnabled = true;
+        } else {
+          toggle->isEnabled = !toggle->isEnabled;
+        }
 
         toggle->toggleHandler(toggle->isEnabled);
       };
@@ -33,7 +38,18 @@ void ToggleSystem::update(float deltaTime) {
       toggleMetadata->offButtonEntityId = offButtonEntityId;
 
       auto offButton = offButtonEntity->add<Button>();
-      offButton->clickHandler = onButton->clickHandler;
+      offButton->clickHandler = [this, toggleEntityId]() {
+        auto toggleEntity = getEntityById(toggleEntityId);
+        auto toggle = toggleEntity->get<Toggle>();
+
+        if (toggle->stickySelection) {
+          toggle->isEnabled = false;
+        } else {
+          toggle->isEnabled = !toggle->isEnabled;
+        }
+
+        toggle->toggleHandler(toggle->isEnabled);
+      };
     }
 
     auto toggleMetadata = entity.get<ToggleMetadata>();

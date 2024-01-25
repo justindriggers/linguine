@@ -3,7 +3,7 @@
 namespace linguine {
 
 struct StarSpawnPoint {
-  float distance = 1.2f;
+  float distance = 2.0f;
   float lastSpawnPoint = 0.0f;
 };
 

@@ -9,7 +9,8 @@ IosSaveManager::IosSaveManager() : SaveManager() {
     @"points" : @0,
     @"music" : @TRUE,
     @"sfx" : @TRUE,
-    @"shake" : @TRUE
+    @"shake" : @TRUE,
+    @"handedness" : @0
   };
 
   [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
@@ -29,6 +30,7 @@ void IosSaveManager::load() {
   _isMusicEnabled = [values[@"music"] boolValue];
   _isSoundEffectsEnabled = [values[@"sfx"] boolValue];
   _isScreenShakeEnabled = [values[@"shake"] boolValue];
+  _handedness = [values[@"handedness"] intValue] == 0 ? SaveManager::Handedness::Right : SaveManager::Handedness::Left;
 }
 
 void IosSaveManager::save() {
@@ -36,7 +38,8 @@ void IosSaveManager::save() {
     @"points" : [NSNumber numberWithInt:getPoints()],
     @"music" : [NSNumber numberWithBool:isMusicEnabled()],
     @"sfx" : [NSNumber numberWithBool:isSoundEffectsEnabled()],
-    @"shake" : [NSNumber numberWithBool:isScreenShakeEnabled()]
+    @"shake" : [NSNumber numberWithBool:isScreenShakeEnabled()],
+    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1]
   };
 
   [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:values];

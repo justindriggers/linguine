@@ -19,6 +19,7 @@ add_library(linguine
         src/renderer/features/FeatureRenderer.cpp
         src/scenes/GameOverScene.cpp
         src/scenes/InfiniteRunnerScene.cpp
+        src/scenes/NewPlayerScene.cpp
         src/scenes/OptionsScene.cpp
         src/scenes/TitleScene.cpp
         src/systems/AttachmentSystem.cpp

@@ -153,6 +153,49 @@ void OptionsScene::init() {
   }
 
   {
+    auto handednessLabel = createEntity();
+
+    auto handednessLabelTransform = handednessLabel->add<Transform>();
+    handednessLabelTransform->position = { -99.0f, -72.0f, 0.0f };
+    handednessLabelTransform->scale = glm::vec3(10.0f);
+
+    auto handednessText = handednessLabel->add<Text>();
+    handednessText->feature = new TextFeature();
+    handednessText->feature->color = Palette::White;
+    handednessText->feature->text = "Handedness";
+    handednessText->renderable = renderer.create(std::unique_ptr<TextFeature>(handednessText->feature), UI);
+    handednessText.setRemovalListener([handednessText](const Entity& e) {
+      handednessText->renderable->destroy();
+    });
+
+    auto handednessToggle = createEntity();
+
+    auto toggle = handednessToggle->add<Toggle>();
+    toggle->position = { 72.0f, -72.0f, 5.0f };
+    toggle->minSize = { 72.0f, 24.0f };
+    toggle->textSize = 8.0f;
+    toggle->offText = "L";
+    toggle->onText = "R";
+
+    switch (saveManager.getHandedness()) {
+    case SaveManager::Handedness::Left:
+      toggle->isEnabled = false;
+      break;
+    case SaveManager::Handedness::Right:
+      toggle->isEnabled = true;
+      break;
+    }
+
+    toggle->toggleHandler = [&saveManager](bool enabled) {
+      if (enabled) {
+        saveManager.setHandedness(SaveManager::Handedness::Right);
+      } else {
+        saveManager.setHandedness(SaveManager::Handedness::Left);
+      }
+    };
+  }
+
+  {
     auto backButtonEntity = createEntity();
 
     auto button = backButtonEntity->add<Button>();

@@ -6,6 +6,11 @@ namespace linguine {
 
 class SaveManager {
   public:
+    enum class Handedness {
+      Left,
+      Right
+    };
+
     SaveManager() = default;
 
     virtual ~SaveManager() = default;
@@ -55,6 +60,15 @@ class SaveManager {
       return _isScreenShakeEnabled;
     }
 
+    void setHandedness(Handedness handedness) {
+      _handedness = handedness;
+      save();
+    }
+
+    [[nodiscard]] Handedness getHandedness() const {
+      return _handedness;
+    }
+
     void restart() {
       _points = 0;
       save();
@@ -65,6 +79,7 @@ class SaveManager {
     bool _isMusicEnabled{};
     bool _isSoundEffectsEnabled{};
     bool _isScreenShakeEnabled{};
+    Handedness _handedness{};
 
     virtual void load() = 0;
 
