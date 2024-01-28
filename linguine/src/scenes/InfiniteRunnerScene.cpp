@@ -3,6 +3,7 @@
 #include "components/Ability.h"
 #include "components/Alive.h"
 #include "components/Attachment.h"
+#include "components/Boost.h"
 #include "components/CameraFixture.h"
 #include "components/Cast.h"
 #include "components/Circle.h"
@@ -20,7 +21,6 @@
 #include "components/Player.h"
 #include "components/Progressable.h"
 #include "components/Score.h"
-#include "components/Shake.h"
 #include "components/ShipPart.h"
 #include "components/SpawnPoint.h"
 #include "components/StarSpawnPoint.h"
@@ -61,11 +61,11 @@ namespace linguine {
 void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
   registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
+  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
+  registerSystem(std::make_unique<VelocitySystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), get<InputManager>(), get<AudioManager>()));
-  registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
   registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
@@ -79,7 +79,7 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), get<SaveManager>()));
 
   // Scene-specific
-  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
   registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
   registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
@@ -96,7 +96,6 @@ void InfiniteRunnerScene::init() {
 
   {
     auto cameraEntity = createEntity();
-    cameraEntity->add<Shake>();
 
     auto follow = cameraEntity->add<Follow>();
 
@@ -118,6 +117,7 @@ void InfiniteRunnerScene::init() {
 
     auto fixture = cameraEntity->add<CameraFixture>();
     fixture->size = 15.2f;
+    fixture->shake = true;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
     fixture->camera->clearColor = { 0.007f, 0.01521f, 0.04667f };
@@ -172,7 +172,7 @@ void InfiniteRunnerScene::init() {
     auto player = playerEntity->add<Player>();
     player->speed = 3.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(2, level));
     player->acceleration = 0.05f + 0.02f * static_cast<float>(_upgradeDatabase.getRankByLevel(3, level));
-    player->maxSpeed = 20.0f;
+    player->maxSpeed = 30.0f;
 
     auto transform = playerEntity->add<Transform>();
     transform->scale = glm::vec3(2.5f);
@@ -284,16 +284,13 @@ void InfiniteRunnerScene::init() {
         auto particleEntity = createEntity();
 
         auto particle = particleEntity->add<Particle>();
-        particle->scalePerSecond = -0.35f;
         particle->duration = 5.0f;
 
         auto playerTransform = playerEntity->get<Transform>();
 
-        auto randomScale = std::uniform_real_distribution(0.125f * playerTransform->scale.x, 0.25f * playerTransform->scale.x);
         auto randomX = std::uniform_real_distribution(-0.2f * playerTransform->scale.x, 0.2f * playerTransform->scale.y);
 
         auto transform = particleEntity->add<Transform>();
-        transform->scale = glm::vec3(randomScale(_random));
         transform->position = { playerTransform->position.x + randomX(_random), playerTransform->position.y - 0.45f * playerTransform->scale.y, 2.0f };
 
         particleEntity->add<PhysicalState>(transform->position, 0.0f);
@@ -301,13 +298,29 @@ void InfiniteRunnerScene::init() {
         auto velocity = particleEntity->add<Velocity>();
         velocity->velocity = { 0.0f, -3.0f };
 
-        auto randomColor = std::uniform_int_distribution(0, 1);
-
         auto circle = particleEntity->add<Circle>();
         circle->feature = new CircleFeature();
 
-        if (randomColor(_random) > 0) {
-          circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+        if (playerEntity->has<Boost>()) {
+          auto boost = playerEntity->get<Boost>();
+
+          particle->scalePerSecond = -3.0f * (boost->elapsed / boost->duration) - 1.0f;
+
+          auto randomScale = std::uniform_real_distribution((0.125f + 0.075f * (1.0f - boost->elapsed / boost->duration)) * playerTransform->scale.x, (0.25f + 0.075f * (1.0f - boost->elapsed / boost->duration)) * playerTransform->scale.x);
+          transform->scale = glm::vec3(randomScale(_random));
+
+          circle->feature->color = Palette::Orange;
+        } else {
+          particle->scalePerSecond = -0.35f;
+
+          auto randomScale = std::uniform_real_distribution(0.125f * playerTransform->scale.x, 0.25f * playerTransform->scale.x);
+          transform->scale = glm::vec3(randomScale(_random));
+
+          auto randomColor = std::uniform_int_distribution(0, 1);
+
+          if (randomColor(_random) > 0) {
+            circle->feature->color = Palette::Gray;
+          }
         }
 
         circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));

@@ -13,6 +13,7 @@ struct CameraFixture {
   float size = 15.0f;
   Measurement type = Measurement::Height;
   float speed = 1.0f;
+  bool shake = false;
   Camera* camera;
 };
 

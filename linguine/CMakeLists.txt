@@ -5,6 +5,7 @@ add_library(linguine
         src/data/spells/actions/Explosion.cpp
         src/data/spells/actions/MassHeal.cpp
         src/data/spells/actions/ModifyHealth.cpp
+        src/data/spells/actions/Revive.cpp
         src/data/spells/effects/Effect.cpp
         src/data/spells/effects/ModifyHealthOverTime.cpp
         src/entity/archetype/Archetype.cpp

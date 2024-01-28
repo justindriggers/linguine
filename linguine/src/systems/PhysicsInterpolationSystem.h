@@ -18,8 +18,6 @@ class PhysicsInterpolationSystem : public System {
 
   private:
     TimeManager& _timeManager;
-
-    float _timeSinceLastFixedUpdate = 0.0f;
 };
 
 }  // namespace linguine

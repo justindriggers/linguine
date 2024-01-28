@@ -3,7 +3,7 @@
 #include "components/Alive.h"
 #include "components/Asteroid.h"
 #include "components/Bomb.h"
-#include "components/CameraFixture.h"
+#include "components/Boost.h"
 #include "components/Circle.h"
 #include "components/Emitter.h"
 #include "components/Health.h"
@@ -15,6 +15,7 @@
 #include "components/Score.h"
 #include "components/Shake.h"
 #include "components/Text.h"
+#include "components/TimeWarp.h"
 #include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
@@ -80,11 +81,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           auto magnitude = 0.05f * static_cast<float>(asteroid->points);
 
-          findEntities<CameraFixture, Shake>()->each([magnitude](const Entity& entity) {
-            auto shake = entity.get<Shake>();
-            shake->magnitude += magnitude;
-            shake->duration += 0.5f;
-          });
+          auto shakeEntity = createEntity();
+          shakeEntity->add<Shake>(magnitude, 0.5f);
 
           auto asteroidTransform = hitEntity->get<Transform>();
 
@@ -138,14 +136,11 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           auto powerUp = hitEntity->get<PowerUp>();
           _audioManager.play(EffectType::PowerUp);
 
-          findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
-            auto shake = entity.get<Shake>();
-            shake->magnitude += 0.1f;
-            shake->duration += 0.25f;
-          });
+          auto shakeEntity = createEntity();
+          shakeEntity->add<Shake>(0.1f, 0.25f);
 
           switch (powerUp->type) {
-          case PowerUp::MassHeal:
+          case PowerUp::Type::MassHeal: {
             _spellDatabase.getSpellById(2).action->execute(playerEntity);
 
             auto powerUpTransform = hitEntity->get<Transform>();
@@ -177,17 +172,44 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
             }
             break;
           }
+          case PowerUp::Type::Revive: {
+            _spellDatabase.getSpellById(4).action->execute(playerEntity);
+            break;
+          }
+          case PowerUp::Type::SpeedBoost: {
+            auto duration = 4.0f;
+
+            findEntities<Player>()->each([duration](Entity& entity) {
+              if (entity.has<Boost>()) {
+                auto boost = entity.get<Boost>();
+                boost->magnitude = 10.0f;
+                boost->duration += duration;
+              } else {
+                auto boost = entity.add<Boost>();
+                boost->magnitude = 10.0f;
+                boost->duration = duration;
+              }
+            });
+
+            auto boostShakeEntity = createEntity();
+            boostShakeEntity->add<Shake>(0.15f, duration);
+
+            break;
+          }
+          case PowerUp::Type::TimeWarp: {
+            auto timeWarpEntity = createEntity();
+            timeWarpEntity->add<TimeWarp>(0.5f, 1.0f);
+            break;
+          }
+          }
 
           hitEntity->destroy();
         } else if (hitEntity->has<Bomb>()) {
           _spellDatabase.getSpellById(3).action->execute(playerEntity);
           _audioManager.play(EffectType::Detonate);
 
-          findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
-            auto shake = entity.get<Shake>();
-            shake->magnitude += 0.5f;
-            shake->duration += 0.65f;
-          });
+          auto shakeEntity = createEntity();
+          shakeEntity->add<Shake>(0.5f, 0.65f);
 
           auto bombTransform = hitEntity->get<Transform>();
 

@@ -3,11 +3,14 @@
 namespace linguine {
 
 struct PowerUp {
-  enum Type {
-    MassHeal
+  enum class Type {
+    MassHeal,
+    Revive,
+    SpeedBoost,
+    TimeWarp
   };
 
-  Type type = MassHeal;
+  Type type = Type::SpeedBoost;
 };
 
 }  // namespace linguine

@@ -1,11 +1,14 @@
 #include "SpawnSystem.h"
 
+#include "components/Alive.h"
 #include "components/Asteroid.h"
 #include "components/Bomb.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
+#include "components/Health.h"
 #include "components/PhysicalState.h"
+#include "components/Player.h"
 #include "components/PowerUp.h"
 #include "components/SpawnPoint.h"
 #include "components/StarSpawnPoint.h"
@@ -20,6 +23,11 @@ namespace linguine {
 void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
   findEntities<SpawnPoint, PhysicalState>()->each([this, fixedDeltaTime](const Entity& entity) {
     auto spawnPoint = entity.get<SpawnPoint>();
+
+    for (auto& cooldown : spawnPoint->powerUpCooldowns) {
+      cooldown.second += fixedDeltaTime;
+    }
+
     auto physicalState = entity.get<PhysicalState>();
 
     auto isTutorial = false;
@@ -110,7 +118,7 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
         if (randomSpawn(_random) <= spawnPoint->spawnChance) {
           if (spawnPoint->powerUpElapsed >= spawnPoint->powerUpInterval) {
             spawnPoint->powerUpElapsed = 0.0f;
-            spawnPowerUp(spawnPoint->lastSpawnPoint);
+            spawnPowerUp(spawnPoint->lastSpawnPoint, spawnPoint->powerUpCooldowns);
           } else {
             if (randomSpawn(_random) < 0.65f) {
               spawnObstacles(spawnPoint->lastSpawnPoint);
@@ -134,9 +142,10 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
   });
 }
 
-void SpawnSystem::spawnPowerUp(float y) {
+void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& cooldowns) {
   auto powerUpEntity = createEntity();
-  powerUpEntity->add<PowerUp>();
+
+  auto powerUp = powerUpEntity->add<PowerUp>();
 
   auto randomX = std::uniform_int_distribution(0, 2);
 
@@ -157,14 +166,134 @@ void SpawnSystem::spawnPowerUp(float y) {
   powerUpEntity->add<CircleCollider>()->radius = 0.625f;
   powerUpEntity->add<Velocity>()->velocity = { 0.0f, -3.0f };
 
-  auto drawable = powerUpEntity->add<Drawable>();
-  drawable->feature = new ColoredFeature();
-  drawable->feature->meshType = Plus;
-  drawable->feature->color = { 0.0f, 1.0f, 0.0f };
-  drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
-  drawable.setRemovalListener([drawable](const Entity e) {
-    drawable->renderable->destroy();
-  });
+  std::unordered_map<PowerUp::Type, int> weights {};
+  auto total = 0;
+
+  // Mass Heal
+  auto massHealCooldown = cooldowns.find(2);
+
+  if (massHealCooldown == cooldowns.end() || massHealCooldown->second >= _spellDatabase.getSpellById(2).cooldown) {
+    auto weight = 0;
+
+    findEntities<Health>()->each([&weight](const Entity& entity) {
+      auto health = entity.get<Health>();
+
+      if (health->current < static_cast<int32_t>(glm::round(static_cast<float>(health->max) * 0.8f))) {
+        weight += 10;
+      }
+    });
+
+    weights[PowerUp::Type::MassHeal] = weight;
+    total += weight;
+  }
+
+  // Revive
+  auto reviveCooldown = cooldowns.find(4);
+
+  if (reviveCooldown == cooldowns.end() || reviveCooldown->second >= _spellDatabase.getSpellById(4).cooldown) {
+    auto weight = 0;
+
+    findEntities<Health>()->each([&weight](const Entity& entity) {
+      if (!entity.has<Alive>()) {
+        weight += 30;
+      }
+    });
+
+    weights[PowerUp::Type::Revive] = weight;
+    total += weight;
+  }
+
+  // Time Warp
+  {
+    auto isTravelingFast = false;
+
+    findEntities<Player>()->each([&isTravelingFast](const Entity& entity) {
+      auto player = entity.get<Player>();
+      isTravelingFast = player->speed >= 15.0f;
+    });
+
+    if (isTravelingFast) {
+      auto weight = 0;
+
+      findEntities<Health>()->each([&weight](const Entity& entity) {
+        auto health = entity.get<Health>();
+
+        if (health->current < static_cast<int32_t>(glm::round(static_cast<float>(health->max) * 0.8f))) {
+          weight += 10;
+        }
+      });
+
+      weights[PowerUp::Type::TimeWarp] = weight;
+      total += weight;
+    }
+  }
+
+  auto randomPowerUp = std::uniform_int_distribution(0, total);
+  auto roll = randomPowerUp(_random);
+
+  for (auto& option : weights) {
+    if (roll < option.second) {
+      powerUp->type = option.first;
+      break;
+    }
+
+    roll -= option.second;
+  }
+
+  switch (powerUp->type) {
+  case PowerUp::Type::MassHeal: {
+    cooldowns[2] = 0.0f;
+
+    auto drawable = powerUpEntity->add<Drawable>();
+    drawable->feature = new ColoredFeature();
+    drawable->feature->meshType = Plus;
+    drawable->feature->color = { 0.0f, 1.0f, 0.0f };
+    drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+    drawable.setRemovalListener([drawable](const Entity e) {
+      drawable->renderable->destroy();
+    });
+
+    break;
+  }
+  case PowerUp::Type::Revive: {
+    cooldowns[4] = 0.0f;
+
+    auto drawable = powerUpEntity->add<Drawable>();
+    drawable->feature = new ColoredFeature();
+    drawable->feature->meshType = Quad;
+    drawable->feature->color = { 0.0f, 0.0f, 1.0f };
+    drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+    drawable.setRemovalListener([drawable](const Entity e) {
+      drawable->renderable->destroy();
+    });
+
+    break;
+  }
+  case PowerUp::Type::SpeedBoost: {
+    auto drawable = powerUpEntity->add<Drawable>();
+    drawable->feature = new ColoredFeature();
+    drawable->feature->meshType = Quad;
+    drawable->feature->color = { 1.0f, 1.0f, 0.0f };
+    drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+    drawable.setRemovalListener([drawable](const Entity e) {
+      drawable->renderable->destroy();
+    });
+
+    break;
+  }
+  case PowerUp::Type::TimeWarp: {
+    auto drawable = powerUpEntity->add<Drawable>();
+    drawable->feature = new ColoredFeature();
+    drawable->feature->meshType = Quad;
+    drawable->feature->color = { 0.0f, 1.0f, 1.0f };
+    drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+    drawable.setRemovalListener([drawable](const Entity e) {
+      drawable->renderable->destroy();
+    });
+
+    break;
+  }
+  }
 }
 
 void SpawnSystem::spawnAsteroid(float y, int size) {

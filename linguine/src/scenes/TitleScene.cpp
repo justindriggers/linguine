@@ -46,18 +46,18 @@ namespace linguine {
 void TitleScene::init() {
   registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
   registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
-  registerSystem(std::make_unique<VelocitySystem>(getEntityManager()));
+  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
+  registerSystem(std::make_unique<VelocitySystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<DialogSystem>(getEntityManager()));
   registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
   registerSystem(std::make_unique<FooterSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
 
-  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));

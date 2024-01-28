@@ -22,7 +22,10 @@ void AttachmentSystem::fixedUpdate(float fixedDeltaTime) {
       auto offset = glm::angleAxis(parentPhysicalState->currentRotation, glm::vec3(0.0f, 0.0f, 1.0f))
                     * glm::vec3(attachment->offset, 0.0f);
 
+      physicalState->previousPosition = parentPhysicalState->previousPosition + glm::vec2(offset);
       physicalState->currentPosition = parentPhysicalState->currentPosition + glm::vec2(offset);
+
+      physicalState->previousRotation = parentPhysicalState->previousRotation;
       physicalState->currentRotation = parentPhysicalState->currentRotation;
     }
   });

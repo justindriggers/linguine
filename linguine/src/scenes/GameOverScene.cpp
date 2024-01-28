@@ -6,7 +6,6 @@
 #include "components/CameraFixture.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
-#include "components/Shake.h"
 #include "components/Text.h"
 #include "components/Toast.h"
 #include "components/Transform.h"
@@ -48,12 +47,12 @@ void GameOverScene::init() {
 
   {
     auto uiCameraEntity = createEntity();
-    uiCameraEntity->add<Shake>();
     uiCameraEntity->add<Transform>();
     uiCameraEntity->add<PhysicalState>();
 
     auto fixture = uiCameraEntity->add<CameraFixture>();
     fixture->size = 240.0f;
+    fixture->shake = true;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
     fixture->camera->clearColor = Palette::Blue;

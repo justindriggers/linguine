@@ -10,7 +10,7 @@ namespace linguine {
 void MassHeal::execute(Entity& target) {
   _entityManager.find<Health, Alive>()->each([this](const Entity& entity) {
     auto health = entity.get<Health>();
-    health->current = glm::clamp(health->current + _power, 0, health->max);
+    health->current = glm::clamp(health->current + static_cast<int32_t>(glm::round(static_cast<float>(health->max) * _power)), 0, health->max);
   });
 }
 

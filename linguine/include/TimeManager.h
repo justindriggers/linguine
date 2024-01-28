@@ -34,11 +34,12 @@ class TimeManager {
     }
 
     inline void pause() {
+      _pausedTimeScale = _timeScale;
       setTimeScale(0.0f);
     }
 
     inline void resume() {
-      setTimeScale(1.0f);
+      setTimeScale(_pausedTimeScale);
       _lastTickTime = currentTime();
       _currentTickTime = _lastTickTime;
     }
@@ -72,11 +73,16 @@ class TimeManager {
       _timeScale = timeScale;
     }
 
+    [[nodiscard]] inline float getAccumulatorProgress() const {
+      return _accumulator / _fixedDeltaTime;
+    }
+
   private:
     constexpr static float _fixedDeltaTime = 0.02f;
 
     float _accumulator = _fixedDeltaTime;
     float _timeScale = 1.0f;
+    float _pausedTimeScale = 1.0f;
 
     time_t _startTime;
     time_t _lastTickTime;

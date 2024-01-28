@@ -2,7 +2,6 @@
 
 #include "components/Alive.h"
 #include "components/Attachment.h"
-#include "components/CameraFixture.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/EffectTracker.h"
@@ -56,11 +55,8 @@ void LivenessSystem::update(float deltaTime) {
           entity.destroy();
         });
 
-        findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
-          auto shake = entity.get<Shake>();
-          shake->magnitude += 0.5f;
-          shake->duration += 1.0f;
-        });
+        auto shakeEntity = createEntity();
+        shakeEntity->add<Shake>(0.5f, 1.0f);
 
         auto emitterEntity = createEntity();
         auto emitterEntityId = emitterEntity->getId();

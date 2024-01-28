@@ -14,7 +14,11 @@ void CameraFollowSystem::fixedUpdate(float fixedDeltaTime) {
 
       findEntities<Player, PhysicalState>()->each([cameraState, follow](const Entity& playerEntity) {
         auto playerState = playerEntity.get<PhysicalState>();
+
+        cameraState->previousPosition.x = follow->offset.x;
         cameraState->currentPosition.x = follow->offset.x;
+
+        cameraState->previousPosition.y = playerState->previousPosition.y + follow->offset.y;
         cameraState->currentPosition.y = playerState->currentPosition.y + follow->offset.y;
     });
   });

@@ -8,7 +8,7 @@ namespace linguine {
 
 class MassHeal : public Action {
   public:
-    MassHeal(EntityManager& entityManager, int32_t power)
+    MassHeal(EntityManager& entityManager, float power)
         : _entityManager(entityManager), _power(power) {}
 
     ~MassHeal() override = default;
@@ -17,7 +17,7 @@ class MassHeal : public Action {
 
   private:
     EntityManager& _entityManager;
-    int32_t _power;
+    float _power;
 };
 
 }  // namespace linguine

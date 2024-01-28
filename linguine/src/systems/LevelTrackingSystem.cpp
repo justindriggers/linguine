@@ -2,7 +2,6 @@
 
 #include <glm/gtx/compatibility.hpp>
 
-#include "components/CameraFixture.h"
 #include "components/Progressable.h"
 #include "components/Shake.h"
 #include "components/Text.h"
@@ -99,11 +98,8 @@ void LevelTrackingSystem::update(float deltaTime) {
         text->feature->text = _upgradeDatabase.getDescriptionByLevel(currentLevel);
       });
 
-      findEntities<CameraFixture, Shake>()->each([](const Entity& entity) {
-        auto shake = entity.get<Shake>();
-        shake->magnitude += 8.0f;
-        shake->duration += 0.5f;
-      });
+      auto shakeEntity = createEntity();
+      shakeEntity->add<Shake>(0.5f, 8.0f);
     }
   });
 }
