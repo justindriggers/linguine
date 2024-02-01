@@ -50,8 +50,8 @@ class Scene {
 
   private:
     ServiceLocator& _serviceLocator;
-    std::unique_ptr<EntityManager> _entityManager;
     std::vector<std::unique_ptr<System>> _systems;
+    std::unique_ptr<EntityManager> _entityManager;
 };
 
 }  // namespace linguine

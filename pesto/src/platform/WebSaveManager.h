@@ -14,11 +14,12 @@ class WebSaveManager : public SaveManager {
 
   protected:
     void load() override {
-      _points = 0;
+      _level = 1;
       _isMusicEnabled = true;
       _isSoundEffectsEnabled = true;
       _isScreenShakeEnabled = true;
       _handedness = Handedness::Right;
+      _stars = {};
     }
 
     void save() override {}

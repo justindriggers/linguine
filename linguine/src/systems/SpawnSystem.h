@@ -4,6 +4,7 @@
 
 #include <random>
 
+#include "components/SpawnPoint.h"
 #include "data/spells/SpellDatabase.h"
 #include "renderer/Renderer.h"
 
@@ -26,11 +27,11 @@ class SpawnSystem : public System {
     Renderer& _renderer;
     SpellDatabase& _spellDatabase;
 
-    void spawnPowerUp(float y, std::unordered_map<uint64_t, float>& cooldowns);
+    bool spawnPowerUp(Component<SpawnPoint>& point);
 
     void spawnAsteroid(float y, int size = 0);
 
-    void spawnObstacles(float y);
+    void spawnObstacle(float x, float y);
 
     void spawnStars(float y);
 
@@ -41,6 +42,8 @@ class SpawnSystem : public System {
     void spawnHealingText(float y);
 
     void spawnEvasionText(float y);
+
+    void spawnFinishLine(float y);
 };
 
 }  // namespace linguine

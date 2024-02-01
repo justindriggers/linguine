@@ -20,15 +20,20 @@ add_library(linguine
         src/renderer/features/FeatureRenderer.cpp
         src/scenes/GameOverScene.cpp
         src/scenes/InfiniteRunnerScene.cpp
+        src/scenes/LevelCompletedScene.cpp
+        src/scenes/LevelSelectionScene.cpp
         src/scenes/NewPlayerScene.cpp
         src/scenes/OptionsScene.cpp
         src/scenes/TitleScene.cpp
+        src/scenes/levels/LevelNineScene.cpp
+        src/scenes/levels/RunnerScene.cpp
         src/systems/AttachmentSystem.cpp
         src/systems/ButtonSystem.cpp
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
         src/systems/CastSystem.cpp
         src/systems/CollisionSystem.cpp
+        src/systems/CompletionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
         src/systems/DialogSystem.cpp
         src/systems/DirectionalMovementSystem.cpp
@@ -45,7 +50,6 @@ add_library(linguine
         src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
         src/systems/HudSystem.cpp
-        src/systems/LevelTrackingSystem.cpp
         src/systems/LivenessSystem.cpp
         src/systems/OrbitSystem.cpp
         src/systems/ParticleSystem.cpp

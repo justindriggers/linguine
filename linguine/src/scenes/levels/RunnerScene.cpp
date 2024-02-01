@@ -1,4 +1,4 @@
-#include "InfiniteRunnerScene.h"
+#include "RunnerScene.h"
 
 #include "components/Ability.h"
 #include "components/Alive.h"
@@ -28,7 +28,6 @@
 #include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
-#include "components/TutorialState.h"
 #include "components/Velocity.h"
 #include "data/Palette.h"
 #include "systems/AttachmentSystem.h"
@@ -36,8 +35,9 @@
 #include "systems/CameraSystem.h"
 #include "systems/CastSystem.h"
 #include "systems/CollisionSystem.h"
+#include "systems/CompletionSystem.h"
 #include "systems/CooldownProgressSystem.h"
-#include "systems/EffectSystem.h"
+#include "systems/EventSystem.h"
 #include "systems/FireSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
@@ -52,12 +52,11 @@
 #include "systems/SpawnSystem.h"
 #include "systems/ToastSystem.h"
 #include "systems/TransformationSystem.h"
-#include "systems/TutorialSystem.h"
 #include "systems/VelocitySystem.h"
 
 namespace linguine {
 
-void InfiniteRunnerScene::init() {
+void RunnerScene::init() {
   registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
   registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
   registerSystem(std::make_unique<PhysicsInterpolationSystem>(getEntityManager(), get<TimeManager>()));
@@ -66,32 +65,27 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
-  registerSystem(std::make_unique<EffectSystem>(getEntityManager(), *_spellDatabase));
   registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
   registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
   registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>(), get<SaveManager>(), get<ServiceLocator>()));
+  registerSystem(std::make_unique<CompletionSystem>(getEntityManager(), get<ServiceLocator>()));
   registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
   registerSystem(std::make_unique<CastSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
   registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
   registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), get<SaveManager>()));
+  registerSystem(std::make_unique<EventSystem>(getEntityManager()));
 
   // Scene-specific
   registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
   registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
-  registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
   auto& renderer = get<Renderer>();
   auto& saveManager = get<SaveManager>();
-
-  if (saveManager.isNewPlayer()) {
-    auto tutorialEntity = createEntity();
-    tutorialEntity->add<TutorialState>();
-  }
 
   {
     auto cameraEntity = createEntity();
@@ -119,7 +113,7 @@ void InfiniteRunnerScene::init() {
     fixture->shake = true;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
-    fixture->camera->clearColor = { 0.007f, 0.01521f, 0.04667f };
+    fixture->camera->clearColor = Palette::Blue;
     fixture.setRemovalListener([fixture](const Entity& e) {
       fixture->camera->destroy();
     });
@@ -130,7 +124,15 @@ void InfiniteRunnerScene::init() {
       auto spawnPoint = spawnPointEntity->add<SpawnPoint>();
       spawnPoint->distance = 6.25f;
       spawnPoint->lastSpawnPoint = 20.0f;
-      spawnPoint->spawnChance = 0.85f;
+      spawnPoint->spawnChance = _config.spawnChance;
+      spawnPoint->obstacleSpawnChance = _config.obstacleSpawnChance;
+      spawnPoint->wallSpawnChance = _config.wallSpawnChance;
+      spawnPoint->requiredDistance = _config.requiredDistance;
+      spawnPoint->powerUpInterval = _config.powerUpInterval;
+      spawnPoint->speedBoostEnabled = _config.speedBoostEnabled;
+      spawnPoint->regenEnabled = _config.regenEnabled;
+      spawnPoint->reviveEnabled = _config.reviveEnabled;
+      spawnPoint->timeWarpEnabled = _config.timeWarpEnabled;
 
       auto starSpawnPoint = spawnPointEntity->add<StarSpawnPoint>();
       starSpawnPoint->lastSpawnPoint = -20.0f;
@@ -222,7 +224,7 @@ void InfiniteRunnerScene::init() {
       auto wingDrawable = wingEntity->add<Drawable>();
       wingDrawable->feature = new ColoredFeature();
       wingDrawable->feature->meshType = Wing;
-      wingDrawable->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+      wingDrawable->feature->color = Palette::Gray;
       wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature));
       wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
         wingDrawable->renderable->destroy();
@@ -245,7 +247,7 @@ void InfiniteRunnerScene::init() {
       auto cockpitDrawable = cockpitEntity->add<Drawable>();
       cockpitDrawable->feature = new ColoredFeature();
       cockpitDrawable->feature->meshType = Cockpit;
-      cockpitDrawable->feature->color = { 0.007f, 0.01521f, 0.04667f };
+      cockpitDrawable->feature->color = Palette::Blue;
       cockpitDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(cockpitDrawable->feature));
       cockpitDrawable.setRemovalListener([cockpitDrawable](const Entity e) {
         cockpitDrawable->renderable->destroy();
@@ -268,7 +270,7 @@ void InfiniteRunnerScene::init() {
       auto boosterDrawable = boosterEntity->add<Drawable>();
       boosterDrawable->feature = new ColoredFeature();
       boosterDrawable->feature->meshType = Booster;
-      boosterDrawable->feature->color = { 0.0f, 0.0f, 0.0f };
+      boosterDrawable->feature->color = Palette::Black;
       boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature));
       boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
         boosterDrawable->renderable->destroy();
@@ -345,7 +347,7 @@ void InfiniteRunnerScene::init() {
 
       auto circle = engineFireEntity->add<Circle>();
       circle->feature = new CircleFeature();
-      circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+      circle->feature->color = Palette::Orange;
       circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
       circle.setRemovalListener([circle](const Entity e) {
         circle->renderable->destroy();
@@ -369,7 +371,7 @@ void InfiniteRunnerScene::init() {
 
       auto circle = engineFireEntity->add<Circle>();
       circle->feature = new CircleFeature();
-      circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+      circle->feature->color = Palette::Orange;
       circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
       circle.setRemovalListener([circle](const Entity e) {
         circle->renderable->destroy();
@@ -461,7 +463,8 @@ void InfiniteRunnerScene::init() {
   {
     auto scoreEntity = createEntity();
 
-    scoreEntity->add<Score>();
+    auto score = scoreEntity->add<Score>();
+    score->level = _config.level;
 
     auto transform = scoreEntity->add<Transform>();
     transform->position = { -102.0f, 148.0f, 0.0f };
@@ -493,7 +496,10 @@ void InfiniteRunnerScene::init() {
   }
 
   auto& audioManager = get<AudioManager>();
-  audioManager.play(SongType::Theme, Mode::Repeat);
+
+  if (audioManager.getCurrentSongType() != SongType::Theme) {
+    audioManager.play(SongType::Theme, Mode::Repeat);
+  }
 }
 
 }  // namespace linguine

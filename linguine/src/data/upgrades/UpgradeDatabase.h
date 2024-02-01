@@ -10,10 +10,10 @@ class UpgradeDatabase {
   public:
     UpgradeDatabase()
         : _upgrades {
-              { 0, { "Shield Generators", "+1 Shield", { 1, 2, 4, 8, 12 } } },
-              { 1, { "Generator Capacity", "+1 Durability", { 3, 7, 11, 15, 18 } } },
-              { 2, { "Base Speed", "+1 Speed", { 5, 9, 13, 16, 19 } } },
-              { 3, { "Ship Acceleration", "+1 Acceleration", { 6, 10, 14, 17, 20 } } }
+              { 0, { "Shield Generators", "+1 Shield", { 1, 2, 3, 4, 5 } } },
+              { 1, { "Generator Capacity", "+1 Durability", { 3, 7, 10, 13, 16 } } },
+              { 2, { "Base Speed", "+1 Speed", { 5, 8, 11, 14, 17 } } },
+              { 3, { "Ship Acceleration", "+1 Acceleration", { 6, 9, 12, 15, 18 } } }
           } {}
 
     [[nodiscard]] const std::map<uint8_t, Upgrade>& getUpgrades() const {
@@ -40,16 +40,21 @@ class UpgradeDatabase {
       return rank;
     }
 
-    [[nodiscard]] const std::string& getDescriptionByLevel(uint8_t level) const {
+    [[nodiscard]] std::vector<std::string_view> getDescriptionsByLevel(uint8_t level) const {
+      auto results = std::vector<std::string_view>();
+
       for (auto& upgrade : _upgrades) {
         for (auto rankLevel : upgrade.second.rankLevels) {
           if (rankLevel == level) {
-            return upgrade.second.description;
+            results.push_back(upgrade.second.description);
+            break;
+          } else if (rankLevel > level) {
+            break;
           }
         }
       }
 
-      throw std::runtime_error("No description found");
+      return results;
     }
 
   private:

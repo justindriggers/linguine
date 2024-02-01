@@ -17,6 +17,11 @@ void ButtonSystem::update(float deltaTime) {
 
     if (!entity.has<ButtonMetadata>()) {
       auto buttonMetadata = entity.add<ButtonMetadata>();
+      buttonMetadata.setRemovalListener([this, buttonMetadata](const Entity& e) {
+        auto textEntity = getEntityById(buttonMetadata->textEntityId);
+        textEntity->destroy();
+      });
+
       entity.add<Transform>();
 
       auto drawable = entity.add<Drawable>();
@@ -59,7 +64,7 @@ void ButtonSystem::update(float deltaTime) {
     auto drawable = entity.get<Drawable>();
     drawable->renderable->setEnabled(button->visible);
 
-    if (entity.has<Pressed>()) {
+    if (button->enabled && entity.has<Pressed>()) {
       auto pressed = entity.get<Pressed>();
 
       if (pressed->isFirstFrame) {
@@ -85,7 +90,7 @@ void ButtonSystem::update(float deltaTime) {
     text->feature->color = button->textColor;
     text->renderable->setEnabled(button->visible);
 
-    if (entity.has<Tapped>()) {
+    if (button->enabled && entity.has<Tapped>()) {
       button->clickHandler();
       _audioManager.play(EffectType::ButtonUp);
     }

@@ -16,6 +16,12 @@ void HealthProgressSystem::update(float deltaTime) {
         0.0f,
         1.0f
     );
+
+    if (feature->progress > 0.0f) {
+      feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+    } else {
+      feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+    }
   });
 
   findEntities<HealthBar, Progressable>()->each([this](Entity& healthBarEntity) {
@@ -31,6 +37,12 @@ void HealthProgressSystem::update(float deltaTime) {
           0.0f,
           1.0f
       );
+
+      if (feature->progress > 0.0f) {
+        feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+      } else {
+        feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+      }
     } else {
       feature->progress = 0.0f;
     }

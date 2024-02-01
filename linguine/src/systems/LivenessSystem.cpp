@@ -125,7 +125,7 @@ void LivenessSystem::update(float deltaTime) {
       if (gameOver->elapsed >= gameOver->duration) {
         findEntities<Score>()->each([this](const Entity& entity) {
           auto score = entity.get<Score>();
-          _serviceLocator.get<SceneManager>().load(std::make_unique<GameOverScene>(_serviceLocator, score->points));
+          _serviceLocator.get<SceneManager>().load(std::make_unique<GameOverScene>(_serviceLocator, score->level));
         });
       }
     });

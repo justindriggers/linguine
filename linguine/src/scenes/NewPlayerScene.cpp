@@ -1,6 +1,5 @@
 #include "NewPlayerScene.h"
 
-#include "InfiniteRunnerScene.h"
 #include "components/Button.h"
 #include "components/CameraFixture.h"
 #include "components/Dialog.h"
@@ -21,7 +20,6 @@ namespace linguine {
 
 void NewPlayerScene::init() {
   auto& saveManager = get<SaveManager>();
-  auto& sceneManager = get<SceneManager>();
   auto& serviceLocator = get<ServiceLocator>();
 
   registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
@@ -162,8 +160,8 @@ void NewPlayerScene::init() {
       continueButton->minSize = { 200.0f, 32.0f };
       continueButton->text = "Continue";
       continueButton->textSize = 8.0f;
-      continueButton->clickHandler = [&sceneManager, &serviceLocator]() {
-        sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
+      continueButton->clickHandler = [this, &serviceLocator]() {
+        _levelDatabase.load(serviceLocator, 1);
       };
     }
 

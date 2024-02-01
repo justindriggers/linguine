@@ -3,13 +3,16 @@
 #include "components/Alive.h"
 #include "components/Asteroid.h"
 #include "components/Bomb.h"
+#include "components/BoxCollider.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
+#include "components/FinishLine.h"
 #include "components/Health.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
 #include "components/PowerUp.h"
+#include "components/Score.h"
 #include "components/SpawnPoint.h"
 #include "components/StarSpawnPoint.h"
 #include "components/Text.h"
@@ -110,18 +113,43 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
     if (!isTutorial) {
       spawnPoint->powerUpElapsed += fixedDeltaTime;
 
-      while (physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
+      if (spawnPoint->spawnChance > 0.0f && physicalState->currentPosition.y >= spawnPoint->requiredDistance) {
+        spawnFinishLine(spawnPoint->requiredDistance);
+        spawnPoint->spawnChance = 0.0f;
+      }
+
+      while (spawnPoint->spawnChance > 0.0f && physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
         spawnPoint->lastSpawnPoint += spawnPoint->distance;
 
         auto randomSpawn = std::uniform_real_distribution(0.0f, 1.0f);
 
         if (randomSpawn(_random) <= spawnPoint->spawnChance) {
-          if (spawnPoint->powerUpElapsed >= spawnPoint->powerUpInterval) {
+          if (spawnPoint->powerUpElapsed >= spawnPoint->powerUpInterval
+              && spawnPowerUp(spawnPoint)) {
             spawnPoint->powerUpElapsed = 0.0f;
-            spawnPowerUp(spawnPoint->lastSpawnPoint, spawnPoint->powerUpCooldowns);
           } else {
-            if (randomSpawn(_random) < 0.65f) {
-              spawnObstacles(spawnPoint->lastSpawnPoint);
+            if (randomSpawn(_random) < spawnPoint->obstacleSpawnChance) {
+              if (randomSpawn(_random) < spawnPoint->wallSpawnChance) {
+                spawnObstacle(-4.0f, spawnPoint->lastSpawnPoint);
+                spawnObstacle(0.0f, spawnPoint->lastSpawnPoint);
+                spawnObstacle(4.0f, spawnPoint->lastSpawnPoint);
+              } else {
+                auto randomX = std::uniform_int_distribution(0, 2);
+                auto x = 0.0f;
+
+                switch (randomX(_random)) {
+                case 0:
+                  x -= 4.0f;
+                  break;
+                case 2:
+                  x += 4.0f;
+                  break;
+                default:
+                  break;
+                }
+
+                spawnObstacle(x, spawnPoint->lastSpawnPoint);
+              }
             } else {
               spawnAsteroid(spawnPoint->lastSpawnPoint);
             }
@@ -142,69 +170,58 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
   });
 }
 
-void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& cooldowns) {
-  auto powerUpEntity = createEntity();
-
-  auto powerUp = powerUpEntity->add<PowerUp>();
-
-  auto randomX = std::uniform_int_distribution(0, 2);
-
-  auto transform = powerUpEntity->add<Transform>();
-  transform->position = glm::vec3(0.0f, y, 1.0f);
-  transform->scale = glm::vec3(1.25f);
-
-  switch (randomX(_random)) {
-  case 0:
-    transform->position.x -= 4.0f;
-    break;
-  case 2:
-    transform->position.x += 4.0f;
-    break;
-  }
-
-  powerUpEntity->add<PhysicalState>(transform->position, 0.0f);
-  powerUpEntity->add<CircleCollider>()->radius = 0.625f;
-  powerUpEntity->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
+bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
   std::unordered_map<PowerUp::Type, int> weights {};
   auto total = 0;
 
-  // Mass Heal
-  auto massHealCooldown = cooldowns.find(2);
+  // Speed Boost
+  if (point->speedBoostEnabled) {
+    auto weight = 5;
 
-  if (massHealCooldown == cooldowns.end() || massHealCooldown->second >= _spellDatabase.getSpellById(2).cooldown) {
-    auto weight = 0;
-
-    findEntities<Health>()->each([&weight](const Entity& entity) {
-      auto health = entity.get<Health>();
-
-      if (health->current < static_cast<int32_t>(glm::round(static_cast<float>(health->max) * 0.8f))) {
-        weight += 10;
-      }
-    });
-
-    weights[PowerUp::Type::MassHeal] = weight;
+    weights[PowerUp::Type::SpeedBoost] = weight;
     total += weight;
+  }
+
+  // Mass Heal
+  if (point->regenEnabled) {
+    auto massHealCooldown = point->powerUpCooldowns.find(2);
+
+    if (massHealCooldown == point->powerUpCooldowns.end() || massHealCooldown->second >= _spellDatabase.getSpellById(2).cooldown) {
+      auto weight = 0;
+
+      findEntities<Health>()->each([&weight](const Entity& entity) {
+        auto health = entity.get<Health>();
+
+        if (health->current < static_cast<int32_t>(glm::round(static_cast<float>(health->max) * 0.8f))) {
+          weight += 10;
+        }
+      });
+
+      weights[PowerUp::Type::MassHeal] = weight;
+      total += weight;
+    }
   }
 
   // Revive
-  auto reviveCooldown = cooldowns.find(4);
+  if (point->reviveEnabled) {
+    auto reviveCooldown = point->powerUpCooldowns.find(4);
 
-  if (reviveCooldown == cooldowns.end() || reviveCooldown->second >= _spellDatabase.getSpellById(4).cooldown) {
-    auto weight = 0;
+    if (reviveCooldown == point->powerUpCooldowns.end() || reviveCooldown->second >= _spellDatabase.getSpellById(4).cooldown) {
+      auto weight = 0;
 
-    findEntities<Health>()->each([&weight](const Entity& entity) {
-      if (!entity.has<Alive>()) {
-        weight += 30;
-      }
-    });
+      findEntities<Health>()->each([&weight](const Entity& entity) {
+        if (!entity.has<Alive>()) {
+          weight += 30;
+        }
+      });
 
-    weights[PowerUp::Type::Revive] = weight;
-    total += weight;
+      weights[PowerUp::Type::Revive] = weight;
+      total += weight;
+    }
   }
 
   // Time Warp
-  {
+  if (point->timeWarpEnabled) {
     auto isTravelingFast = false;
 
     findEntities<Player>()->each([&isTravelingFast](const Entity& entity) {
@@ -228,6 +245,33 @@ void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& coo
     }
   }
 
+  if (total == 0) {
+    return false;
+  }
+
+  auto powerUpEntity = createEntity();
+
+  auto powerUp = powerUpEntity->add<PowerUp>();
+
+  auto randomX = std::uniform_int_distribution(0, 2);
+
+  auto transform = powerUpEntity->add<Transform>();
+  transform->position = glm::vec3(0.0f, point->lastSpawnPoint, 1.0f);
+  transform->scale = glm::vec3(1.25f);
+
+  switch (randomX(_random)) {
+  case 0:
+    transform->position.x -= 4.0f;
+    break;
+  case 2:
+    transform->position.x += 4.0f;
+    break;
+  }
+
+  powerUpEntity->add<PhysicalState>(transform->position, 0.0f);
+  powerUpEntity->add<CircleCollider>()->radius = 0.625f;
+  powerUpEntity->add<Velocity>()->velocity = { 0.0f, -3.0f };
+
   auto randomPowerUp = std::uniform_int_distribution(0, total);
   auto roll = randomPowerUp(_random);
 
@@ -242,7 +286,7 @@ void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& coo
 
   switch (powerUp->type) {
   case PowerUp::Type::MassHeal: {
-    cooldowns[2] = 0.0f;
+    point->powerUpCooldowns[2] = 0.0f;
 
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
@@ -256,7 +300,7 @@ void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& coo
     break;
   }
   case PowerUp::Type::Revive: {
-    cooldowns[4] = 0.0f;
+    point->powerUpCooldowns[4] = 0.0f;
 
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
@@ -294,6 +338,8 @@ void SpawnSystem::spawnPowerUp(float y, std::unordered_map<uint64_t, float>& coo
     break;
   }
   }
+
+  return true;
 }
 
 void SpawnSystem::spawnAsteroid(float y, int size) {
@@ -308,6 +354,10 @@ void SpawnSystem::spawnAsteroid(float y, int size) {
     asteroid->points = randomSize(_random);
   }
 
+  findEntities<Score>()->each([asteroid](const Entity& entity) {
+    auto score = entity.get<Score>();
+    score->possiblePoints += asteroid->points;
+  });
 
   auto randomX = std::uniform_int_distribution(0, 2);
 
@@ -338,27 +388,20 @@ void SpawnSystem::spawnAsteroid(float y, int size) {
   });
 }
 
-void SpawnSystem::spawnObstacles(float y) {
+void SpawnSystem::spawnObstacle(float x, float y) {
   auto obstacleEntity = createEntity();
   obstacleEntity->add<Bomb>();
 
-  auto randomX = std::uniform_int_distribution(0, 2);
+  findEntities<Score>()->each([](const Entity& entity) {
+    auto score = entity.get<Score>();
+    ++score->possibleMines;
+  });
+
   auto randomRotation = std::uniform_real_distribution(0.0f, glm::two_pi<float>());
 
   auto transform = obstacleEntity->add<Transform>();
   transform->scale = glm::vec3(1.25f);
-  transform->position = glm::vec3(0.0f, y, 1.0f);
-
-  switch (randomX(_random)) {
-  case 0:
-    transform->position.x -= 4.0f;
-    break;
-  case 2:
-    transform->position.x += 4.0f;
-    break;
-  default:
-    break;
-  }
+  transform->position = glm::vec3(x, y, 1.0f);
 
   transform->rotation = glm::angleAxis(randomRotation(_random), glm::vec3(0.0f, 0.0f, 1.0f));
 
@@ -547,6 +590,27 @@ void SpawnSystem::spawnEvasionText(float y) {
   text1.setRemovalListener([text1](const Entity& entity) {
     text1->renderable->destroy();
   });
+}
+
+void SpawnSystem::spawnFinishLine(float y) {
+  auto finishLineEntity = createEntity();
+  finishLineEntity->add<FinishLine>();
+
+  auto transform = finishLineEntity->add<Transform>();
+  transform->position = { 0.0f, y, 5.0f };
+  transform->scale = { 20.0f, 1.0f, 1.0f };
+
+  auto drawable = finishLineEntity->add<Drawable>();
+  drawable->feature = new ColoredFeature();
+  drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
+  drawable.setRemovalListener([drawable](const Entity e) {
+    drawable->renderable->destroy();
+  });
+
+  finishLineEntity->add<PhysicalState>(transform->position, 0.0f);
+  finishLineEntity->add<BoxCollider>()->size = transform->scale;
+  finishLineEntity->add<Trigger>();
+  finishLineEntity->add<Velocity>()->velocity = { 0.0f, -3.0f };
 }
 
 }  // namespace linguine

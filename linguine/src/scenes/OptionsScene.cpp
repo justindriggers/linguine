@@ -49,8 +49,8 @@ void OptionsScene::init() {
     auto headerTextEntity = createEntity();
 
     auto transform = headerTextEntity->add<Transform>();
-    transform->position = { -72.0f, 144.0f, 5.0f };
-    transform->scale = glm::vec3(24.0f);
+    transform->position = { -36.0f, 166.0f, 5.0f };
+    transform->scale = glm::vec3(12.0f);
 
     auto text = headerTextEntity->add<Text>();
     text->feature = new TextFeature();
@@ -201,8 +201,8 @@ void OptionsScene::init() {
     auto button = backButtonEntity->add<Button>();
     button->color = Palette::Secondary;
     button->activeColor = Palette::SecondaryAccent;
-    button->position = { 0.0f, -160.0f, 5.0f };
-    button->minSize = { 128.0f, 32.0f };
+    button->position = { 0.0f, -164.0f, 5.0f };
+    button->minSize = { 208.0f, 32.0f };
     button->text = "Back";
     button->textSize = 12.0f;
     button->clickHandler = [&sceneManager, &serviceLocator]() {

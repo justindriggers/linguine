@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace linguine {
@@ -15,22 +16,19 @@ class SaveManager {
 
     virtual ~SaveManager() = default;
 
-    void addPoints(int32_t points) {
-      _points += points;
-      save();
+    void ensureLevel(uint8_t level) {
+      if (_level < level) {
+        _level = level;
+        save();
+      }
     }
 
-    void removePoints(int32_t points) {
-      _points -= points;
-      save();
-    }
-
-    [[nodiscard]] int32_t getPoints() const {
-      return _points;
+    [[nodiscard]] uint8_t getCurrentLevel() const {
+      return _level;
     }
 
     [[nodiscard]] bool isNewPlayer() const {
-      return _points == 0;
+      return _level == 1;
     }
 
     void setMusicEnabled(bool enabled) {
@@ -69,17 +67,31 @@ class SaveManager {
       return _handedness;
     }
 
+    void ensureStarsForLevel(uint8_t level, uint8_t stars) {
+      auto index = level - 1;
+
+      if (_stars[index] < stars) {
+        _stars[index] = stars;
+        save();
+      }
+    }
+
+    [[nodiscard]] uint8_t getStarsForLevel(uint8_t level) {
+      return _stars[level - 1];
+    }
+
     void restart() {
-      _points = 0;
+      _level = 0;
       save();
     }
 
   protected:
-    int32_t _points{};
     bool _isMusicEnabled{};
     bool _isSoundEffectsEnabled{};
     bool _isScreenShakeEnabled{};
     Handedness _handedness{};
+    uint8_t _level = 1;
+    std::array<uint8_t, 20> _stars{};
 
     virtual void load() = 0;
 

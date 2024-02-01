@@ -1,7 +1,6 @@
 #include "TitleScene.h"
 
-#include "InfiniteRunnerScene.h"
-#include "NewPlayerScene.h"
+#include "LevelSelectionScene.h"
 #include "OptionsScene.h"
 #include "components/Attachment.h"
 #include "components/Button.h"
@@ -24,7 +23,6 @@
 #include "components/Trigger.h"
 #include "components/Velocity.h"
 #include "data/Palette.h"
-#include "data/upgrades/LevelCurve.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/CameraFollowSystem.h"
@@ -119,8 +117,7 @@ void TitleScene::init() {
     });
   }
 
-  auto points = saveManager.getPoints();
-  auto level = LevelCurve::getLevelForXp(points);
+  auto level = saveManager.getCurrentLevel();
 
   {
     auto playerEntity = createEntity();
@@ -436,7 +433,7 @@ void TitleScene::init() {
       confirmButton->textSize = 8.0f;
       confirmButton->clickHandler = [&saveManager, &sceneManager, &serviceLocator]() {
         saveManager.restart();
-        sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
+        sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
       };
     }
 
@@ -469,7 +466,7 @@ void TitleScene::init() {
     button->text = "Play";
     button->textSize = 12.0f;
     button->clickHandler = [&sceneManager, &serviceLocator]() {
-      sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
+      sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
     };
 
     buttonPosition -= 40.0f;
@@ -495,7 +492,7 @@ void TitleScene::init() {
           entity.get<Dialog>()->enabled = true;
         });
       } else {
-        sceneManager.load(std::make_unique<NewPlayerScene>(serviceLocator));
+        sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
       }
     };
 

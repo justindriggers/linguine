@@ -6,11 +6,12 @@ namespace linguine::scampi {
 
 IosSaveManager::IosSaveManager() : SaveManager() {
   NSDictionary *appDefaults = @{
-    @"points" : @0,
+    @"level" : @1,
     @"music" : @TRUE,
     @"sfx" : @TRUE,
     @"shake" : @TRUE,
-    @"handedness" : @0
+    @"handedness" : @0,
+    @"stars" : @[]
   };
 
   [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
@@ -20,26 +21,42 @@ IosSaveManager::IosSaveManager() : SaveManager() {
 
 void IosSaveManager::load() {
   NSDictionary *values = [[NSUserDefaults standardUserDefaults] dictionaryWithValuesForKeys:@[
-    @"points",
+    @"level",
     @"music",
     @"sfx",
-    @"shake"
+    @"shake",
+    @"handedness",
+    @"stars"
   ]];
 
-  _points = [values[@"points"] intValue];
+  _level = [values[@"level"] intValue];
   _isMusicEnabled = [values[@"music"] boolValue];
   _isSoundEffectsEnabled = [values[@"sfx"] boolValue];
   _isScreenShakeEnabled = [values[@"shake"] boolValue];
   _handedness = [values[@"handedness"] intValue] == 0 ? SaveManager::Handedness::Right : SaveManager::Handedness::Left;
+
+  NSArray *stars = values[@"stars"];
+  auto index = 0;
+
+  for (id level in stars) {
+    _stars[index++] = [level unsignedCharValue];
+  }
 }
 
 void IosSaveManager::save() {
+  NSMutableArray *stars = [[NSMutableArray alloc] init];
+
+  for (auto level : _stars) {
+    [stars addObject:[NSNumber numberWithUnsignedChar:level]];
+  }
+
   NSDictionary *values = @{
-    @"points" : [NSNumber numberWithInt:getPoints()],
+    @"level" : [NSNumber numberWithInt:getCurrentLevel()],
     @"music" : [NSNumber numberWithBool:isMusicEnabled()],
     @"sfx" : [NSNumber numberWithBool:isSoundEffectsEnabled()],
     @"shake" : [NSNumber numberWithBool:isScreenShakeEnabled()],
-    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1]
+    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1],
+    @"stars" : stars
   };
 
   [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:values];

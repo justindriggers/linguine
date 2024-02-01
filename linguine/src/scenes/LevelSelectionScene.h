@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Scene.h"
-
 #include "data/LevelDatabase.h"
 
 namespace linguine {
 
-class NewPlayerScene : public Scene {
+class LevelSelectionScene : public Scene {
   public:
-    explicit NewPlayerScene(ServiceLocator& serviceLocator)
+    explicit LevelSelectionScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator) {}
 
     void init() override;

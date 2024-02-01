@@ -183,7 +183,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
               if (entity.has<Boost>()) {
                 auto boost = entity.get<Boost>();
                 boost->magnitude = 10.0f;
-                boost->duration += duration;
+                boost->elapsed = 0.0f;
+                boost->duration = duration;
               } else {
                 auto boost = entity.add<Boost>();
                 boost->magnitude = 10.0f;
@@ -207,6 +208,8 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
         } else if (hitEntity->has<Bomb>()) {
           _spellDatabase.getSpellById(3).action->execute(playerEntity);
           _audioManager.play(EffectType::Detonate);
+
+          ++score->mines;
 
           auto shakeEntity = createEntity();
           shakeEntity->add<Shake>(0.5f, 0.65f);
