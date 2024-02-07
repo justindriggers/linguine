@@ -513,7 +513,6 @@ void InfiniteRunnerScene::init() {
 
       {
         auto shipEntity = createEntity();
-        shipEntity->add<ShipPart>();
 
         auto shipTransform = shipEntity->add<Transform>();
         shipTransform->scale = transform->scale;
@@ -537,7 +536,6 @@ void InfiniteRunnerScene::init() {
 
       {
         auto wingEntity = createEntity();
-        wingEntity->add<ShipPart>();
 
         auto wingTransform = wingEntity->add<Transform>();
         wingTransform->scale = transform->scale;
@@ -561,7 +559,6 @@ void InfiniteRunnerScene::init() {
 
       {
         auto boosterEntity = createEntity();
-        boosterEntity->add<ShipPart>();
 
         auto boosterTransform = boosterEntity->add<Transform>();
         boosterTransform->scale = transform->scale;

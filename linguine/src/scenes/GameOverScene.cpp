@@ -10,7 +10,6 @@
 #include "components/Header.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
-#include "components/ShipPart.h"
 #include "components/Text.h"
 #include "components/Toast.h"
 #include "components/Transform.h"
@@ -287,7 +286,6 @@ void GameOverScene::init() {
 
       {
         auto shipEntity = createEntity();
-        shipEntity->add<ShipPart>();
 
         auto shipTransform = shipEntity->add<Transform>();
         shipTransform->scale = transform->scale;
@@ -311,7 +309,6 @@ void GameOverScene::init() {
 
       {
         auto wingEntity = createEntity();
-        wingEntity->add<ShipPart>();
 
         auto wingTransform = wingEntity->add<Transform>();
         wingTransform->scale = transform->scale;
@@ -335,7 +332,6 @@ void GameOverScene::init() {
 
       {
         auto boosterEntity = createEntity();
-        boosterEntity->add<ShipPart>();
 
         auto boosterTransform = boosterEntity->add<Transform>();
         boosterTransform->scale = transform->scale;
