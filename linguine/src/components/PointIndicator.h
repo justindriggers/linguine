@@ -2,6 +2,6 @@
 
 namespace linguine {
 
-struct FinishLine {};
+struct PointIndicator {};
 
 }  // namespace linguine

@@ -14,12 +14,12 @@ class MacSaveManager : public SaveManager {
 
   protected:
     void load() override {
-      _level = 1;
+      _points = 0;
+      _lives = 0;
       _isMusicEnabled = true;
       _isSoundEffectsEnabled = true;
       _isScreenShakeEnabled = true;
       _handedness = Handedness::Right;
-      _stars = {};
     }
 
     void save() override {}

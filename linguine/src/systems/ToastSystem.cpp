@@ -19,10 +19,9 @@ void ToastSystem::update(float deltaTime) {
       float lerp = toast->elapsed / toast->duration;
 
       auto transform = entity.get<Transform>();
-      transform->scale = glm::vec3(6.0f);
       transform->position = toast->startPosition;
-      transform->position.x += -static_cast<float>(text->feature->text.size()) * 6.0f / 2.0f + 3.0f;
-      transform->position.y += glm::lerp(0.0f, 32.0f, lerp);
+      transform->position.x += -static_cast<float>(text->feature->text.size()) * transform->scale.x / 2.0f + 3.0f;
+      transform->position.y += glm::lerp(0.0f, toast->distance, lerp);
 
       text->renderable->setEnabled(true);
     } else {

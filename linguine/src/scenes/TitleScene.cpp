@@ -1,6 +1,7 @@
 #include "TitleScene.h"
 
-#include "LevelSelectionScene.h"
+#include "InfiniteRunnerScene.h"
+#include "NewPlayerScene.h"
 #include "OptionsScene.h"
 #include "components/Attachment.h"
 #include "components/Button.h"
@@ -13,6 +14,7 @@
 #include "components/Fire.h"
 #include "components/Follow.h"
 #include "components/Footer.h"
+#include "components/FooterPanel.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -23,14 +25,15 @@
 #include "components/Trigger.h"
 #include "components/Velocity.h"
 #include "data/Palette.h"
+#include "data/upgrades/LevelCurve.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/ButtonSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CollisionSystem.h"
 #include "systems/DialogSystem.h"
+#include "systems/EdgeSystem.h"
 #include "systems/FireSystem.h"
-#include "systems/FooterSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/ParticleSystem.h"
@@ -49,7 +52,7 @@ void TitleScene::init() {
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<DialogSystem>(getEntityManager()));
   registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
-  registerSystem(std::make_unique<FooterSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
@@ -117,7 +120,7 @@ void TitleScene::init() {
     });
   }
 
-  auto level = saveManager.getCurrentLevel();
+  auto level = LevelCurve::getLevelForXp(saveManager.getPoints());
 
   {
     auto playerEntity = createEntity();
@@ -130,7 +133,7 @@ void TitleScene::init() {
     auto offset = glm::vec2(0.0f, 2.5f);
 
     auto player = playerEntity->add<Player>();
-    player->speed = 3.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(2, level));
+    player->speed = 5.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level));
     player->acceleration = 0.0f;
 
     playerEntity->add<Velocity>();
@@ -433,7 +436,7 @@ void TitleScene::init() {
       confirmButton->textSize = 8.0f;
       confirmButton->clickHandler = [&saveManager, &sceneManager, &serviceLocator]() {
         saveManager.restart();
-        sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
+        sceneManager.load(std::make_unique<NewPlayerScene>(serviceLocator));
       };
     }
 
@@ -457,7 +460,7 @@ void TitleScene::init() {
 
   auto buttonPosition = -32.0f;
 
-  if (!saveManager.isNewPlayer()) {
+  if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
     auto playButtonEntity = createEntity();
 
     auto button = playButtonEntity->add<Button>();
@@ -466,7 +469,7 @@ void TitleScene::init() {
     button->text = "Play";
     button->textSize = 12.0f;
     button->clickHandler = [&sceneManager, &serviceLocator]() {
-      sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
+      sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
     };
 
     buttonPosition -= 40.0f;
@@ -477,7 +480,7 @@ void TitleScene::init() {
 
     auto button = newGameButtonEntity->add<Button>();
 
-    if (!saveManager.isNewPlayer()) {
+    if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
       button->color = Palette::Secondary;
       button->activeColor = Palette::SecondaryAccent;
     }
@@ -492,7 +495,8 @@ void TitleScene::init() {
           entity.get<Dialog>()->enabled = true;
         });
       } else {
-        sceneManager.load(std::make_unique<LevelSelectionScene>(serviceLocator));
+        saveManager.restart();
+        sceneManager.load(std::make_unique<NewPlayerScene>(serviceLocator));
       }
     };
 
@@ -515,31 +519,42 @@ void TitleScene::init() {
   }
 
   {
-    auto footerPanelEntity = createEntity();
-    footerPanelEntity->add<Footer>();
+    auto footerEntity = createEntity();
+    footerEntity->add<Transform>();
 
-    auto transform = footerPanelEntity->add<Transform>();
-    transform->position = { 0.0f, 0.0f, 10.0f };
-    transform->scale = { 240.0f, 48.0f, 1.0f };
+    auto footer = footerEntity->add<Footer>();
+    footer->ignoreInset = true;
+    footer->offset = 16.0f;
 
-    auto drawable = footerPanelEntity->add<Drawable>();
-    drawable->feature = new ColoredFeature();
-    drawable->feature->color = Palette::SecondaryAccent;
-    drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
-    drawable.setRemovalListener([drawable](const Entity& e) {
-      drawable->renderable->destroy();
-    });
+    {
+      auto footerPanelEntity = createEntity();
+
+      auto footerPanel = footerPanelEntity->add<FooterPanel>();
+      footerPanel->padding = 38.0f;
+
+      auto transform = footerPanelEntity->add<Transform>();
+      transform->position = { 0.0f, 0.0f, 10.0f };
+      transform->scale = { 240.0f, 48.0f, 1.0f };
+
+      auto drawable = footerPanelEntity->add<Drawable>();
+      drawable->feature = new ColoredFeature();
+      drawable->feature->color = Palette::SecondaryAccent;
+      drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+      drawable.setRemovalListener([drawable](const Entity& e) {
+        drawable->renderable->destroy();
+      });
+    }
 
     {
       auto footerTextEntity = createEntity();
 
       auto footerTextTransform = footerTextEntity->add<Transform>();
       footerTextTransform->position = { 0.0f, 0.0f, 5.0f };
-      footerTextTransform->scale = { 8.0f, 8.0f, 1.0f };
+      footerTextTransform->scale = glm::vec3(8.0f);
 
       auto attachment = footerTextEntity->add<Attachment>();
-      attachment->parentId = footerPanelEntity->getId();
-      attachment->offset = { -56.0f, 8.0f };
+      attachment->parentId = footerEntity->getId();
+      attachment->offset = { -56.0f, 18.5f };
       attachment->useFixedUpdate = false;
 
       auto text = footerTextEntity->add<Text>();
@@ -556,11 +571,11 @@ void TitleScene::init() {
 
       auto footerTextTransform = footerTextEntity->add<Transform>();
       footerTextTransform->position = { 0.0f, 0.0f, 5.0f };
-      footerTextTransform->scale = { 5.0f, 5.0f, 1.0f };
+      footerTextTransform->scale = glm::vec3(5.0f);
 
       auto attachment = footerTextEntity->add<Attachment>();
-      attachment->parentId = footerPanelEntity->getId();
-      attachment->offset = { -72.5f, -8.0f };
+      attachment->parentId = footerEntity->getId();
+      attachment->offset = { -72.5f, 2.5f };
       attachment->useFixedUpdate = false;
 
       auto text = footerTextEntity->add<Text>();

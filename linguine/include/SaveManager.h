@@ -16,19 +16,26 @@ class SaveManager {
 
     virtual ~SaveManager() = default;
 
-    void ensureLevel(uint8_t level) {
-      if (_level < level) {
-        _level = level;
-        save();
-      }
+    void setPoints(int32_t points) {
+      _points = points;
+      save();
     }
 
-    [[nodiscard]] uint8_t getCurrentLevel() const {
-      return _level;
+    [[nodiscard]] int32_t getPoints() const {
+      return _points;
+    }
+
+    void setLives(uint8_t lives) {
+      _lives = lives;
+      save();
+    }
+
+    [[nodiscard]] uint8_t getLives() const {
+      return _lives;
     }
 
     [[nodiscard]] bool isNewPlayer() const {
-      return _level == 1;
+      return _points == 0;
     }
 
     void setMusicEnabled(bool enabled) {
@@ -67,31 +74,19 @@ class SaveManager {
       return _handedness;
     }
 
-    void ensureStarsForLevel(uint8_t level, uint8_t stars) {
-      auto index = level - 1;
-
-      if (_stars[index] < stars) {
-        _stars[index] = stars;
-        save();
-      }
-    }
-
-    [[nodiscard]] uint8_t getStarsForLevel(uint8_t level) {
-      return _stars[level - 1];
-    }
-
     void restart() {
-      _level = 0;
+      _points = 0;
+      _lives = 5;
       save();
     }
 
   protected:
+    int32_t _points{};
+    uint8_t _lives{};
     bool _isMusicEnabled{};
     bool _isSoundEffectsEnabled{};
     bool _isScreenShakeEnabled{};
     Handedness _handedness{};
-    uint8_t _level = 1;
-    std::array<uint8_t, 20> _stars{};
 
     virtual void load() = 0;
 

@@ -4,16 +4,21 @@
 #include "components/GameOver.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
+#include "components/Lives.h"
 #include "components/Party.h"
 #include "components/Player.h"
 #include "components/Progressable.h"
 #include "components/Selectable.h"
+#include "components/ShieldLabel.h"
+#include "components/Text.h"
 #include "components/Transform.h"
 
 namespace linguine {
 
 void HudSystem::update(float deltaTime) {
-  findEntities<Player, Party>()->each([this](const Entity& entity) {
+  auto partySize = 0;
+
+  findEntities<Player, Party>()->each([this, &partySize](const Entity& entity) {
     auto party = entity.get<Party>();
 
     findEntities<HudDetails>()->each([this, &party](Entity& hudDetailsEntity) {
@@ -29,9 +34,9 @@ void HudSystem::update(float deltaTime) {
       }
     });
 
-    auto count = party->memberIds.size();
+    partySize = static_cast<int>(party->memberIds.size());
 
-    for (auto i = 0; i < count; ++i) {
+    for (auto i = 0; i < partySize; ++i) {
       auto memberEntity = getEntityById(party->memberIds[i]);
 
       if (!memberEntity->has<HudDetails>()) {
@@ -71,7 +76,28 @@ void HudSystem::update(float deltaTime) {
       healthBar->entityId = memberEntity->getId();
 
       auto healthTransform = healthBarEntity->get<Transform>();
-      healthTransform->position = glm::vec3(0.0f, (static_cast<float>(count) / 2.0f - static_cast<float>(i) - 0.5f) * 46.0f - 23.0f, 5.0f);
+      healthTransform->position = glm::vec3(0.0f, 0.0f, 5.0f);
+
+      switch (i) {
+      case 0:
+        healthTransform->position.y = -23.0f;
+        break;
+      case 1:
+        healthTransform->position.y = -69.0f;
+        break;
+      case 2:
+        healthTransform->position.y = 23.0f;
+        break;
+      case 3:
+        healthTransform->position.y = -115.0f;
+        break;
+      case 4:
+        healthTransform->position.y = 69.0f;
+        break;
+      default:
+        healthTransform->position.y = (static_cast<float>(partySize) / 2.0f - static_cast<float>(i) - 0.5f) * 46.0f - 23.0f;
+        break;
+      }
 
       switch (_saveManager.getHandedness()) {
       case SaveManager::Handedness::Right:
@@ -84,7 +110,16 @@ void HudSystem::update(float deltaTime) {
     }
   });
 
-  findEntities<Ability, Progressable>()->each([this](const Entity& entity) {
+  findEntities<Ability, Progressable, Transform>()->each([this, partySize](const Entity& entity) {
+    auto transform = entity.get<Transform>();
+    transform->scale.x = static_cast<float>(partySize) * 40.0f + static_cast<float>(partySize - 1) * 6.0f;
+
+    if (partySize % 2 == 0) {
+      transform->position.y = -46.0f;
+    } else {
+      transform->position.y = -23.0f;
+    }
+
     auto isGameOver = false;
 
     findEntities<Player>()->each([&isGameOver](const Entity& playerEntity) {
@@ -103,6 +138,30 @@ void HudSystem::update(float deltaTime) {
       auto green = 0.0f + (progress < 0.5 ? progress * 2.0f : 1.0f);
       progressable->feature->color = { red, green, 0.0f };
     }
+  });
+
+  findEntities<ShieldLabel, Transform>()->each([partySize](const Entity& entity) {
+    auto transform = entity.get<Transform>();
+
+    if (partySize % 2 == 0) {
+      transform->position.y = (static_cast<float>(partySize + 1) / 2.0f - static_cast<float>(partySize) - 0.5f) * 46.0f - 51.0f;
+    } else {
+      transform->position.y = (static_cast<float>(partySize) / 2.0f - static_cast<float>(partySize - 1) - 0.5f) * 46.0f - 51.0f;
+    }
+  });
+
+  findEntities<Lives, Text, Transform>()->each([this](const Entity& entity) {
+    auto lives = entity.get<Lives>();
+
+    auto text = entity.get<Text>();
+    text->feature->text = std::to_string(lives->lives);
+
+    auto transform = entity.get<Transform>();
+    transform->position.x = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
+
+    auto iconEntity = getEntityById(lives->iconId);
+    auto iconTransform = iconEntity->get<Transform>();
+    iconTransform->position.x = transform->position.x - 16.0f;
   });
 }
 

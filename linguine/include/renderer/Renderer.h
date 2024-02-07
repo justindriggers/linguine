@@ -31,6 +31,10 @@ class Renderer {
       }
     }
 
+    void setInsets(uint16_t left, uint16_t right, uint16_t top, uint16_t bottom) {
+      _viewport.setInsets(left, right, top, bottom);
+    }
+
     virtual void reset() = 0;
 
     /**

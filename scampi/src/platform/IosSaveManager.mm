@@ -6,12 +6,12 @@ namespace linguine::scampi {
 
 IosSaveManager::IosSaveManager() : SaveManager() {
   NSDictionary *appDefaults = @{
-    @"level" : @1,
+    @"points" : @0,
+    @"lives" : @0,
     @"music" : @TRUE,
     @"sfx" : @TRUE,
     @"shake" : @TRUE,
-    @"handedness" : @0,
-    @"stars" : @[]
+    @"handedness" : @0
   };
 
   [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
@@ -21,42 +21,30 @@ IosSaveManager::IosSaveManager() : SaveManager() {
 
 void IosSaveManager::load() {
   NSDictionary *values = [[NSUserDefaults standardUserDefaults] dictionaryWithValuesForKeys:@[
-    @"level",
+    @"points",
+    @"lives",
     @"music",
     @"sfx",
     @"shake",
-    @"handedness",
-    @"stars"
+    @"handedness"
   ]];
 
-  _level = [values[@"level"] intValue];
+  _points = [values[@"points"] intValue];
+  _lives = [values[@"lives"] unsignedCharValue];
   _isMusicEnabled = [values[@"music"] boolValue];
   _isSoundEffectsEnabled = [values[@"sfx"] boolValue];
   _isScreenShakeEnabled = [values[@"shake"] boolValue];
   _handedness = [values[@"handedness"] intValue] == 0 ? SaveManager::Handedness::Right : SaveManager::Handedness::Left;
-
-  NSArray *stars = values[@"stars"];
-  auto index = 0;
-
-  for (id level in stars) {
-    _stars[index++] = [level unsignedCharValue];
-  }
 }
 
 void IosSaveManager::save() {
-  NSMutableArray *stars = [[NSMutableArray alloc] init];
-
-  for (auto level : _stars) {
-    [stars addObject:[NSNumber numberWithUnsignedChar:level]];
-  }
-
   NSDictionary *values = @{
-    @"level" : [NSNumber numberWithInt:getCurrentLevel()],
+    @"points" : [NSNumber numberWithInt:getPoints()],
+    @"lives" : [NSNumber numberWithUnsignedChar:getLives()],
     @"music" : [NSNumber numberWithBool:isMusicEnabled()],
     @"sfx" : [NSNumber numberWithBool:isSoundEffectsEnabled()],
     @"shake" : [NSNumber numberWithBool:isScreenShakeEnabled()],
-    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1],
-    @"stars" : stars
+    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1]
   };
 
   [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:values];

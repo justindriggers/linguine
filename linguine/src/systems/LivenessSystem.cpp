@@ -8,6 +8,7 @@
 #include "components/Emitter.h"
 #include "components/GameOver.h"
 #include "components/Health.h"
+#include "components/Lives.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -45,6 +46,11 @@ void LivenessSystem::update(float deltaTime) {
         entity.remove<CircleCollider>();
         _audioManager.play(EffectType::Explosion);
         _audioManager.stopSongs();
+
+        findEntities<Lives>()->each([](const Entity& livesEntity) {
+          auto lives = livesEntity.get<Lives>();
+          --lives->lives;
+        });
 
         auto player = entity.get<Player>();
         player->acceleration = player->speed / -4.0f;
@@ -123,10 +129,18 @@ void LivenessSystem::update(float deltaTime) {
       gameOver->elapsed += deltaTime;
 
       if (gameOver->elapsed >= gameOver->duration) {
-        findEntities<Score>()->each([this](const Entity& entity) {
-          auto score = entity.get<Score>();
-          _serviceLocator.get<SceneManager>().load(std::make_unique<GameOverScene>(_serviceLocator, score->level));
+        auto finalScore = 0;
+        auto finalLives = 0;
+
+        findEntities<Score>()->each([&finalScore](const Entity& entity) {
+          finalScore = entity.get<Score>()->points;
         });
+
+        findEntities<Lives>()->each([&finalLives](const Entity& entity) {
+          finalLives = entity.get<Lives>()->lives;
+        });
+
+        _serviceLocator.get<SceneManager>().load(std::make_unique<GameOverScene>(_serviceLocator, finalScore, finalLives));
       }
     });
   }

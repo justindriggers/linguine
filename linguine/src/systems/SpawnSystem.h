@@ -42,8 +42,6 @@ class SpawnSystem : public System {
     void spawnHealingText(float y);
 
     void spawnEvasionText(float y);
-
-    void spawnFinishLine(float y);
 };
 
 }  // namespace linguine

@@ -83,6 +83,10 @@
   _textureLoader = std::make_unique<linguine::scampi::IosMetalTextureLoader>(mtkTextureLoader);
   auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true, *_textureLoader));
 
+  auto insets = UIApplication.sharedApplication.windows.firstObject.safeAreaInsets;
+  renderer->setInsets(static_cast<uint16_t>(insets.left), static_cast<uint16_t>(insets.right),
+      static_cast<uint16_t>(insets.top), static_cast<uint16_t>(insets.bottom));
+
   auto saveManager = std::make_shared<linguine::scampi::IosSaveManager>();
 
   auto appDelegate = (ScampiAppDelegate *)[[UIApplication sharedApplication] delegate];

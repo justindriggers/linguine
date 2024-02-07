@@ -6,9 +6,9 @@
 
 namespace linguine {
 
-class FooterSystem : public System {
+class EdgeSystem : public System {
   public:
-    FooterSystem(EntityManager& entityManager, Renderer& renderer)
+    EdgeSystem(EntityManager& entityManager, Renderer& renderer)
         : System(entityManager), _renderer(renderer) {}
 
     void update(float deltaTime) override;

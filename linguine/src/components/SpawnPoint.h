@@ -15,7 +15,6 @@ struct SpawnPoint {
   bool reviveEnabled = true;
   bool timeWarpEnabled = true;
   std::unordered_map<uint64_t, float> powerUpCooldowns{};
-  float requiredDistance = 0.0f;
 };
 
 }  // namespace linguine

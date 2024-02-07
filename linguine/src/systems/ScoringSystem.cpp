@@ -8,31 +8,51 @@
 #include "components/Emitter.h"
 #include "components/Health.h"
 #include "components/Hit.h"
+#include "components/Level.h"
+#include "components/LifeIndicator.h"
+#include "components/Lives.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
+#include "components/PointIndicator.h"
 #include "components/PowerUp.h"
 #include "components/Score.h"
+#include "components/ScoreIcon.h"
 #include "components/Shake.h"
 #include "components/Text.h"
 #include "components/TimeWarp.h"
 #include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
+#include "data/upgrades/LevelCurve.h"
 
 namespace linguine {
 
 void ScoringSystem::update(float deltaTime) {
-  findEntities<Score, Text, Transform>()->each([this](const Entity& entity) {
+  auto scoreTextPosition = 8.0f;
+
+  findEntities<Score, Text, Transform>()->each([this, &scoreTextPosition](const Entity& entity) {
     auto score = entity.get<Score>();
     auto text = entity.get<Text>();
-    auto transform = entity.get<Transform>();
 
     text->feature->text = std::to_string(score->points);
 
-    if (_saveManager.getHandedness() == SaveManager::Handedness::Right) {
-      transform->position.x = 102.0f - static_cast<float>(text->feature->text.size() - 1) * 20.0f;
-    }
+    auto level = LevelCurve::getLevelForXp(score->points);
+
+    findEntities<Level, Text>()->each([level](const Entity& levelEntity) {
+      auto text = levelEntity.get<Text>();
+      text->feature->text = std::to_string(level);
+    });
+
+    scoreTextPosition = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
+
+    auto transform = entity.get<Transform>();
+    transform->position.x = scoreTextPosition;
+  });
+
+  findEntities<ScoreIcon, Transform>()->each([scoreTextPosition](const Entity& entity) {
+    auto transform = entity.get<Transform>();
+    transform->position.x = scoreTextPosition - 16.0f;
   });
 }
 
@@ -48,26 +68,32 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
         if (hitEntity->has<Asteroid>()) {
           auto asteroid = hitEntity->get<Asteroid>();
+          auto extraLives = ((score->points + asteroid->points) / 1000) - (score->points / 1000);
+
           score->points += asteroid->points;
 
-          switch (asteroid->points) {
-          case 1:
-            _audioManager.play(EffectType::Collect1);
-            break;
-          case 2:
-            _audioManager.play(EffectType::Collect2);
-            break;
-          case 3:
-            _audioManager.play(EffectType::Collect3);
-            break;
-          case 4:
-            _audioManager.play(EffectType::Collect4);
-            break;
-          case 5:
-            _audioManager.play(EffectType::Collect5);
-            break;
-          default:
-            break;
+          if (extraLives > 0) {
+            _audioManager.play(EffectType::Level);
+          } else {
+            switch (asteroid->points) {
+            case 1:
+              _audioManager.play(EffectType::Collect1);
+              break;
+            case 2:
+              _audioManager.play(EffectType::Collect2);
+              break;
+            case 3:
+              _audioManager.play(EffectType::Collect3);
+              break;
+            case 4:
+              _audioManager.play(EffectType::Collect4);
+              break;
+            case 5:
+              _audioManager.play(EffectType::Collect5);
+              break;
+            default:
+              break;
+            }
           }
 
           auto living = findEntities<Health, Alive>()->get();
@@ -86,7 +112,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
           auto asteroidTransform = hitEntity->get<Transform>();
 
-          findEntities<Toast, Text>()->each([this, &asteroid, &asteroidTransform](const Entity& entity) {
+          findEntities<PointIndicator, Toast, Text>()->each([this, &asteroid, &asteroidTransform](const Entity& entity) {
             auto toast = entity.get<Toast>();
             toast->elapsed = 0.0f;
             toast->startPosition.x = asteroidTransform->position.x * 240.0f / 15.2f;
@@ -103,6 +129,36 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
             auto text = entity.get<Text>();
             text->feature->text = "+" + std::to_string(asteroid->points);
           });
+
+          if (extraLives > 0) {
+            findEntities<Lives>()->each([extraLives](const Entity& entity) {
+              auto lives = entity.get<Lives>();
+
+              if (255 - lives->lives < extraLives) {
+                lives->lives = 255;
+              } else {
+                lives->lives += extraLives;
+              }
+            });
+
+            findEntities<LifeIndicator, Toast, Text>()->each([this, extraLives, &asteroidTransform](const Entity& entity) {
+              auto toast = entity.get<Toast>();
+              toast->elapsed = 0.0f;
+              toast->startPosition.x = asteroidTransform->position.x * 240.0f / 15.2f;
+
+              switch (_saveManager.getHandedness()) {
+              case SaveManager::Handedness::Right:
+                toast->startPosition.x -= 1.6f * 240.0f / 15.2f;
+                break;
+              case SaveManager::Handedness::Left:
+                toast->startPosition.x += 1.6f * 240.0f / 15.2f;
+                break;
+              }
+
+              auto text = entity.get<Text>();
+              text->feature->text = std::to_string(extraLives) + "up";
+            });
+          }
 
           auto randomScale = std::uniform_real_distribution(0.1f, 0.25f);
           auto randomDirection = std::uniform_real_distribution(0.0f, glm::two_pi<float>());

@@ -3,11 +3,9 @@
 #include "components/Alive.h"
 #include "components/Asteroid.h"
 #include "components/Bomb.h"
-#include "components/BoxCollider.h"
 #include "components/Circle.h"
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
-#include "components/FinishLine.h"
 #include "components/Health.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -112,11 +110,6 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
 
     if (!isTutorial) {
       spawnPoint->powerUpElapsed += fixedDeltaTime;
-
-      if (spawnPoint->spawnChance > 0.0f && physicalState->currentPosition.y >= spawnPoint->requiredDistance) {
-        spawnFinishLine(spawnPoint->requiredDistance);
-        spawnPoint->spawnChance = 0.0f;
-      }
 
       while (spawnPoint->spawnChance > 0.0f && physicalState->currentPosition.y >= spawnPoint->lastSpawnPoint + spawnPoint->distance) {
         spawnPoint->lastSpawnPoint += spawnPoint->distance;
@@ -428,14 +421,19 @@ void SpawnSystem::spawnStars(float y) {
 
     auto randomX = std::uniform_real_distribution(-7.6f, 7.6f);
 
+    auto randomOffset = std::uniform_real_distribution(-1.0f, 1.0f);
+
     auto transform = starEntity->add<Transform>();
-    transform->position = { randomX(_random), y, 10.0f };
+    transform->position = { randomX(_random), y + randomOffset(_random), 10.0f };
 
     transform->scale = glm::vec3(0.1875f);
 
     starEntity->add<PhysicalState>(transform->position, 0.0f);
     starEntity->add<CircleCollider>()->radius = transform->scale.x / 2.0f;
     starEntity->add<Trigger>();
+
+    auto randomSpeed = std::uniform_real_distribution(0.0f, -0.05f);
+    starEntity->add<Velocity>()->velocity = { 0.0f, randomSpeed(_random) };
 
     auto circle = starEntity->add<Circle>();
     circle->feature = new CircleFeature();
@@ -590,27 +588,6 @@ void SpawnSystem::spawnEvasionText(float y) {
   text1.setRemovalListener([text1](const Entity& entity) {
     text1->renderable->destroy();
   });
-}
-
-void SpawnSystem::spawnFinishLine(float y) {
-  auto finishLineEntity = createEntity();
-  finishLineEntity->add<FinishLine>();
-
-  auto transform = finishLineEntity->add<Transform>();
-  transform->position = { 0.0f, y, 5.0f };
-  transform->scale = { 20.0f, 1.0f, 1.0f };
-
-  auto drawable = finishLineEntity->add<Drawable>();
-  drawable->feature = new ColoredFeature();
-  drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
-  drawable.setRemovalListener([drawable](const Entity e) {
-    drawable->renderable->destroy();
-  });
-
-  finishLineEntity->add<PhysicalState>(transform->position, 0.0f);
-  finishLineEntity->add<BoxCollider>()->size = transform->scale;
-  finishLineEntity->add<Trigger>();
-  finishLineEntity->add<Velocity>()->velocity = { 0.0f, -3.0f };
 }
 
 }  // namespace linguine
