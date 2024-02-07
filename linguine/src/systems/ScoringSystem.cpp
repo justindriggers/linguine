@@ -2,6 +2,7 @@
 
 #include "components/Alive.h"
 #include "components/Asteroid.h"
+#include "components/Attachment.h"
 #include "components/Bomb.h"
 #include "components/Boost.h"
 #include "components/Circle.h"
@@ -31,7 +32,7 @@ namespace linguine {
 void ScoringSystem::update(float deltaTime) {
   auto scoreTextPosition = 8.0f;
 
-  findEntities<Score, Text, Transform>()->each([this, &scoreTextPosition](const Entity& entity) {
+  findEntities<Score, Text, Attachment>()->each([this, &scoreTextPosition](const Entity& entity) {
     auto score = entity.get<Score>();
     auto text = entity.get<Text>();
 
@@ -46,13 +47,13 @@ void ScoringSystem::update(float deltaTime) {
 
     scoreTextPosition = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
 
-    auto transform = entity.get<Transform>();
-    transform->position.x = scoreTextPosition;
+    auto attachment = entity.get<Attachment>();
+    attachment->offset.x = scoreTextPosition;
   });
 
-  findEntities<ScoreIcon, Transform>()->each([scoreTextPosition](const Entity& entity) {
-    auto transform = entity.get<Transform>();
-    transform->position.x = scoreTextPosition - 16.0f;
+  findEntities<ScoreIcon, Attachment>()->each([scoreTextPosition](const Entity& entity) {
+    auto attachment = entity.get<Attachment>();
+    attachment->offset.x = scoreTextPosition - 16.0f;
   });
 }
 

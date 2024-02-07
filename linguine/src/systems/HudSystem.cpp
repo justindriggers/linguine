@@ -1,6 +1,7 @@
 #include "HudSystem.h"
 
 #include "components/Ability.h"
+#include "components/Attachment.h"
 #include "components/GameOver.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
@@ -150,18 +151,18 @@ void HudSystem::update(float deltaTime) {
     }
   });
 
-  findEntities<Lives, Text, Transform>()->each([this](const Entity& entity) {
+  findEntities<Lives, Text, Attachment>()->each([this](const Entity& entity) {
     auto lives = entity.get<Lives>();
 
     auto text = entity.get<Text>();
     text->feature->text = std::to_string(lives->lives);
 
-    auto transform = entity.get<Transform>();
-    transform->position.x = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
+    auto attachment = entity.get<Attachment>();
+    attachment->offset.x = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
 
     auto iconEntity = getEntityById(lives->iconId);
-    auto iconTransform = iconEntity->get<Transform>();
-    iconTransform->position.x = transform->position.x - 16.0f;
+    auto iconAttachment = iconEntity->get<Attachment>();
+    iconAttachment->offset.x = attachment->offset.x - 16.0f;
   });
 }
 
