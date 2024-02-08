@@ -1,6 +1,5 @@
 add_library(linguine
         src/Engine.cpp
-        src/data/Grid.cpp
         src/data/spells/actions/Apply.cpp
         src/data/spells/actions/Explosion.cpp
         src/data/spells/actions/MassHeal.cpp
@@ -13,7 +12,6 @@ add_library(linguine
         src/entity/archetype/ArchetypeResult.cpp
         src/entity/archetype/Query.cpp
         src/entity/archetype/Store.cpp
-        src/factories/ProjectileFactory.cpp
         src/renderer/Camera.cpp
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp
@@ -31,41 +29,30 @@ add_library(linguine
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
         src/systems/DialogSystem.cpp
-        src/systems/DirectionalMovementSystem.cpp
         src/systems/EdgeSystem.cpp
         src/systems/EffectSystem.cpp
-        src/systems/EnemyAttackSystem.cpp
-        src/systems/EnemyTargetingSystem.cpp
-        src/systems/EnemySpawnSystem.cpp
         src/systems/EventSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FireSystem.cpp
         src/systems/FpsSystem.cpp
         src/systems/GestureRecognitionSystem.cpp
-        src/systems/GridPositionSystem.cpp
         src/systems/HealthProgressSystem.cpp
         src/systems/HudSystem.cpp
         src/systems/LevelTrackingSystem.cpp
         src/systems/LivenessSystem.cpp
-        src/systems/OrbitSystem.cpp
         src/systems/ParticleSystem.cpp
-        src/systems/PathTraversalSystem.cpp
         src/systems/PhysicsInterpolationSystem.cpp
         src/systems/PlayerControllerSystem.cpp
-        src/systems/PointAndClickMovementSystem.cpp
         src/systems/RiserSystem.cpp
         src/systems/RotatorSystem.cpp
         src/systems/ScoringSystem.cpp
-        src/systems/SelectionDestructionSystem.cpp
         src/systems/ShakeSystem.cpp
         src/systems/SpawnSystem.cpp
         src/systems/ToastSystem.cpp
         src/systems/ToggleSystem.cpp
-        src/systems/TooltipSystem.cpp
         src/systems/TransformationSystem.cpp
         src/systems/TutorialSystem.cpp
         src/systems/UpgradeSystem.cpp
-        src/systems/tutorial/WispTriggerSystem.cpp
         src/systems/VelocitySystem.cpp
 )
 
