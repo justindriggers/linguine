@@ -101,7 +101,11 @@
   [_view setDelegate:_viewDelegate];
 }
 
--(BOOL)prefersHomeIndicatorAutoHidden{
+- (BOOL)prefersStatusBarHidden {
+  return YES;
+}
+
+-(BOOL)prefersHomeIndicatorAutoHidden {
   return YES;
 }
 

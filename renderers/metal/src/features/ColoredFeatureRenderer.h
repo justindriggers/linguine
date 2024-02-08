@@ -46,7 +46,7 @@ class ColoredFeatureRenderer : public FeatureRenderer {
 
     struct MetalColoredFeature {
       simd::float4x4 modelMatrix{};
-      simd::float3 color{};
+      simd::float4 color{};
     };
 
     void ensureCameraBuffers(uint64_t cameraId);

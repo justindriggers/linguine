@@ -9,9 +9,9 @@
 #include "components/CircleCollider.h"
 #include "components/Drawable.h"
 #include "components/Emitter.h"
+#include "components/Enqueued.h"
 #include "components/Fire.h"
 #include "components/Follow.h"
-#include "components/Friendly.h"
 #include "components/GlobalCooldown.h"
 #include "components/Header.h"
 #include "components/Level.h"
@@ -25,7 +25,6 @@
 #include "components/PointIndicator.h"
 #include "components/Progressable.h"
 #include "components/Score.h"
-#include "components/ScoreIcon.h"
 #include "components/ShieldLabel.h"
 #include "components/ShipPart.h"
 #include "components/SpawnPoint.h"
@@ -443,13 +442,11 @@ void InfiniteRunnerScene::init() {
 
   {
     auto playerCastEntity = createEntity();
-    playerCastEntity->add<Friendly>();
     playerCastEntity->add<Cast>();
   }
 
   {
     auto playerGcdEntity = createEntity();
-    playerGcdEntity->add<Friendly>();
 
     auto globalCooldown = playerGcdEntity->add<GlobalCooldown>();
     globalCooldown->total = 1.5f;
@@ -460,28 +457,51 @@ void InfiniteRunnerScene::init() {
   headerEntity->add<Transform>();
 
   {
+    auto levelBackgroundEntity = createEntity();
+
+    {
+      auto attachment = levelBackgroundEntity->add<Attachment>();
+      attachment->parentId = headerEntity->getId();
+      attachment->useFixedUpdate = false;
+
+      auto transform = levelBackgroundEntity->add<Transform>();
+      transform->position.z = 10.0f;
+      transform->scale = { 0.0f, 22.0f, 0.0f };
+
+      auto drawable = levelBackgroundEntity->add<Drawable>();
+      drawable->feature = new ColoredFeature();
+      drawable->feature->color = { 0.0f, 0.0f, 0.0f, 0.5f };
+      drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+      drawable.setRemovalListener([drawable](const Entity& entity) {
+        drawable->renderable->destroy();
+      });
+    }
+
     auto levelEntity = createEntity();
 
-    auto attachment = levelEntity->add<Attachment>();
-    attachment->parentId = headerEntity->getId();
-    attachment->offset = { -105.0f, 0.0f };
-    attachment->useFixedUpdate = false;
+    {
+      auto attachment = levelEntity->add<Attachment>();
+      attachment->parentId = headerEntity->getId();
+      attachment->offset = { -105.0f, 0.0f };
+      attachment->useFixedUpdate = false;
 
-    auto text = levelEntity->add<Text>();
-    text->feature = new TextFeature();
-    text->feature->text = "Lvl";
-    text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-    text.setRemovalListener([text](const Entity e) {
-      text->renderable->destroy();
-    });
+      auto text = levelEntity->add<Text>();
+      text->feature = new TextFeature();
+      text->feature->text = "Lvl";
+      text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+      text.setRemovalListener([text](const Entity e) {
+        text->renderable->destroy();
+      });
 
-    auto transform = levelEntity->add<Transform>();
-    transform->scale = glm::vec3(6.0f);
-  }
+      auto transform = levelEntity->add<Transform>();
+      transform->scale = glm::vec3(6.0f);
+    }
 
-  {
     auto levelNumberEntity = createEntity();
-    levelNumberEntity->add<Level>();
+
+    auto level = levelNumberEntity->add<Level>();
+    level->backgroundId = levelBackgroundEntity->getId();
+    level->textId = levelEntity->getId();
 
     auto attachment = levelNumberEntity->add<Attachment>();
     attachment->parentId = headerEntity->getId();
@@ -500,6 +520,26 @@ void InfiniteRunnerScene::init() {
   }
 
   {
+    auto lifeBackgroundEntity = createEntity();
+
+    {
+      auto attachment = lifeBackgroundEntity->add<Attachment>();
+      attachment->parentId = headerEntity->getId();
+      attachment->useFixedUpdate = false;
+
+      auto transform = lifeBackgroundEntity->add<Transform>();
+      transform->position.z = 10.0f;
+      transform->scale = { 0.0f, 22.0f, 0.0f };
+
+      auto drawable = lifeBackgroundEntity->add<Drawable>();
+      drawable->feature = new ColoredFeature();
+      drawable->feature->color = { 0.0f, 0.0f, 0.0f, 0.5f };
+      drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+      drawable.setRemovalListener([drawable](const Entity& entity) {
+        drawable->renderable->destroy();
+      });
+    }
+
     auto lifeIndicatorEntity = createEntity();
 
     {
@@ -588,6 +628,7 @@ void InfiniteRunnerScene::init() {
     attachment->useFixedUpdate = false;
 
     auto lives = livesEntity->add<Lives>();
+    lives->backgroundId = lifeBackgroundEntity->getId();
     lives->iconId = lifeIndicatorEntity->getId();
     lives->lives = saveManager.getLives();
 
@@ -603,10 +644,29 @@ void InfiniteRunnerScene::init() {
   }
 
   {
-    {
-      auto scoreIndicatorEntity = createEntity();
-      scoreIndicatorEntity->add<ScoreIcon>();
+    auto scoreBackgroundEntity = createEntity();
 
+    {
+      auto attachment = scoreBackgroundEntity->add<Attachment>();
+      attachment->parentId = headerEntity->getId();
+      attachment->useFixedUpdate = false;
+
+      auto transform = scoreBackgroundEntity->add<Transform>();
+      transform->position.z = 10.0f;
+      transform->scale = { 0.0f, 22.0f, 0.0f };
+
+      auto drawable = scoreBackgroundEntity->add<Drawable>();
+      drawable->feature = new ColoredFeature();
+      drawable->feature->color = { 0.0f, 0.0f, 0.0f, 0.5f };
+      drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+      drawable.setRemovalListener([drawable](const Entity& entity) {
+        drawable->renderable->destroy();
+      });
+    }
+
+    auto scoreIndicatorEntity = createEntity();
+
+    {
       auto attachment = scoreIndicatorEntity->add<Attachment>();
       attachment->parentId = headerEntity->getId();
       attachment->useFixedUpdate = false;
@@ -630,6 +690,8 @@ void InfiniteRunnerScene::init() {
     attachment->useFixedUpdate = false;
 
     auto score = scoreEntity->add<Score>();
+    score->backgroundId = scoreBackgroundEntity->getId();
+    score->iconId = scoreIndicatorEntity->getId();
     score->points = saveManager.getPoints();
 
     auto transform = scoreEntity->add<Transform>();
@@ -742,6 +804,24 @@ void InfiniteRunnerScene::init() {
       text->renderable->destroy();
     });
     text->renderable->setEnabled(false);
+  }
+
+  {
+    auto selectedEntity = createEntity();
+    selectedEntity->add<Enqueued>();
+
+    auto transform = selectedEntity->add<Transform>();
+    transform->position = { 92.0f, -23.0f, 10.0f };
+    transform->scale = glm::vec3(44.0f);
+
+    auto drawable = selectedEntity->add<Drawable>();
+    drawable->feature = new ColoredFeature();
+    drawable->feature->color = Palette::Primary;
+    drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
+    drawable.setRemovalListener([drawable](const Entity& entity) {
+      drawable->renderable->destroy();
+    });
+    drawable->renderable->setEnabled(false);
   }
 
   auto& audioManager = get<AudioManager>();

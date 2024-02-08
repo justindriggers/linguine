@@ -2,6 +2,8 @@
 
 #include "components/Ability.h"
 #include "components/Attachment.h"
+#include "components/Drawable.h"
+#include "components/Enqueued.h"
 #include "components/GameOver.h"
 #include "components/HealthBar.h"
 #include "components/HudDetails.h"
@@ -163,6 +165,33 @@ void HudSystem::update(float deltaTime) {
     auto iconEntity = getEntityById(lives->iconId);
     auto iconAttachment = iconEntity->get<Attachment>();
     iconAttachment->offset.x = attachment->offset.x - 16.0f;
+
+    auto width = 18.0f + static_cast<float>(text->feature->text.size()) * 10.0f;
+
+    auto backgroundEntity = getEntityById(lives->backgroundId);
+    auto backgroundAttachment = backgroundEntity->get<Attachment>();
+    backgroundAttachment->offset.x = iconAttachment->offset.x + width / 2.0f - 7.0f;
+
+    auto backgroundTransform = backgroundEntity->get<Transform>();
+    backgroundTransform->scale.x = width + 8.0f;
+  });
+
+  findEntities<Enqueued, Drawable, Transform>()->each([this](const Entity& entity) {
+    auto enqueued = entity.get<Enqueued>();
+    auto drawable = entity.get<Drawable>();
+
+    if (enqueued->healthBarId) {
+      auto healthBarEntity = getEntityById(*enqueued->healthBarId);
+      auto healthBarTransform = healthBarEntity->get<Transform>();
+
+      auto transform = entity.get<Transform>();
+      transform->position.x = healthBarTransform->position.x;
+      transform->position.y = healthBarTransform->position.y;
+
+      drawable->renderable->setEnabled(true);
+    } else {
+      drawable->renderable->setEnabled(false);
+    }
   });
 }
 

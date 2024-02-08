@@ -18,42 +18,62 @@
 #include "components/PointIndicator.h"
 #include "components/PowerUp.h"
 #include "components/Score.h"
-#include "components/ScoreIcon.h"
 #include "components/Shake.h"
 #include "components/Text.h"
 #include "components/TimeWarp.h"
 #include "components/Toast.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
+#include "data/Palette.h"
 #include "data/upgrades/LevelCurve.h"
 
 namespace linguine {
 
 void ScoringSystem::update(float deltaTime) {
-  auto scoreTextPosition = 8.0f;
-
-  findEntities<Score, Text, Attachment>()->each([this, &scoreTextPosition](const Entity& entity) {
+  findEntities<Score, Text, Attachment>()->each([this](const Entity& entity) {
     auto score = entity.get<Score>();
     auto text = entity.get<Text>();
 
     text->feature->text = std::to_string(score->points);
 
-    auto level = LevelCurve::getLevelForXp(score->points);
+    auto currentLevel = LevelCurve::getLevelForXp(score->points);
 
-    findEntities<Level, Text>()->each([level](const Entity& levelEntity) {
+    findEntities<Level, Text>()->each([this, currentLevel](const Entity& levelEntity) {
       auto text = levelEntity.get<Text>();
-      text->feature->text = std::to_string(level);
+      text->feature->text = std::to_string(currentLevel);
+
+      auto level = levelEntity.get<Level>();
+
+      auto textEntity = getEntityById(level->textId);
+      auto textAttachment = textEntity->get<Attachment>();
+
+      auto width = 21.0f + static_cast<float>(text->feature->text.size()) * 10.0f;
+
+      auto backgroundEntity = getEntityById(level->backgroundId);
+      auto backgroundAttachment = backgroundEntity->get<Attachment>();
+      backgroundAttachment->offset.x = textAttachment->offset.x + width / 2.0f - 3.0f;
+
+      auto backgroundTransform = backgroundEntity->get<Transform>();
+      backgroundTransform->scale.x = width + 8.0f;
     });
 
-    scoreTextPosition = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
+    auto scoreTextPosition = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
 
     auto attachment = entity.get<Attachment>();
     attachment->offset.x = scoreTextPosition;
-  });
 
-  findEntities<ScoreIcon, Attachment>()->each([scoreTextPosition](const Entity& entity) {
-    auto attachment = entity.get<Attachment>();
-    attachment->offset.x = scoreTextPosition - 16.0f;
+    auto iconEntity = getEntityById(score->iconId);
+    auto iconAttachment = iconEntity->get<Attachment>();
+    iconAttachment->offset.x = scoreTextPosition - 16.0f;
+
+    auto width = 16.0f + static_cast<float>(text->feature->text.size()) * 10.0f;
+
+    auto backgroundEntity = getEntityById(score->backgroundId);
+    auto backgroundAttachment = backgroundEntity->get<Attachment>();
+    backgroundAttachment->offset.x = iconAttachment->offset.x + width / 2.0f - 5.0f;
+
+    auto backgroundTransform = backgroundEntity->get<Transform>();
+    backgroundTransform->scale.x = width + 8.0f;
   });
 }
 
@@ -181,7 +201,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
             auto circle = particleEntity->add<Circle>();
             circle->feature = new CircleFeature();
-            circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+            circle->feature->color = Palette::Orange;
             circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
             circle.setRemovalListener([circle](const Entity e) {
               circle->renderable->destroy();
@@ -221,7 +241,7 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
               auto circle = particleEntity->add<Circle>();
               circle->feature = new CircleFeature();
-              circle->feature->color = { 0.0f, 1.0f, 0.0f };
+              circle->feature->color = Palette::Green;
               circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
               circle.setRemovalListener([circle](const Entity e) {
                 circle->renderable->destroy();
@@ -309,15 +329,15 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
             switch (randomColor(_random)) {
             case 0:
-              circle->feature->color = { 1.0f, 0.0f, 0.0f };
+              circle->feature->color = Palette::Red;
               particle->scalePerSecond = -2.0f;
               break;
             case 1:
-              circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+              circle->feature->color = Palette::Orange;
               particle->scalePerSecond = -2.0f;
               break;
             case 2:
-              circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+              circle->feature->color = Palette::Gray;
               break;
             }
 

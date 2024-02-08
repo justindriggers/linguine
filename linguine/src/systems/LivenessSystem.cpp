@@ -17,6 +17,7 @@
 #include "components/ShipPart.h"
 #include "components/Transform.h"
 #include "components/Velocity.h"
+#include "data/Palette.h"
 #include "scenes/GameOverScene.h"
 
 namespace linguine {
@@ -102,15 +103,15 @@ void LivenessSystem::update(float deltaTime) {
 
           switch (randomColor(_random)) {
           case 0:
-            circle->feature->color = { 1.0f, 0.0f, 0.0f };
+            circle->feature->color = Palette::Red;
             particle->scalePerSecond = -2.0f;
             break;
           case 1:
-            circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+            circle->feature->color = Palette::Orange;
             particle->scalePerSecond = -2.0f;
             break;
           case 2:
-            circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+            circle->feature->color = Palette::Gray;
             break;
           }
 

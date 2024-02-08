@@ -263,7 +263,7 @@ void TitleScene::init() {
         circle->feature = new CircleFeature();
 
         if (randomColor(_random) > 0) {
-          circle->feature->color = { 0.78354f, 0.78354f, 0.78354f };
+          circle->feature->color = Palette::Gray;
         }
 
         circle->renderable = renderer.create(std::unique_ptr<CircleFeature>(circle->feature));

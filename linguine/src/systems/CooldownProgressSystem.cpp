@@ -3,21 +3,29 @@
 #include "components/Ability.h"
 #include "components/GlobalCooldown.h"
 #include "components/Progressable.h"
+#include "components/TimeWarp.h"
 
 namespace linguine {
 
 void CooldownProgressSystem::update(float deltaTime) {
-  findEntities<Ability>()->each([deltaTime](const Entity& entity) {
+  float warpedDeltaTime = deltaTime;
+
+  findEntities<TimeWarp>()->each([&warpedDeltaTime](const Entity& entity) {
+    auto timeWarp = entity.get<TimeWarp>();
+    warpedDeltaTime /= timeWarp->factor;
+  });
+
+  findEntities<Ability>()->each([warpedDeltaTime](const Entity& entity) {
     auto ability = entity.get<Ability>();
 
     if (ability->spell.cooldown > 0.0f) {
-      ability->remainingCooldown = glm::max(0.0f, ability->remainingCooldown - deltaTime);
+      ability->remainingCooldown = glm::max(0.0f, ability->remainingCooldown - warpedDeltaTime);
     }
   });
 
-  findEntities<GlobalCooldown>()->each([deltaTime](const Entity& entity) {
+  findEntities<GlobalCooldown>()->each([warpedDeltaTime](const Entity& entity) {
     auto globalCooldown = entity.get<GlobalCooldown>();
-    globalCooldown->remaining = glm::max(0.0f, globalCooldown->remaining - deltaTime);
+    globalCooldown->remaining = glm::max(0.0f, globalCooldown->remaining - warpedDeltaTime);
   });
 
   findEntities<GlobalCooldown>()->each([this](const Entity& entity) {

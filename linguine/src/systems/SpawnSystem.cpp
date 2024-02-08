@@ -18,6 +18,7 @@
 #include "components/Trigger.h"
 #include "components/TutorialState.h"
 #include "components/Velocity.h"
+#include "data/Palette.h"
 
 namespace linguine {
 
@@ -284,7 +285,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
     drawable->feature->meshType = Plus;
-    drawable->feature->color = { 0.0f, 1.0f, 0.0f };
+    drawable->feature->color = Palette::Green;
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -298,7 +299,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
     drawable->feature->meshType = Quad;
-    drawable->feature->color = { 0.0f, 0.0f, 1.0f };
+    drawable->feature->color = { 0.0f, 0.0f, 1.0f, 1.0f };
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -310,7 +311,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
     drawable->feature->meshType = Quad;
-    drawable->feature->color = { 1.0f, 1.0f, 0.0f };
+    drawable->feature->color = { 1.0f, 1.0f, 0.0f, 1.0f };
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -322,7 +323,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
     drawable->feature->meshType = Quad;
-    drawable->feature->color = { 0.0f, 1.0f, 1.0f };
+    drawable->feature->color = { 0.0f, 1.0f, 1.0f, 1.0f };
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -374,7 +375,7 @@ void SpawnSystem::spawnAsteroid(float y, int size) {
 
   auto circle = asteroidEntity->add<Circle>();
   circle->feature = new CircleFeature();
-  circle->feature->color = { 0.97345f, 0.36625f, 0.00561f };
+  circle->feature->color = { 0.97345f, 0.36625f, 0.00561f, 0.5f };
   circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
   circle.setRemovalListener([circle](const Entity e) {
     circle->renderable->destroy();
@@ -404,7 +405,7 @@ void SpawnSystem::spawnObstacle(float x, float y) {
 
   auto drawable = obstacleEntity->add<Drawable>();
   drawable->feature = new ColoredFeature();
-  drawable->feature->color = { 1.0f, 0.0f, 0.0f };
+  drawable->feature->color = Palette::Red;
   drawable->feature->meshType = Mine;
   drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
   drawable.setRemovalListener([drawable](const Entity e) {

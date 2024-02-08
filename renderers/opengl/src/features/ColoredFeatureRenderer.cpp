@@ -56,12 +56,12 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MeshRegistry &meshRegistry)
 
            precision highp float;
 
-           uniform vec3 color;
+           uniform vec4 color;
 
            out vec4 outColor;
 
            void main() {
-             outColor = vec4(color, 1.0);
+             outColor = color;
            }
         )";
 
@@ -140,7 +140,7 @@ void ColoredFeatureRenderer::draw(Camera& camera) {
     auto& feature = renderable->getFeature<ColoredFeature>();
 
     glUniformMatrix4fv(_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(feature.modelMatrix));
-    glUniform3fv(_colorLocation, 1, glm::value_ptr(feature.color));
+    glUniform4fv(_colorLocation, 1, glm::value_ptr(feature.color));
 
     auto& mesh = _meshRegistry.get(feature.meshType);
     mesh->bind();

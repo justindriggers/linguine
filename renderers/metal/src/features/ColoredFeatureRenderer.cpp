@@ -14,12 +14,12 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
 
       struct MetalColoredFeature {
         metal::float4x4 modelMatrix;
-        float3 color;
+        float4 color;
       };
 
       struct VertexOutput {
         float4 position [[position]];
-        float3 color;
+        float4 color;
       };
 
       VertexOutput vertex vertexColored(uint index [[vertex_id]],
@@ -33,7 +33,7 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
       }
 
       float4 fragment fragmentColored(VertexOutput in [[stage_in]]) {
-        return float4(in.color, 1.0);
+        return in.color;
       }
     )";
 
@@ -50,7 +50,17 @@ ColoredFeatureRenderer::ColoredFeatureRenderer(MetalRenderContext& context,
   const auto renderPipelineDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
   renderPipelineDescriptor->setVertexFunction(vertexFunction);
   renderPipelineDescriptor->setFragmentFunction(fragmentFunction);
-  renderPipelineDescriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+
+  auto colorAttachment = renderPipelineDescriptor->colorAttachments()->object(0);
+  colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+  colorAttachment->setBlendingEnabled(true);
+  colorAttachment->setRgbBlendOperation(MTL::BlendOperation::BlendOperationAdd);
+  colorAttachment->setAlphaBlendOperation(MTL::BlendOperation::BlendOperationAdd);
+  colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
+  colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
+  colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
+  colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
+
   renderPipelineDescriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
 
   _pipelineState = context.device->newRenderPipelineState(renderPipelineDescriptor, &error);
@@ -126,7 +136,7 @@ void ColoredFeatureRenderer::draw(Camera& camera) {
     auto metalColoredFeature = static_cast<MetalColoredFeature*>(valueBuffer->contents());
 
     memcpy(&metalColoredFeature->modelMatrix, &feature.modelMatrix, sizeof(simd::float4x4));
-    memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float3));
+    memcpy(&metalColoredFeature->color, &feature.color, sizeof(simd::float4));
 
     commandEncoder->setVertexBuffer(valueBuffer, 0, 2);
     mesh->draw(*commandEncoder);

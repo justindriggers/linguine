@@ -2,6 +2,9 @@
 
 namespace linguine {
 
-struct Level {};
+struct Level {
+  uint64_t backgroundId{};
+  uint64_t textId{};
+};
 
 }  // namespace linguine

@@ -2,6 +2,8 @@
 
 namespace linguine {
 
-struct Friendly {};
+struct Enqueued {
+  std::optional<uint64_t> healthBarId{};
+};
 
 }  // namespace linguine

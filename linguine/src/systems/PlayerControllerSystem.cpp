@@ -6,6 +6,7 @@
 #include "components/Alive.h"
 #include "components/CameraFixture.h"
 #include "components/Cast.h"
+#include "components/Enqueued.h"
 #include "components/GameOver.h"
 #include "components/GlobalCooldown.h"
 #include "components/HealthBar.h"
@@ -55,48 +56,60 @@ void PlayerControllerSystem::update(float deltaTime) {
     }
   });
 
-  findEntities<HealthBar, Tapped, Transform>()->each([this](Entity& healthBarEntity) {
-    auto healthBar = healthBarEntity.get<HealthBar>();
+  findEntities<Cast>()->each([this](const Entity& castEntity) {
+    auto cast = castEntity.get<Cast>();
 
-    findEntities<Cast>()->each([this, &healthBar](const Entity& castEntity) {
-      auto cast = castEntity.get<Cast>();
-      auto isCanceled = true;
+    if (!cast->abilityEntityId) {
+      auto healthBarId = std::optional<uint64_t>();
 
-      findEntities<Ability>()->each([this, &cast, &healthBar, &isCanceled](const Entity& abilityEntity) {
-        auto ability = abilityEntity.get<Ability>();
+      findEntities<Enqueued>()->each([&healthBarId](const Entity& entity) {
+        auto enqueued = entity.get<Enqueued>();
+        healthBarId = enqueued->healthBarId;
+        enqueued->healthBarId = {};
+      });
 
-        if (!cast->abilityEntityId && ability->remainingCooldown <= 0.0f) {
-          auto target = getEntityById(healthBar->entityId);
-
-          if (target->has<Alive>()) {
-            findEntities<GlobalCooldown>()->each([this, &cast, &healthBar, &isCanceled, &abilityEntity](const Entity& entity) {
-              auto globalCooldown = entity.get<GlobalCooldown>();
-
-              if (globalCooldown->remaining <= 0.0f) {
-                cast->abilityEntityId = abilityEntity.getId();
-                cast->targetEntityId = healthBar->entityId;
-                globalCooldown->remaining = globalCooldown->total;
-                isCanceled = false;
-                _audioManager.play(EffectType::Heal);
-              }
-            });
-          }
-        } else if (cast->abilityEntityId == abilityEntity.getId()) {
-          isCanceled = false;
+      findEntities<HealthBar, Tapped, Transform>()->each([this, &healthBarId](Entity& healthBarEntity) {
+        if (healthBarId) {
+          findEntities<Enqueued>()->each([&healthBarEntity](const Entity& entity) {
+            auto enqueued = entity.get<Enqueued>();
+            enqueued->healthBarId = healthBarEntity.getId();
+          });
+        } else {
+          healthBarId = healthBarEntity.getId();
         }
       });
 
-      if (cast->abilityEntityId && isCanceled) {
-        cast->abilityEntityId = {};
-        cast->targetEntityId = {};
-        cast->elapsed = 0.0f;
+      if (healthBarId) {
+        auto healthBarEntity = getEntityById(*healthBarId);
+        auto healthBar = healthBarEntity->get<HealthBar>();
+        auto target = getEntityById(healthBar->entityId);
 
-        findEntities<GlobalCooldown>()->each([](const Entity& entity) {
-          auto globalCooldown = entity.get<GlobalCooldown>();
-          globalCooldown->remaining = 0.0f;
-        });
+        if (target->has<Alive>()) {
+          findEntities<GlobalCooldown>()->each([this, &cast, &target, healthBarId](const Entity& entity) {
+            auto globalCooldown = entity.get<GlobalCooldown>();
+
+            findEntities<Ability>()->each([this, &globalCooldown, &cast, &target, healthBarId](const Entity& abilityEntity) {
+              auto ability = abilityEntity.get<Ability>();
+
+              if (globalCooldown->remaining <= 0.0f && ability->remainingCooldown <= 0.0f) {
+                cast->abilityEntityId = abilityEntity.getId();
+                cast->targetEntityId = target->getId();
+                globalCooldown->remaining = globalCooldown->total;
+                _audioManager.play(EffectType::Heal);
+              } else {
+                findEntities<Enqueued>()->each([healthBarId](const Entity& entity) {
+                  auto enqueued = entity.get<Enqueued>();
+
+                  if (!enqueued->healthBarId) {
+                    enqueued->healthBarId = healthBarId;
+                  }
+                });
+              }
+            });
+          });
+        }
       }
-    });
+    }
   });
 }
 

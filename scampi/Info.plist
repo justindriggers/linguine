@@ -45,6 +45,10 @@
     <array>
         <string>UIInterfaceOrientationPortrait</string>
     </array>
+    <key>UIStatusBarHidden</key>
+    <true/>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>CFBundleDisplayName</key>
