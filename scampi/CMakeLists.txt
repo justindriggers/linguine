@@ -8,22 +8,7 @@ file(GLOB RESOURCE_FILES
 set(RESOURCES
         resources/LaunchScreen.storyboard
         resources/Main.storyboard
-        resources/icons/Icon.png
-        resources/icons/Icon-57.png
-        resources/icons/Icon-57@2x.png
-        resources/icons/Icon-57@3x.png
-        resources/icons/Icon-60.png
-        resources/icons/Icon-60@2x.png
-        resources/icons/Icon-60@3x.png
-        resources/icons/Icon-114.png
-        resources/icons/Icon-114@2x.png
-        resources/icons/Icon-114@3x.png
-        resources/icons/Icon-120.png
-        resources/icons/Icon-120@2x.png
-        resources/icons/Icon-120@3x.png
-        resources/icons/Icon-180.png
-        resources/icons/Icon-180@2x.png
-        resources/icons/Icon-180@3x.png
+        resources/scampi.xcassets
         ${RESOURCE_FILES}
 )
 
@@ -43,13 +28,22 @@ add_executable(scampi
         ${RESOURCES}
 )
 
+set(ENV{PRODUCT_BUNDLE_IDENTIFIER} "com.justindriggers.scampi")
+set(APP_VERSION "0.0.1")
+
+set_xcode_property(scampi PRODUCT_BUNDLE_IDENTIFIER "$ENV{PRODUCT_BUNDLE_IDENTIFIER}" "All")
+set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
+set_xcode_property(scampi DEVELOPMENT_TEAM "$ENV{DEVELOPMENT_TEAM}" "All")
+set_xcode_property(scampi ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon" "All")
+
 set_target_properties(scampi PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
         RESOURCE "${RESOURCES}"
 )
 
-set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
-set_xcode_property(scampi DEVELOPMENT_TEAM "$ENV{DEVELOPMENT_TEAM}" "All")
+if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
+    set_xcode_property(scampi PROVISIONING_PROFILE_SPECIFIER "$ENV{PROVISIONING_PROFILE_SPECIFIER}" "All")
+endif()
 
 target_link_libraries(scampi PRIVATE linguine audioengine metal)
 
@@ -61,3 +55,23 @@ target_link_libraries(scampi PRIVATE ${UIKIT_LIBRARY})
 
 find_library(METALKIT_LIBRARY MetalKit REQUIRED)
 target_link_libraries(scampi PRIVATE ${METALKIT_LIBRARY})
+
+if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
+    set_xcode_property(scampi INSTALL_PATH "$(LOCAL_APPS_DIR)" "All")
+    set_xcode_property(scampi SKIP_INSTALL "No" "All")
+
+    add_custom_target(scampi-archive
+            COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/archive.sh"
+                "$ENV{PRODUCT_BUNDLE_IDENTIFIER}"
+                "$ENV{DEVELOPMENT_TEAM}"
+                "$ENV{PROVISIONING_PROFILE_SPECIFIER}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_dependencies(scampi-archive scampi)
+
+    add_custom_target(scampi-upload
+            COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/upload.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_dependencies(scampi-upload scampi-archive)
+endif()

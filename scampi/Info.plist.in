@@ -8,17 +8,18 @@
 	<string>scampi</string>
 	<key>CFBundleGetInfoString</key>
 	<string></string>
-    <key>CFBundleIconFiles</key>
-    <array>
-        <string>Icon</string>
-        <string>Icon-57</string>
-        <string>Icon-60</string>
-        <string>Icon-114</string>
-        <string>Icon-120</string>
-        <string>Icon-180</string>
-    </array>
+    <key>CFBundleIcons</key>
+    <dict>
+        <key>CFBundlePrimaryIcon</key>
+        <dict>
+            <key>CFBundleIconFiles</key>
+            <array>
+            <string>scampi</string>
+            </array>
+        </dict>
+    </dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.justindriggers.scampi</string>
+	<string>$ENV{PRODUCT_BUNDLE_IDENTIFIER}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
@@ -28,11 +29,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>${APP_VERSION}</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
+	<string>${APP_VERSION}</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
