@@ -76,7 +76,7 @@ class SaveManager {
 
     void restart() {
       _points = 0;
-      _lives = 5;
+      _lives = 1;
       save();
     }
 

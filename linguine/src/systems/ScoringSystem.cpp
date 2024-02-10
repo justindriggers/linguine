@@ -6,6 +6,7 @@
 #include "components/Bomb.h"
 #include "components/Boost.h"
 #include "components/Circle.h"
+#include "components/Collapse.h"
 #include "components/Emitter.h"
 #include "components/Health.h"
 #include "components/Hit.h"
@@ -89,32 +90,34 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
 
         if (hitEntity->has<Asteroid>()) {
           auto asteroid = hitEntity->get<Asteroid>();
-          auto extraLives = ((score->points + asteroid->points) / 1000) - (score->points / 1000);
 
           score->points += asteroid->points;
 
-          if (extraLives > 0) {
-            _audioManager.play(EffectType::Level);
-          } else {
-            switch (asteroid->points) {
-            case 1:
-              _audioManager.play(EffectType::Collect1);
-              break;
-            case 2:
-              _audioManager.play(EffectType::Collect2);
-              break;
-            case 3:
-              _audioManager.play(EffectType::Collect3);
-              break;
-            case 4:
-              _audioManager.play(EffectType::Collect4);
-              break;
-            case 5:
-              _audioManager.play(EffectType::Collect5);
-              break;
-            default:
-              break;
-            }
+          auto level = LevelCurve::getLevelForXp(score->points);
+
+          findEntities<Player>()->each([this, asteroid, level](Entity& entity) {
+            auto player = entity.get<Player>();
+            player->speed += (0.025f + 0.025f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Acceleration, level))) * static_cast<float>(asteroid->points);
+          });
+
+          switch (asteroid->points) {
+          case 1:
+            _audioManager.play(EffectType::Collect1);
+            break;
+          case 2:
+            _audioManager.play(EffectType::Collect2);
+            break;
+          case 3:
+            _audioManager.play(EffectType::Collect3);
+            break;
+          case 4:
+            _audioManager.play(EffectType::Collect4);
+            break;
+          case 5:
+            _audioManager.play(EffectType::Collect5);
+            break;
+          default:
+            break;
           }
 
           auto living = findEntities<Health, Alive>()->get();
@@ -150,36 +153,6 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
             auto text = entity.get<Text>();
             text->feature->text = "+" + std::to_string(asteroid->points);
           });
-
-          if (extraLives > 0) {
-            findEntities<Lives>()->each([extraLives](const Entity& entity) {
-              auto lives = entity.get<Lives>();
-
-              if (255 - lives->lives < extraLives) {
-                lives->lives = 255;
-              } else {
-                lives->lives += extraLives;
-              }
-            });
-
-            findEntities<LifeIndicator, Toast, Text>()->each([this, extraLives, &asteroidTransform](const Entity& entity) {
-              auto toast = entity.get<Toast>();
-              toast->elapsed = 0.0f;
-              toast->startPosition.x = asteroidTransform->position.x * 240.0f / 15.2f;
-
-              switch (_saveManager.getHandedness()) {
-              case SaveManager::Handedness::Right:
-                toast->startPosition.x -= 1.6f * 240.0f / 15.2f;
-                break;
-              case SaveManager::Handedness::Left:
-                toast->startPosition.x += 1.6f * 240.0f / 15.2f;
-                break;
-              }
-
-              auto text = entity.get<Text>();
-              text->feature->text = std::to_string(extraLives) + "up";
-            });
-          }
 
           auto randomScale = std::uniform_real_distribution(0.1f, 0.25f);
           auto randomDirection = std::uniform_real_distribution(0.0f, glm::two_pi<float>());
@@ -251,6 +224,33 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           }
           case PowerUp::Type::Revive: {
             _spellDatabase.getSpellById(4).action->execute(playerEntity);
+
+            auto powerUpTransform = hitEntity->get<Transform>();
+
+            auto count = 10;
+
+            for (auto i = 0; i < count; ++i) {
+              auto particleEntity = createEntity();
+
+              auto particle = particleEntity->add<Particle>();
+              particle->duration = 5.0f;
+              particle->scalePerSecond = -1.0f;
+
+              auto transform = particleEntity->add<Transform>();
+              transform->scale = glm::vec3(0.5f);
+              transform->position = powerUpTransform->position + glm::angleAxis(glm::two_pi<float>() / static_cast<float>(count) * static_cast<float>(i), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec3(1.0f, 0.0f, 0.0f) * 2.5f;
+
+              auto circle = particleEntity->add<Circle>();
+              circle->feature = new CircleFeature();
+              circle->feature->color = Palette::Yellow;
+              circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+              circle.setRemovalListener([circle](const Entity e) {
+                circle->renderable->destroy();
+              });
+            }
+
+            auto reviveShakeEntity = createEntity();
+            reviveShakeEntity->add<Shake>(0.25f, 0.25f);
             break;
           }
           case PowerUp::Type::SpeedBoost: {
@@ -276,7 +276,39 @@ void ScoringSystem::fixedUpdate(float fixedDeltaTime) {
           }
           case PowerUp::Type::TimeWarp: {
             auto timeWarpEntity = createEntity();
-            timeWarpEntity->add<TimeWarp>(0.5f, 1.0f);
+            auto timeWarp = timeWarpEntity->add<TimeWarp>(0.5f, 1.0f);
+
+            auto warpedDuration = timeWarp->duration / timeWarp->factor;
+
+            auto count = 12;
+
+            for (auto i = 0; i < count; ++i) {
+              auto particleEntity = createEntity();
+
+              auto particle = particleEntity->add<Particle>();
+              particle->duration = 5.0f;
+              particle->scalePerSecond = -1.0f / warpedDuration;
+
+              auto transform = particleEntity->add<Transform>();
+              transform->scale = glm::vec3(0.5f);
+
+              auto attachment = particleEntity->add<Attachment>();
+              attachment->parentId = playerEntity.getId();
+              attachment->useFixedUpdate = false;
+              attachment->offset = glm::angleAxis(glm::two_pi<float>() / static_cast<float>(count) * static_cast<float>(i), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec3(1.0f, 0.0f, 0.0f) * 2.5f;
+
+              auto collapse = particleEntity->add<Collapse>();
+              collapse->startOffset = attachment->offset;
+              collapse->duration = warpedDuration;
+
+              auto circle = particleEntity->add<Circle>();
+              circle->feature = new CircleFeature();
+              circle->feature->color = Palette::Cyan;
+              circle->renderable = _renderer.create(std::unique_ptr<CircleFeature>(circle->feature));
+              circle.setRemovalListener([circle](const Entity e) {
+                circle->renderable->destroy();
+              });
+            }
             break;
           }
           }

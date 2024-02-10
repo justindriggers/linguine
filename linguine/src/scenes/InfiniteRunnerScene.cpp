@@ -37,10 +37,12 @@
 #include "components/UpgradeIndicator.h"
 #include "components/Velocity.h"
 #include "data/Palette.h"
+#include "data/upgrades/LevelCurve.h"
 #include "systems/AttachmentSystem.h"
 #include "systems/CameraFollowSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/CastSystem.h"
+#include "systems/CollapseSystem.h"
 #include "systems/CollisionSystem.h"
 #include "systems/CooldownProgressSystem.h"
 #include "systems/EdgeSystem.h"
@@ -72,6 +74,7 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), get<InputManager>(), get<AudioManager>()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
   registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<CollapseSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
@@ -130,7 +133,7 @@ void InfiniteRunnerScene::init() {
     fixture->shake = true;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
-    fixture->camera->clearColor = Palette::Blue;
+    fixture->camera->clearColor = Palette::Navy;
     fixture.setRemovalListener([fixture](const Entity& e) {
       fixture->camera->destroy();
     });
@@ -141,7 +144,8 @@ void InfiniteRunnerScene::init() {
       auto spawnPoint = spawnPointEntity->add<SpawnPoint>();
       spawnPoint->distance = 6.25f;
       spawnPoint->lastSpawnPoint = 20.0f;
-      spawnPoint->spawnChance = 0.85f;
+      spawnPoint->spawnChance = 0.9f;
+      spawnPoint->obstacleSpawnChance = 0.45f;
 
       auto starSpawnPoint = spawnPointEntity->add<StarSpawnPoint>();
       starSpawnPoint->lastSpawnPoint = -20.0f;
@@ -172,11 +176,14 @@ void InfiniteRunnerScene::init() {
     });
   }
 
+  auto currentLevel = LevelCurve::getLevelForXp(saveManager.getPoints());
+
   {
     auto playerEntity = createEntity();
 
     auto player = playerEntity->add<Player>();
-    player->maxSpeed = 30.0f;
+    player->maxSpeed = 10.0f + 2.5f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, currentLevel));
+    player->speed = player->maxSpeed * 0.5f;
 
     auto transform = playerEntity->add<Transform>();
     transform->scale = glm::vec3(2.5f);
@@ -205,7 +212,7 @@ void InfiniteRunnerScene::init() {
 
       auto shipDrawable = shipEntity->add<Drawable>();
       shipDrawable->feature = new ColoredFeature();
-      shipDrawable->feature->meshType = Ship;
+      shipDrawable->feature->meshType = MeshType::Ship;
       shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature));
       shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
         shipDrawable->renderable->destroy();
@@ -227,7 +234,7 @@ void InfiniteRunnerScene::init() {
 
       auto wingDrawable = wingEntity->add<Drawable>();
       wingDrawable->feature = new ColoredFeature();
-      wingDrawable->feature->meshType = Wing;
+      wingDrawable->feature->meshType = MeshType::Wing;
       wingDrawable->feature->color = Palette::Gray;
       wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature));
       wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
@@ -250,8 +257,8 @@ void InfiniteRunnerScene::init() {
 
       auto cockpitDrawable = cockpitEntity->add<Drawable>();
       cockpitDrawable->feature = new ColoredFeature();
-      cockpitDrawable->feature->meshType = Cockpit;
-      cockpitDrawable->feature->color = Palette::Blue;
+      cockpitDrawable->feature->meshType = MeshType::Cockpit;
+      cockpitDrawable->feature->color = Palette::Navy;
       cockpitDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(cockpitDrawable->feature));
       cockpitDrawable.setRemovalListener([cockpitDrawable](const Entity e) {
         cockpitDrawable->renderable->destroy();
@@ -273,7 +280,7 @@ void InfiniteRunnerScene::init() {
 
       auto boosterDrawable = boosterEntity->add<Drawable>();
       boosterDrawable->feature = new ColoredFeature();
-      boosterDrawable->feature->meshType = Booster;
+      boosterDrawable->feature->meshType = MeshType::Booster;
       boosterDrawable->feature->color = Palette::Black;
       boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature));
       boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
@@ -431,7 +438,7 @@ void InfiniteRunnerScene::init() {
 
     auto progressable = healEntity->add<Progressable>();
     progressable->feature = new ProgressFeature();
-    progressable->feature->meshType = Quad;
+    progressable->feature->meshType = MeshType::Quad;
     progressable->feature->color = Palette::Green;
     progressable->feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f };
     progressable->renderable = renderer.create(std::unique_ptr<ProgressFeature>(progressable->feature), UI);
@@ -566,7 +573,7 @@ void InfiniteRunnerScene::init() {
 
         auto shipDrawable = shipEntity->add<Drawable>();
         shipDrawable->feature = new ColoredFeature();
-        shipDrawable->feature->meshType = Ship;
+        shipDrawable->feature->meshType = MeshType::Ship;
         shipDrawable->feature->color = Palette::White;
         shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature), UI);
         shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
@@ -589,7 +596,7 @@ void InfiniteRunnerScene::init() {
 
         auto wingDrawable = wingEntity->add<Drawable>();
         wingDrawable->feature = new ColoredFeature();
-        wingDrawable->feature->meshType = Wing;
+        wingDrawable->feature->meshType = MeshType::Wing;
         wingDrawable->feature->color = Palette::White;
         wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature), UI);
         wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
@@ -612,7 +619,7 @@ void InfiniteRunnerScene::init() {
 
         auto boosterDrawable = boosterEntity->add<Drawable>();
         boosterDrawable->feature = new ColoredFeature();
-        boosterDrawable->feature->meshType = Booster;
+        boosterDrawable->feature->meshType = MeshType::Booster;
         boosterDrawable->feature->color = Palette::White;
         boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature), UI);
         boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {

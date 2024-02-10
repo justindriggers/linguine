@@ -51,10 +51,10 @@ public:
 
 private:
   static constexpr std::array<int32_t, MaxLevel> _xpIncreasePerLevel = {
-      0, 25, 25, 25, 50,
-      25, 25, 25, 25, 50,
-      25, 25, 25, 25, 50,
-      25, 25, 25, 25, 50
+      0, 25, 10, 10, 10,
+      10, 10, 10, 10, 10,
+      0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0
   };
 };
 

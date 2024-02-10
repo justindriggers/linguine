@@ -38,7 +38,7 @@ void OptionsScene::init() {
     fixture->size = 240.0f;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
-    fixture->camera->clearColor = Palette::Blue;
+    fixture->camera->clearColor = Palette::Navy;
     fixture->camera->layer = UI;
     fixture.setRemovalListener([fixture](const Entity& e) {
       fixture->camera->destroy();

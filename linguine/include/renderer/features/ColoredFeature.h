@@ -11,7 +11,7 @@ namespace linguine {
 struct ColoredFeature : public RenderFeature {
   glm::mat4 modelMatrix = glm::mat4(1.0f);
   glm::vec4 color = glm::vec4(1.0f);
-  MeshType meshType = Quad;
+  MeshType meshType = MeshType::Quad;
 };
 
 }  // namespace linguine

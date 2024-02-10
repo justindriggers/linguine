@@ -6,6 +6,7 @@
 
 #include "ServiceLocator.h"
 #include "data/spells/SpellDatabase.h"
+#include "data/upgrades/UpgradeDatabase.h"
 
 namespace linguine {
 
@@ -19,6 +20,7 @@ class InfiniteRunnerScene : public Scene {
 
   private:
     std::random_device _random;
+    UpgradeDatabase _upgradeDatabase;
     std::unique_ptr<SpellDatabase> _spellDatabase;
 };
 

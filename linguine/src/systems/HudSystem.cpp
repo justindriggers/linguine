@@ -53,7 +53,7 @@ void HudSystem::update(float deltaTime) {
 
         auto healthProgressable = healthEntity->add<Progressable>();
         healthProgressable->feature = new ProgressFeature();
-        healthProgressable->feature->meshType = Quad;
+        healthProgressable->feature->meshType = MeshType::Quad;
         healthProgressable->renderable = _renderer.create(std::unique_ptr<ProgressFeature>(healthProgressable->feature), UI);
         healthProgressable.setRemovalListener([healthProgressable](const Entity e) {
           healthProgressable->renderable->destroy();
@@ -61,7 +61,7 @@ void HudSystem::update(float deltaTime) {
 
         auto healthSelectable = healthEntity->add<Selectable>();
         healthSelectable->feature = new SelectableFeature();
-        healthSelectable->feature->meshType = Quad;
+        healthSelectable->feature->meshType = MeshType::Quad;
         healthSelectable->feature->entityId = healthEntity->getId();
         healthSelectable->renderable = _renderer.create(std::unique_ptr<SelectableFeature>(healthSelectable->feature), UI);
         healthSelectable.setRemovalListener([healthSelectable](const Entity e) {

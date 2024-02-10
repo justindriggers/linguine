@@ -26,6 +26,7 @@ add_library(linguine
         src/systems/CameraFollowSystem.cpp
         src/systems/CameraSystem.cpp
         src/systems/CastSystem.cpp
+        src/systems/CollapseSystem.cpp
         src/systems/CollisionSystem.cpp
         src/systems/CooldownProgressSystem.cpp
         src/systems/DialogSystem.cpp

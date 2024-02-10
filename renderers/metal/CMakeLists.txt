@@ -11,7 +11,10 @@ add_library(metal
         src/mesh/MineMesh.cpp
         src/mesh/PlusMesh.cpp
         src/mesh/QuadMesh.cpp
+        src/mesh/ReviveMesh.cpp
         src/mesh/ShipMesh.cpp
+        src/mesh/SpeedBoostMesh.cpp
+        src/mesh/TimeWarpMesh.cpp
         src/mesh/TriangleMesh.cpp
         src/mesh/WingMesh.cpp
 )

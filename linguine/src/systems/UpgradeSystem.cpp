@@ -79,14 +79,10 @@ void UpgradeSystem::update(float deltaTime) {
         case Upgrade::Type::Speed:
           findEntities<Player>()->each([this, level](const Entity& playerEntity) {
             auto player = playerEntity.get<Player>();
-            player->speed = glm::max(player->speed, 5.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level)));
+            player->maxSpeed = 10.0f + 2.5f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level));
           });
           break;
         case Upgrade::Type::Acceleration:
-          findEntities<Player>()->each([this, level](const Entity& playerEntity) {
-            auto player = playerEntity.get<Player>();
-            player->acceleration = 0.05f + 0.02f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Acceleration, level));
-          });
           break;
         }
       }

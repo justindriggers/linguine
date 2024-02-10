@@ -5,6 +5,7 @@
 #include <random>
 
 #include "data/spells/SpellDatabase.h"
+#include "data/upgrades/UpgradeDatabase.h"
 
 namespace linguine {
 
@@ -25,6 +26,7 @@ class ScoringSystem : public System {
 
   private:
     std::random_device _random;
+    UpgradeDatabase _upgradeDatabase;
 
     SpellDatabase& _spellDatabase;
     Renderer& _renderer;

@@ -65,7 +65,7 @@ void GameOverScene::init() {
     fixture->shake = true;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
-    fixture->camera->clearColor = Palette::Blue;
+    fixture->camera->clearColor = Palette::Navy;
     fixture->camera->layer = UI;
     fixture.setRemovalListener([fixture](const Entity& e) {
       fixture->camera->destroy();
@@ -299,7 +299,7 @@ void GameOverScene::init() {
 
         auto shipDrawable = shipEntity->add<Drawable>();
         shipDrawable->feature = new ColoredFeature();
-        shipDrawable->feature->meshType = Ship;
+        shipDrawable->feature->meshType = MeshType::Ship;
         shipDrawable->feature->color = Palette::White;
         shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature), UI);
         shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
@@ -322,7 +322,7 @@ void GameOverScene::init() {
 
         auto wingDrawable = wingEntity->add<Drawable>();
         wingDrawable->feature = new ColoredFeature();
-        wingDrawable->feature->meshType = Wing;
+        wingDrawable->feature->meshType = MeshType::Wing;
         wingDrawable->feature->color = Palette::White;
         wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature), UI);
         wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
@@ -345,7 +345,7 @@ void GameOverScene::init() {
 
         auto boosterDrawable = boosterEntity->add<Drawable>();
         boosterDrawable->feature = new ColoredFeature();
-        boosterDrawable->feature->meshType = Booster;
+        boosterDrawable->feature->meshType = MeshType::Booster;
         boosterDrawable->feature->color = Palette::White;
         boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature), UI);
         boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {

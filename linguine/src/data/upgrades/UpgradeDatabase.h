@@ -12,7 +12,7 @@ class UpgradeDatabase {
         : _upgrades {
               { Upgrade::Type::Shield, { "Shield Generators", "+1 Shield", { 1, 2, 4, 8, 12 } } },
               { Upgrade::Type::Durability, { "Generator Capacity", "+1 Durability", { 3, 7, 11, 15, 18 } } },
-              { Upgrade::Type::Speed, { "Base Speed", "+1 Speed", { 5, 9, 13, 16, 19 } } },
+              { Upgrade::Type::Speed, { "Max Speed", "+1 Max Speed", { 5, 9, 13, 16, 19 } } },
               { Upgrade::Type::Acceleration, { "Ship Acceleration", "+1 Acceleration", { 6, 10, 14, 17, 20 } } }
           } {}
 

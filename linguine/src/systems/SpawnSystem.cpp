@@ -284,7 +284,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
 
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
-    drawable->feature->meshType = Plus;
+    drawable->feature->meshType = MeshType::Plus;
     drawable->feature->color = Palette::Green;
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
@@ -298,8 +298,8 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
 
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
-    drawable->feature->meshType = Quad;
-    drawable->feature->color = { 0.0f, 0.0f, 1.0f, 1.0f };
+    drawable->feature->meshType = MeshType::Revive;
+    drawable->feature->color = Palette::Yellow;
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -310,8 +310,8 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
   case PowerUp::Type::SpeedBoost: {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
-    drawable->feature->meshType = Quad;
-    drawable->feature->color = { 1.0f, 1.0f, 0.0f, 1.0f };
+    drawable->feature->meshType = MeshType::SpeedBoost;
+    drawable->feature->color = Palette::Yellow;
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -322,8 +322,8 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
   case PowerUp::Type::TimeWarp: {
     auto drawable = powerUpEntity->add<Drawable>();
     drawable->feature = new ColoredFeature();
-    drawable->feature->meshType = Quad;
-    drawable->feature->color = { 0.0f, 1.0f, 1.0f, 1.0f };
+    drawable->feature->meshType = MeshType::TimeWarp;
+    drawable->feature->color = Palette::Cyan;
     drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
     drawable.setRemovalListener([drawable](const Entity e) {
       drawable->renderable->destroy();
@@ -406,7 +406,7 @@ void SpawnSystem::spawnObstacle(float x, float y) {
   auto drawable = obstacleEntity->add<Drawable>();
   drawable->feature = new ColoredFeature();
   drawable->feature->color = Palette::Red;
-  drawable->feature->meshType = Mine;
+  drawable->feature->meshType = MeshType::Mine;
   drawable->renderable = _renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
   drawable.setRemovalListener([drawable](const Entity e) {
     drawable->renderable->destroy();

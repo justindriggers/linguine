@@ -81,7 +81,7 @@ void TitleScene::init() {
     fixture->size = 12.0f;
     fixture->type = CameraFixture::Measurement::Width;
     fixture->camera = renderer.createCamera();
-    fixture->camera->clearColor = Palette::Blue;
+    fixture->camera->clearColor = Palette::Navy;
     fixture.setRemovalListener([fixture](const Entity& e) {
       fixture->camera->destroy();
     });
@@ -133,7 +133,8 @@ void TitleScene::init() {
     auto offset = glm::vec2(0.0f, 2.5f);
 
     auto player = playerEntity->add<Player>();
-    player->speed = 5.0f + 1.0f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level));
+    player->maxSpeed = 10.0f + 2.5f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level));
+    player->speed = player->maxSpeed * 0.5f;
     player->acceleration = 0.0f;
 
     playerEntity->add<Velocity>();
@@ -154,7 +155,7 @@ void TitleScene::init() {
 
       auto shipDrawable = shipEntity->add<Drawable>();
       shipDrawable->feature = new ColoredFeature();
-      shipDrawable->feature->meshType = Ship;
+      shipDrawable->feature->meshType = MeshType::Ship;
       shipDrawable->feature->color = Palette::White;
       shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature));
       shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
@@ -178,7 +179,7 @@ void TitleScene::init() {
 
       auto wingDrawable = wingEntity->add<Drawable>();
       wingDrawable->feature = new ColoredFeature();
-      wingDrawable->feature->meshType = Wing;
+      wingDrawable->feature->meshType = MeshType::Wing;
       wingDrawable->feature->color = Palette::Gray;
       wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature));
       wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
@@ -202,8 +203,8 @@ void TitleScene::init() {
 
       auto cockpitDrawable = cockpitEntity->add<Drawable>();
       cockpitDrawable->feature = new ColoredFeature();
-      cockpitDrawable->feature->meshType = Cockpit;
-      cockpitDrawable->feature->color = Palette::Blue;
+      cockpitDrawable->feature->meshType = MeshType::Cockpit;
+      cockpitDrawable->feature->color = Palette::Navy;
       cockpitDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(cockpitDrawable->feature));
       cockpitDrawable.setRemovalListener([cockpitDrawable](const Entity e) {
         cockpitDrawable->renderable->destroy();
@@ -226,7 +227,7 @@ void TitleScene::init() {
 
       auto boosterDrawable = boosterEntity->add<Drawable>();
       boosterDrawable->feature = new ColoredFeature();
-      boosterDrawable->feature->meshType = Booster;
+      boosterDrawable->feature->meshType = MeshType::Booster;
       boosterDrawable->feature->color = Palette::Black;
       boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature));
       boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
@@ -490,7 +491,7 @@ void TitleScene::init() {
     button->text = "New Game";
     button->textSize = 12.0f;
     button->clickHandler = [this, &saveManager, &sceneManager, &serviceLocator]() {
-      if (!saveManager.isNewPlayer()) {
+      if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
         getEntityManager().find<Dialog>()->each([](const Entity& entity) {
           entity.get<Dialog>()->enabled = true;
         });

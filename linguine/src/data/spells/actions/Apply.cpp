@@ -36,7 +36,7 @@ void Apply::execute(Entity& target) {
     progressable->feature = new ProgressFeature();
     progressable->feature->color = _effect->getColor();
     progressable->feature->backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-    progressable->feature->meshType = Quad;
+    progressable->feature->meshType = MeshType::Quad;
     progressable->renderable = renderer.create(std::unique_ptr<RenderFeature>(progressable->feature), UI);
     progressable->renderable->setEnabled(false);
     progressable.setRemovalListener([progressable](const Entity e) {
