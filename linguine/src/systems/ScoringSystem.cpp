@@ -11,8 +11,6 @@
 #include "components/Health.h"
 #include "components/Hit.h"
 #include "components/Level.h"
-#include "components/LifeIndicator.h"
-#include "components/Lives.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -58,7 +56,7 @@ void ScoringSystem::update(float deltaTime) {
       backgroundTransform->scale.x = width + 8.0f;
     });
 
-    auto scoreTextPosition = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
+    auto scoreTextPosition = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
 
     auto attachment = entity.get<Attachment>();
     attachment->offset.x = scoreTextPosition;

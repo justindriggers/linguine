@@ -41,69 +41,58 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
       tutorialState->elapsed += fixedDeltaTime;
 
       switch (tutorialState->currentState) {
-      case TutorialState::State::Movement:
-        spawnMovementText(entity.get<PhysicalState>()->currentPosition.y);
-        tutorialState->currentState = TutorialState::State::WaitingForMovement;
-        tutorialState->elapsed = 0.0f;
-        break;
-      case TutorialState::State::WaitingForMovement:
-        if (tutorialState->hasMoved && tutorialState->elapsed >= 2.0f) {
-          tutorialState->currentState = TutorialState::State::Scoring;
-          tutorialState->elapsed = 0.0f;
-        } else if (tutorialState->elapsed >= 5.0f) {
-          spawnMovementText(entity.get<PhysicalState>()->currentPosition.y);
-          tutorialState->elapsed = 0.0f;
-        }
-        break;
-      case TutorialState::State::Scoring:
-        spawnScoringText(entity.get<PhysicalState>()->currentPosition.y);
-        tutorialState->currentState = TutorialState::State::WaitingForScore;
-        tutorialState->elapsed = 0.0f;
-        break;
       case TutorialState::State::WaitingForScore:
         if (tutorialState->hasScored) {
-          tutorialState->currentState = TutorialState::State::Healing;
+          tutorialState->currentState = TutorialState::State::WaitingForHeal;
           tutorialState->elapsed = 0.0f;
-        } else if (tutorialState->asteroidsSpawned >= 3) {
-          if (tutorialState->elapsed >= 4.0f) {
-            spawnScoringText(entity.get<PhysicalState>()->currentPosition.y);
-            tutorialState->asteroidsSpawned = 0;
-            tutorialState->elapsed = 0.0f;
-          }
         } else if (tutorialState->elapsed >= 4.0f) {
-          spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, 4);
-          tutorialState->asteroidsSpawned++;
+          auto playerPosition = 0;
+
+          findEntities<Player>()->each([&playerPosition](const Entity& playerEntity) {
+            auto player = playerEntity.get<Player>();
+
+            switch (player->state) {
+            case Player::Left:
+            case Player::CenterToLeft:
+              playerPosition = 0;
+              break;
+            case Player::Center:
+            case Player::LeftToCenter:
+            case Player::RightToCenter:
+              playerPosition = 1;
+              break;
+            case Player::Right:
+            case Player::CenterToRight:
+              playerPosition = 2;
+              break;
+            }
+          });
+
+          auto randomPosition = std::uniform_int_distribution(0, 2);
+          int position;
+
+          do {
+            position = randomPosition(_random);
+          } while (position == playerPosition);
+
+          auto randomSize = std::uniform_int_distribution(3, 5);
+          spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, randomSize(_random), position);
           tutorialState->elapsed = 0.0f;
         }
-        break;
-      case TutorialState::State::Healing:
-        spawnHealingText(entity.get<PhysicalState>()->currentPosition.y);
-        tutorialState->currentState = TutorialState::State::WaitingForHeal;
-        tutorialState->elapsed = 0.0f;
         break;
       case TutorialState::State::WaitingForHeal:
         if (tutorialState->hasHealed) {
-          tutorialState->currentState = TutorialState::State::Evasion;
-        } else if (tutorialState->elapsed >= 5.0f) {
-          spawnHealingText(entity.get<PhysicalState>()->currentPosition.y);
-          tutorialState->elapsed = 0.0f;
-        }
-        break;
-      case TutorialState::State::Evasion:
-        if (tutorialState->elapsed >= 2.0f) {
-          spawnEvasionText(entity.get<PhysicalState>()->currentPosition.y);
           tutorialState->currentState = TutorialState::State::Finished;
-          tutorialState->elapsed = 0.0f;
         }
         break;
       case TutorialState::State::Finished:
-        if (tutorialState->elapsed >= 2.0f) {
+        if (tutorialState->hasFinished) {
           tutorialStateEntity.destroy();
 
           auto spawnPoint = entity.get<SpawnPoint>();
           auto physicalState = entity.get<PhysicalState>();
 
-          spawnPoint->lastSpawnPoint = physicalState->currentPosition.y;
+          spawnPoint->lastSpawnPoint = physicalState->currentPosition.y - spawnPoint->distance;
         }
         break;
       }
@@ -336,7 +325,7 @@ bool SpawnSystem::spawnPowerUp(Component<SpawnPoint>& point) {
   return true;
 }
 
-void SpawnSystem::spawnAsteroid(float y, int size) {
+void SpawnSystem::spawnAsteroid(float y, int size, int position) {
   auto asteroidEntity = createEntity();
 
   auto asteroid = asteroidEntity->add<Asteroid>();
@@ -353,17 +342,22 @@ void SpawnSystem::spawnAsteroid(float y, int size) {
     score->possiblePoints += asteroid->points;
   });
 
-  auto randomX = std::uniform_int_distribution(0, 2);
-
   auto transform = asteroidEntity->add<Transform>();
   transform->position = glm::vec3(0.0f, y, 1.0f);
 
-  switch (randomX(_random)) {
+  if (position < 0) {
+    auto randomX = std::uniform_int_distribution(0, 2);
+    position = randomX(_random);
+  }
+
+  switch (position) {
   case 0:
     transform->position.x -= 4.0f;
     break;
   case 2:
     transform->position.x += 4.0f;
+    break;
+  default:
     break;
   }
 
@@ -443,152 +437,6 @@ void SpawnSystem::spawnStars(float y) {
       circle->renderable->destroy();
     });
   }
-}
-
-void SpawnSystem::spawnMovementText(float y) {
-  auto tutorialEntity1 = createEntity();
-
-  auto transform1 = tutorialEntity1->add<Transform>();
-  transform1->scale = glm::vec3(0.5f);
-  transform1->position = { -4.5f, y + 1.5f, 7.0f };
-
-  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
-  tutorialEntity1->add<CircleCollider>();
-  tutorialEntity1->add<Trigger>();
-  tutorialEntity1->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text1 = tutorialEntity1->add<Text>();
-  text1->feature = new TextFeature();
-  text1->feature->text = "Swipe left or right";
-  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
-  text1.setRemovalListener([text1](const Entity& entity) {
-    text1->renderable->destroy();
-  });
-
-  auto tutorialEntity2 = createEntity();
-
-  auto transform2 = tutorialEntity2->add<Transform>();
-  transform2->scale = glm::vec3(0.5f);
-  transform2->position = { -1.5f, y, 7.0f };
-
-  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
-  tutorialEntity2->add<CircleCollider>();
-  tutorialEntity2->add<Trigger>();
-  tutorialEntity2->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text2 = tutorialEntity2->add<Text>();
-  text2->feature = new TextFeature();
-  text2->feature->text = "to move";
-  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
-  text2.setRemovalListener([text2](const Entity& entity) {
-    text2->renderable->destroy();
-  });
-}
-
-void SpawnSystem::spawnScoringText(float y) {
-  auto tutorialEntity1 = createEntity();
-
-  auto transform1 = tutorialEntity1->add<Transform>();
-  transform1->scale = glm::vec3(0.5f);
-  transform1->position = { -5.25f, y + 1.5f, 7.0f };
-
-  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
-  tutorialEntity1->add<CircleCollider>();
-  tutorialEntity1->add<Trigger>();
-  tutorialEntity1->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text1 = tutorialEntity1->add<Text>();
-  text1->feature = new TextFeature();
-  text1->feature->text = "Collide with asteroids";
-  text1->feature->color = { 0.97345f, 0.36625f, 0.00561f };
-  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
-  text1.setRemovalListener([text1](const Entity& entity) {
-    text1->renderable->destroy();
-  });
-
-  auto tutorialEntity2 = createEntity();
-
-  auto transform2 = tutorialEntity2->add<Transform>();
-  transform2->scale = glm::vec3(0.5f);
-  transform2->position = { -3.25f, y, 7.0f };
-
-  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
-  tutorialEntity2->add<CircleCollider>();
-  tutorialEntity2->add<Trigger>();
-  tutorialEntity2->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text2 = tutorialEntity2->add<Text>();
-  text2->feature = new TextFeature();
-  text2->feature->text = "to gain points";
-  text2->feature->color = { 0.97345f, 0.36625f, 0.00561f };
-  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
-  text2.setRemovalListener([text2](const Entity& entity) {
-    text2->renderable->destroy();
-  });
-}
-
-void SpawnSystem::spawnHealingText(float y) {
-  auto tutorialEntity1 = createEntity();
-
-  auto transform1 = tutorialEntity1->add<Transform>();
-  transform1->scale = glm::vec3(0.5f);
-  transform1->position = { -3.75f, y + 1.5f, 7.0f };
-
-  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
-  tutorialEntity1->add<CircleCollider>();
-  tutorialEntity1->add<Trigger>();
-  tutorialEntity1->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text1 = tutorialEntity1->add<Text>();
-  text1->feature = new TextFeature();
-  text1->feature->text = "Tap your shields";
-  text1->feature->color = { 0.0f, 1.0f, 0.0f };
-  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
-  text1.setRemovalListener([text1](const Entity& entity) {
-    text1->renderable->destroy();
-  });
-
-  auto tutorialEntity2 = createEntity();
-
-  auto transform2 = tutorialEntity2->add<Transform>();
-  transform2->scale = glm::vec3(0.5f);
-  transform2->position = { -4.25f, y, 7.0f };
-
-  tutorialEntity2->add<PhysicalState>(transform2->position, 0.0f);
-  tutorialEntity2->add<CircleCollider>();
-  tutorialEntity2->add<Trigger>();
-  tutorialEntity2->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text2 = tutorialEntity2->add<Text>();
-  text2->feature = new TextFeature();
-  text2->feature->text = "to regenerate them";
-  text2->feature->color = { 0.0f, 1.0f, 0.0f };
-  text2->renderable = _renderer.create(std::unique_ptr<TextFeature>(text2->feature));
-  text2.setRemovalListener([text2](const Entity& entity) {
-    text2->renderable->destroy();
-  });
-}
-
-void SpawnSystem::spawnEvasionText(float y) {
-  auto tutorialEntity1 = createEntity();
-
-  auto transform1 = tutorialEntity1->add<Transform>();
-  transform1->scale = glm::vec3(0.5f);
-  transform1->position = { -3.75f, y, 7.0f };
-
-  tutorialEntity1->add<PhysicalState>(transform1->position, 0.0f);
-  tutorialEntity1->add<CircleCollider>();
-  tutorialEntity1->add<Trigger>();
-  tutorialEntity1->add<Velocity>()->velocity = { 0.0f, -3.0f };
-
-  auto text1 = tutorialEntity1->add<Text>();
-  text1->feature = new TextFeature();
-  text1->feature->text = "Avoid the mines!";
-  text1->feature->color = { 1.0f, 0.0f, 0.0f };
-  text1->renderable = _renderer.create(std::unique_ptr<TextFeature>(text1->feature));
-  text1.setRemovalListener([text1](const Entity& entity) {
-    text1->renderable->destroy();
-  });
 }
 
 }  // namespace linguine

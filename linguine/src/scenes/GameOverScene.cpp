@@ -6,7 +6,6 @@
 #include "components/Button.h"
 #include "components/CameraFixture.h"
 #include "components/Circle.h"
-#include "components/Drawable.h"
 #include "components/Header.h"
 #include "components/PhysicalState.h"
 #include "components/Progressable.h"
@@ -273,109 +272,6 @@ void GameOverScene::init() {
   }
 
   {
-    auto lifeIndicatorEntity = createEntity();
-    auto indicatorAttachment = lifeIndicatorEntity->add<Attachment>();
-
-    {
-      indicatorAttachment->parentId = headerEntity->getId();
-      indicatorAttachment->offset = { 0.0f, -1.0f };
-      indicatorAttachment->useFixedUpdate = false;
-
-      auto transform = lifeIndicatorEntity->add<Transform>();
-      transform->scale = glm::vec3(14.0f);
-
-      {
-        auto shipEntity = createEntity();
-
-        auto shipTransform = shipEntity->add<Transform>();
-        shipTransform->scale = transform->scale;
-        shipTransform->position.z = 0.1f;
-
-        shipEntity->add<PhysicalState>();
-
-        auto shipAttachment = shipEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto shipDrawable = shipEntity->add<Drawable>();
-        shipDrawable->feature = new ColoredFeature();
-        shipDrawable->feature->meshType = MeshType::Ship;
-        shipDrawable->feature->color = Palette::White;
-        shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature), UI);
-        shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
-          shipDrawable->renderable->destroy();
-        });
-      }
-
-      {
-        auto wingEntity = createEntity();
-
-        auto wingTransform = wingEntity->add<Transform>();
-        wingTransform->scale = transform->scale;
-        wingTransform->position.z = 1.0f;
-
-        wingEntity->add<PhysicalState>();
-
-        auto shipAttachment = wingEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto wingDrawable = wingEntity->add<Drawable>();
-        wingDrawable->feature = new ColoredFeature();
-        wingDrawable->feature->meshType = MeshType::Wing;
-        wingDrawable->feature->color = Palette::White;
-        wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature), UI);
-        wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
-          wingDrawable->renderable->destroy();
-        });
-      }
-
-      {
-        auto boosterEntity = createEntity();
-
-        auto boosterTransform = boosterEntity->add<Transform>();
-        boosterTransform->scale = transform->scale;
-        boosterTransform->position.z = 0.05f;
-
-        boosterEntity->add<PhysicalState>();
-
-        auto shipAttachment = boosterEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto boosterDrawable = boosterEntity->add<Drawable>();
-        boosterDrawable->feature = new ColoredFeature();
-        boosterDrawable->feature->meshType = MeshType::Booster;
-        boosterDrawable->feature->color = Palette::White;
-        boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature), UI);
-        boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
-          boosterDrawable->renderable->destroy();
-        });
-      }
-    }
-
-    auto livesEntity = createEntity();
-
-    auto attachment = livesEntity->add<Attachment>();
-    attachment->parentId = headerEntity->getId();
-    attachment->useFixedUpdate = false;
-
-    auto transform = livesEntity->add<Transform>();
-    transform->scale = glm::vec3(10.0f);
-
-    auto text = livesEntity->add<Text>();
-    text->feature = new TextFeature();
-    text->feature->text = std::to_string(_lives);
-    text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-    text.setRemovalListener([text](const Entity e) {
-      text->renderable->destroy();
-    });
-
-    attachment->offset.x = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
-    indicatorAttachment->offset.x = attachment->offset.x - 16.0f;
-  }
-
-  {
     auto scoreIndicatorEntity = createEntity();
     auto scoreIndicatorAttachment = scoreIndicatorEntity->add<Attachment>();
 
@@ -412,7 +308,7 @@ void GameOverScene::init() {
       text->renderable->destroy();
     });
 
-    attachment->offset.x = 8.0f - (static_cast<float>(text->feature->text.size()) / 2.0f - 0.5f) * 10.0f;
+    attachment->offset.x = 103.0f - static_cast<float>(text->feature->text.size() - 1) * 10.0f;
     scoreIndicatorAttachment->offset.x = attachment->offset.x - 16.0f;
   }
 

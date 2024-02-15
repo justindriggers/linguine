@@ -29,7 +29,7 @@ add_executable(scampi
 )
 
 set(ENV{PRODUCT_BUNDLE_IDENTIFIER} "com.justindriggers.scampi")
-set(APP_VERSION "0.0.1")
+set(APP_VERSION "0.0.2")
 
 set_xcode_property(scampi PRODUCT_BUNDLE_IDENTIFIER "$ENV{PRODUCT_BUNDLE_IDENTIFIER}" "All")
 set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
@@ -59,6 +59,12 @@ target_link_libraries(scampi PRIVATE ${METALKIT_LIBRARY})
 if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
     set_xcode_property(scampi INSTALL_PATH "$(LOCAL_APPS_DIR)" "All")
     set_xcode_property(scampi SKIP_INSTALL "No" "All")
+
+    add_custom_target(scampi-clean
+            COMMAND ${CMAKE_COMMAND} -E rm -rf Release-iphoneos
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_dependencies(scampi scampi-clean)
 
     add_custom_target(scampi-archive
             COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/archive.sh"

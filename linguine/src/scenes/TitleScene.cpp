@@ -130,7 +130,7 @@ void TitleScene::init() {
 
     playerEntity->add<PhysicalState>(transform->position, 0.0f);
 
-    auto offset = glm::vec2(0.0f, 2.5f);
+    auto offset = glm::vec2(0.0f, 2.0f);
 
     auto player = playerEntity->add<Player>();
     player->maxSpeed = 10.0f + 2.5f * static_cast<float>(_upgradeDatabase.getRankByLevel(Upgrade::Type::Speed, level));
@@ -340,6 +340,23 @@ void TitleScene::init() {
   }
 
   {
+    auto titleTextEntity = createEntity();
+
+    auto transform = titleTextEntity->add<Transform>();
+    transform->position = { -56.0f, 112.0f, 5.0f };
+    transform->scale = glm::vec3(16.0f);
+
+    auto text = titleTextEntity->add<Text>();
+    text->feature = new TextFeature();
+    text->feature->text = "Infinite";
+    text->feature->color = Palette::White;
+    text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
+    text.setRemovalListener([text](const Entity& e) {
+      text->renderable->destroy();
+    });
+  }
+
+  {
     auto confirmationPanelEntity = createEntity();
     confirmationPanelEntity->add<Dialog>();
 
@@ -461,43 +478,21 @@ void TitleScene::init() {
 
   auto buttonPosition = -32.0f;
 
-  if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
-    auto playButtonEntity = createEntity();
-
-    auto button = playButtonEntity->add<Button>();
-    button->position = { 0.0f, buttonPosition, 5.0f };
-    button->minSize = { 128.0f, 32.0f };
-    button->text = "Play";
-    button->textSize = 12.0f;
-    button->clickHandler = [&sceneManager, &serviceLocator]() {
-      sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
-    };
-
-    buttonPosition -= 40.0f;
-  }
-
   {
     auto newGameButtonEntity = createEntity();
 
     auto button = newGameButtonEntity->add<Button>();
-
-    if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
-      button->color = Palette::Secondary;
-      button->activeColor = Palette::SecondaryAccent;
-    }
-
     button->position = { 0.0f, buttonPosition, 5.0f };
     button->minSize = { 128.0f, 32.0f };
-    button->text = "New Game";
+    button->text = "Play";
     button->textSize = 12.0f;
-    button->clickHandler = [this, &saveManager, &sceneManager, &serviceLocator]() {
-      if (!saveManager.isNewPlayer() && saveManager.getLives() > 0) {
-        getEntityManager().find<Dialog>()->each([](const Entity& entity) {
-          entity.get<Dialog>()->enabled = true;
-        });
-      } else {
-        saveManager.restart();
+    button->clickHandler = [&saveManager, &sceneManager, &serviceLocator]() {
+      saveManager.restart();
+
+      if (saveManager.isNewPlayer()) {
         sceneManager.load(std::make_unique<NewPlayerScene>(serviceLocator));
+      } else {
+        sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
       }
     };
 

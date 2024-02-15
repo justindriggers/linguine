@@ -20,6 +20,7 @@ class WebSaveManager : public SaveManager {
       _isSoundEffectsEnabled = true;
       _isScreenShakeEnabled = true;
       _handedness = Handedness::Right;
+      _isNewPlayer = true;
     }
 
     void save() override {}

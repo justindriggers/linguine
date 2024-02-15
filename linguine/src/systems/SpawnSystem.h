@@ -29,19 +29,11 @@ class SpawnSystem : public System {
 
     bool spawnPowerUp(Component<SpawnPoint>& point);
 
-    void spawnAsteroid(float y, int size = 0);
+    void spawnAsteroid(float y, int size = 0, int position = -1);
 
     void spawnObstacle(float x, float y);
 
     void spawnStars(float y);
-
-    void spawnMovementText(float y);
-
-    void spawnScoringText(float y);
-
-    void spawnHealingText(float y);
-
-    void spawnEvasionText(float y);
 };
 
 }  // namespace linguine

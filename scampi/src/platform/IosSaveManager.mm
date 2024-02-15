@@ -11,7 +11,8 @@ IosSaveManager::IosSaveManager() : SaveManager() {
     @"music" : @TRUE,
     @"sfx" : @TRUE,
     @"shake" : @TRUE,
-    @"handedness" : @0
+    @"handedness" : @0,
+    @"new" : @TRUE
   };
 
   [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
@@ -26,7 +27,8 @@ void IosSaveManager::load() {
     @"music",
     @"sfx",
     @"shake",
-    @"handedness"
+    @"handedness",
+    @"new"
   ]];
 
   _points = [values[@"points"] intValue];
@@ -35,6 +37,7 @@ void IosSaveManager::load() {
   _isSoundEffectsEnabled = [values[@"sfx"] boolValue];
   _isScreenShakeEnabled = [values[@"shake"] boolValue];
   _handedness = [values[@"handedness"] intValue] == 0 ? SaveManager::Handedness::Right : SaveManager::Handedness::Left;
+  _isNewPlayer = [values[@"new"] boolValue];
 }
 
 void IosSaveManager::save() {
@@ -44,7 +47,8 @@ void IosSaveManager::save() {
     @"music" : [NSNumber numberWithBool:isMusicEnabled()],
     @"sfx" : [NSNumber numberWithBool:isSoundEffectsEnabled()],
     @"shake" : [NSNumber numberWithBool:isScreenShakeEnabled()],
-    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1]
+    @"handedness" : [NSNumber numberWithInt:getHandedness() == SaveManager::Handedness::Right ? 0 : 1],
+    @"new" : [NSNumber numberWithBool:isNewPlayer()]
   };
 
   [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:values];

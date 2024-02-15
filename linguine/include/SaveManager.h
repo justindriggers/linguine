@@ -34,8 +34,13 @@ class SaveManager {
       return _lives;
     }
 
+    void completeNewPlayerExperience() {
+      _isNewPlayer = false;
+      save();
+    }
+
     [[nodiscard]] bool isNewPlayer() const {
-      return _points == 0;
+      return _isNewPlayer;
     }
 
     void setMusicEnabled(bool enabled) {
@@ -87,6 +92,7 @@ class SaveManager {
     bool _isSoundEffectsEnabled{};
     bool _isScreenShakeEnabled{};
     Handedness _handedness{};
+    bool _isNewPlayer{};
 
     virtual void load() = 0;
 

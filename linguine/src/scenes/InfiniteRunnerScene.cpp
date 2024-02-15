@@ -17,7 +17,6 @@
 #include "components/Level.h"
 #include "components/LevelUp.h"
 #include "components/LifeIndicator.h"
-#include "components/Lives.h"
 #include "components/Particle.h"
 #include "components/Party.h"
 #include "components/PhysicalState.h"
@@ -91,7 +90,7 @@ void InfiniteRunnerScene::init() {
   // Scene-specific
   registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
   registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
-  registerSystem(std::make_unique<TutorialSystem>(getEntityManager()));
+  registerSystem(std::make_unique<TutorialSystem>(getEntityManager(), get<SaveManager>(), get<Renderer>()));
 
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
@@ -101,10 +100,7 @@ void InfiniteRunnerScene::init() {
 
   if (saveManager.isNewPlayer()) {
     auto tutorialEntity = createEntity();
-
-    auto tutorialState = tutorialEntity->add<TutorialState>();
-    tutorialState->currentState = TutorialState::State::WaitingForMovement;
-    tutorialState->elapsed = 4.0f;
+    tutorialEntity->add<TutorialState>();
   }
 
   {
@@ -524,130 +520,6 @@ void InfiniteRunnerScene::init() {
 
     auto transform = levelNumberEntity->add<Transform>();
     transform->scale = glm::vec3(10.0f);
-  }
-
-  {
-    auto lifeBackgroundEntity = createEntity();
-
-    {
-      auto attachment = lifeBackgroundEntity->add<Attachment>();
-      attachment->parentId = headerEntity->getId();
-      attachment->useFixedUpdate = false;
-
-      auto transform = lifeBackgroundEntity->add<Transform>();
-      transform->position.z = 10.0f;
-      transform->scale = { 0.0f, 22.0f, 0.0f };
-
-      auto drawable = lifeBackgroundEntity->add<Drawable>();
-      drawable->feature = new ColoredFeature();
-      drawable->feature->color = { 0.0f, 0.0f, 0.0f, 0.5f };
-      drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature), UI);
-      drawable.setRemovalListener([drawable](const Entity& entity) {
-        drawable->renderable->destroy();
-      });
-    }
-
-    auto lifeIndicatorEntity = createEntity();
-
-    {
-      auto attachment = lifeIndicatorEntity->add<Attachment>();
-      attachment->parentId = headerEntity->getId();
-      attachment->offset = { 0.0f, -1.0f };
-      attachment->useFixedUpdate = false;
-
-      auto transform = lifeIndicatorEntity->add<Transform>();
-      transform->scale = glm::vec3(14.0f);
-
-      {
-        auto shipEntity = createEntity();
-
-        auto shipTransform = shipEntity->add<Transform>();
-        shipTransform->scale = transform->scale;
-        shipTransform->position.z = 0.1f;
-
-        shipEntity->add<PhysicalState>();
-
-        auto shipAttachment = shipEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto shipDrawable = shipEntity->add<Drawable>();
-        shipDrawable->feature = new ColoredFeature();
-        shipDrawable->feature->meshType = MeshType::Ship;
-        shipDrawable->feature->color = Palette::White;
-        shipDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(shipDrawable->feature), UI);
-        shipDrawable.setRemovalListener([shipDrawable](const Entity e) {
-          shipDrawable->renderable->destroy();
-        });
-      }
-
-      {
-        auto wingEntity = createEntity();
-
-        auto wingTransform = wingEntity->add<Transform>();
-        wingTransform->scale = transform->scale;
-        wingTransform->position.z = 1.0f;
-
-        wingEntity->add<PhysicalState>();
-
-        auto shipAttachment = wingEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto wingDrawable = wingEntity->add<Drawable>();
-        wingDrawable->feature = new ColoredFeature();
-        wingDrawable->feature->meshType = MeshType::Wing;
-        wingDrawable->feature->color = Palette::White;
-        wingDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(wingDrawable->feature), UI);
-        wingDrawable.setRemovalListener([wingDrawable](const Entity e) {
-          wingDrawable->renderable->destroy();
-        });
-      }
-
-      {
-        auto boosterEntity = createEntity();
-
-        auto boosterTransform = boosterEntity->add<Transform>();
-        boosterTransform->scale = transform->scale;
-        boosterTransform->position.z = 0.05f;
-
-        boosterEntity->add<PhysicalState>();
-
-        auto shipAttachment = boosterEntity->add<Attachment>();
-        shipAttachment->parentId = lifeIndicatorEntity->getId();
-        shipAttachment->useFixedUpdate = false;
-
-        auto boosterDrawable = boosterEntity->add<Drawable>();
-        boosterDrawable->feature = new ColoredFeature();
-        boosterDrawable->feature->meshType = MeshType::Booster;
-        boosterDrawable->feature->color = Palette::White;
-        boosterDrawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(boosterDrawable->feature), UI);
-        boosterDrawable.setRemovalListener([boosterDrawable](const Entity e) {
-          boosterDrawable->renderable->destroy();
-        });
-      }
-    }
-
-    auto livesEntity = createEntity();
-
-    auto attachment = livesEntity->add<Attachment>();
-    attachment->parentId = headerEntity->getId();
-    attachment->useFixedUpdate = false;
-
-    auto lives = livesEntity->add<Lives>();
-    lives->backgroundId = lifeBackgroundEntity->getId();
-    lives->iconId = lifeIndicatorEntity->getId();
-    lives->lives = saveManager.getLives();
-
-    auto transform = livesEntity->add<Transform>();
-    transform->scale = glm::vec3(10.0f);
-
-    auto text = livesEntity->add<Text>();
-    text->feature = new TextFeature();
-    text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
-    text.setRemovalListener([text](const Entity e) {
-      text->renderable->destroy();
-    });
   }
 
   {
