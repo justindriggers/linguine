@@ -1,19 +1,21 @@
 #import "ScampiViewController.h"
 
 #import <AVFoundation/AVAudioSession.h>
+#import <GameKit/GKLocalPlayer.h>
 
 #import <AudioEngineAudioManager.h>
 #import <MetalRenderer.h>
 
-#import "ScampiAppDelegate.h"
 #import "../metalkit/ScampiViewDelegate.h"
 #import "../platform/IosAudioEngineFileLoader.h"
 #import "../platform/IosInputManager.h"
+#import "../platform/IosLeaderboardManager.h"
 #import "../platform/IosLifecycleManager.h"
 #import "../platform/IosMetalTextureLoader.h"
 #import "../platform/IosSaveManager.h"
 #import "../platform/IosTimeManager.h"
 #import "../platform/NSLogger.h"
+#import "ScampiAppDelegate.h"
 
 @implementation ScampiViewController {
   MTKView *_view;
@@ -74,6 +76,7 @@
   [_view addGestureRecognizer:swipeRight];
 
   auto logger = std::make_shared<linguine::scampi::NSLogger>();
+  auto leaderboardManager = std::make_shared<linguine::scampi::IosLeaderboardManager>();
   auto lifecycleManager = std::make_shared<linguine::scampi::IosLifecycleManager>();
   auto timeManager = std::make_shared<linguine::scampi::IosTimeManager>();
   auto audioFileLoader = std::make_unique<linguine::scampi::IosAudioEngineFileLoader>();
@@ -91,7 +94,7 @@
 
   auto appDelegate = (ScampiAppDelegate *)[[UIApplication sharedApplication] delegate];
 
-  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, lifecycleManager, renderer, saveManager, timeManager);
+  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager);
   appDelegate.engine = engine;
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
@@ -99,6 +102,18 @@
 
   [_viewDelegate mtkView:_view drawableSizeWillChange:_view.bounds.size];
   [_view setDelegate:_viewDelegate];
+
+  GKLocalPlayer.localPlayer.authenticateHandler = ^(UIViewController *viewController, NSError *authError) {
+    if (viewController) {
+      [self presentViewController:viewController animated:YES completion:nil];
+      return;
+    }
+
+    if (authError) {
+      NSLog(@"Game Center Error: %@", authError.localizedDescription);
+      return;
+    }
+  };
 }
 
 - (BOOL)prefersStatusBarHidden {

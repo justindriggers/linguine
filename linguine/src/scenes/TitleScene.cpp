@@ -1,6 +1,7 @@
 #include "TitleScene.h"
 
 #include "InfiniteRunnerScene.h"
+#include "LeaderboardScene.h"
 #include "NewPlayerScene.h"
 #include "OptionsScene.h"
 #include "components/Attachment.h"
@@ -15,6 +16,8 @@
 #include "components/Follow.h"
 #include "components/Footer.h"
 #include "components/FooterPanel.h"
+#include "components/LeaderboardButton.h"
+#include "components/OptionsButton.h"
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
@@ -39,6 +42,7 @@
 #include "systems/ParticleSystem.h"
 #include "systems/PhysicsInterpolationSystem.h"
 #include "systems/SpawnSystem.h"
+#include "systems/TitleUiSystem.h"
 #include "systems/TransformationSystem.h"
 #include "systems/VelocitySystem.h"
 
@@ -53,6 +57,7 @@ void TitleScene::init() {
   registerSystem(std::make_unique<DialogSystem>(getEntityManager()));
   registerSystem(std::make_unique<ButtonSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>()));
   registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
+  registerSystem(std::make_unique<TitleUiSystem>(getEntityManager(), get<LeaderboardManager>()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
@@ -476,13 +481,11 @@ void TitleScene::init() {
     }
   }
 
-  auto buttonPosition = -32.0f;
-
   {
     auto newGameButtonEntity = createEntity();
 
     auto button = newGameButtonEntity->add<Button>();
-    button->position = { 0.0f, buttonPosition, 5.0f };
+    button->position = { 0.0f, -32.0f, 5.0f };
     button->minSize = { 128.0f, 32.0f };
     button->text = "Play";
     button->textSize = 12.0f;
@@ -495,20 +498,36 @@ void TitleScene::init() {
         sceneManager.load(std::make_unique<InfiniteRunnerScene>(serviceLocator));
       }
     };
+  }
 
-    buttonPosition -= 40.0f;
+  {
+    auto leaderboardButtonEntity = createEntity();
+    leaderboardButtonEntity->add<LeaderboardButton>();
+
+    auto button = leaderboardButtonEntity->add<Button>();
+    button->color = Palette::Secondary;
+    button->activeColor = Palette::SecondaryAccent;
+    button->position = { 0.0f, -72.0f, 5.0f };
+    button->minSize = { 128.0f, 32.0f };
+    button->text = "Leaderboard";
+    button->textSize = 10.0f;
+    button->clickHandler = [&sceneManager, &serviceLocator]() {
+      sceneManager.load(std::make_unique<LeaderboardScene>(serviceLocator));
+    };
+    button->visible = false;
   }
 
   {
     auto optionsButtonEntity = createEntity();
+    optionsButtonEntity->add<OptionsButton>();
 
     auto button = optionsButtonEntity->add<Button>();
     button->color = Palette::Secondary;
     button->activeColor = Palette::SecondaryAccent;
-    button->position = { 0.0f, buttonPosition, 5.0f };
+    button->position = { 0.0f, -112.0f, 5.0f };
     button->minSize = { 128.0f, 32.0f };
     button->text = "Options";
-    button->textSize = 12.0f;
+    button->textSize = 10.0f;
     button->clickHandler = [&sceneManager, &serviceLocator]() {
       sceneManager.load(std::make_unique<OptionsScene>(serviceLocator));
     };

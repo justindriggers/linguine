@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+#include "LeaderboardManager.h"
 #include "LifecycleManager.h"
 #include "Logger.h"
 #include "SaveManager.h"
@@ -34,6 +35,11 @@ class ServiceLocator {
     template<>
     inline InputManager& get<InputManager>() {
       return getInputManager();
+    }
+
+    template<>
+    inline LeaderboardManager& get<LeaderboardManager>() {
+      return getLeaderboardManager();
     }
 
     template<>
@@ -80,6 +86,8 @@ class ServiceLocator {
     virtual EntityManagerFactory& getEntityManagerFactory() = 0;
 
     virtual InputManager& getInputManager() = 0;
+
+    virtual LeaderboardManager& getLeaderboardManager() = 0;
 
     virtual LifecycleManager& getLifecycleManager() = 0;
 

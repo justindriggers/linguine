@@ -49,7 +49,7 @@ void OptionsScene::init() {
     auto headerTextEntity = createEntity();
 
     auto transform = headerTextEntity->add<Transform>();
-    transform->position = { -36.0f, 166.0f, 5.0f };
+    transform->position = { -36.0f, 180.0f, 5.0f };
     transform->scale = glm::vec3(12.0f);
 
     auto text = headerTextEntity->add<Text>();

@@ -6,6 +6,7 @@
 #include <OpenGLRenderer.h>
 
 #include "platform/WebInputManager.h"
+#include "platform/WebLeaderboardManager.h"
 #include "platform/WebLifecycleManager.h"
 #include "platform/WebLogger.h"
 #include "platform/WebOpenALFileLoader.h"
@@ -25,6 +26,7 @@ inline void tick() {
 
 int main() {
   auto logger = std::make_shared<WebLogger>();
+  auto leaderboardManager = std::make_shared<WebLeaderboardManager>();
   auto lifecycleManager = std::make_shared<WebLifecycleManager>();
   auto saveManager = std::make_shared<WebSaveManager>();
   auto timeManager = std::make_shared<WebTimeManager>();
@@ -66,8 +68,8 @@ int main() {
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport(), *audioManager);
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
-                                    lifecycleManager, renderer, saveManager,
-                                    timeManager);
+                                    leaderboardManager, lifecycleManager,
+                                    renderer, saveManager, timeManager);
 
   emscripten_set_visibilitychange_callback(engine.get(), false, [](int eventType, const EmscriptenVisibilityChangeEvent* visibilityChangeEvent, void* userData) -> EM_BOOL {
     auto& engine = *static_cast<Engine*>(userData);

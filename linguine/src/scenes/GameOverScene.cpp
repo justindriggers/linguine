@@ -52,6 +52,9 @@ void GameOverScene::init() {
   auto& saveManager = get<SaveManager>();
   saveManager.setLives(_lives);
 
+  auto& leaderboardManager = get<LeaderboardManager>();
+  leaderboardManager.submitScore(_points, [](){}, [](auto error) {});
+
   auto& serviceLocator = get<ServiceLocator>();
 
   {

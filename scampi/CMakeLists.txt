@@ -18,6 +18,7 @@ add_executable(scampi
         src/metalkit/ScampiViewDelegate.mm
         src/platform/IosAudioEngineFileLoader.mm
         src/platform/IosInputManager.cpp
+        src/platform/IosLeaderboardManager.mm
         src/platform/IosLifecycleManager.cpp
         src/platform/IosMetalTextureLoader.mm
         src/platform/IosSaveManager.mm
@@ -29,7 +30,7 @@ add_executable(scampi
 )
 
 set(ENV{PRODUCT_BUNDLE_IDENTIFIER} "com.justindriggers.scampi")
-set(APP_VERSION "0.0.2")
+set(APP_VERSION "0.0.3")
 
 set_xcode_property(scampi PRODUCT_BUNDLE_IDENTIFIER "$ENV{PRODUCT_BUNDLE_IDENTIFIER}" "All")
 set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
@@ -56,6 +57,9 @@ target_link_libraries(scampi PRIVATE ${UIKIT_LIBRARY})
 find_library(METALKIT_LIBRARY MetalKit REQUIRED)
 target_link_libraries(scampi PRIVATE ${METALKIT_LIBRARY})
 
+find_library(GAMEKIT_LIBRARY GameKit REQUIRED)
+target_link_libraries(scampi PRIVATE ${GAMEKIT_LIBRARY})
+
 if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
     set_xcode_property(scampi INSTALL_PATH "$(LOCAL_APPS_DIR)" "All")
     set_xcode_property(scampi SKIP_INSTALL "No" "All")
@@ -80,4 +84,6 @@ if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     add_dependencies(scampi-upload scampi-archive)
+else()
+    set_xcode_property(scampi CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/scampi.entitlements" "All")
 endif()

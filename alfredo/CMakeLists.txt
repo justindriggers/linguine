@@ -8,6 +8,7 @@ add_executable(alfredo
         src/metalkit/AlfredoViewDelegate.mm
         src/platform/MacAudioEngineFileLoader.mm
         src/platform/MacInputManager.mm
+        src/platform/MacLeaderboardManager.cpp
         src/platform/MacLifecycleManager.mm
         src/platform/MacLogger.mm
         src/platform/MacMetalTextureLoader.mm

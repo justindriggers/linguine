@@ -18,6 +18,7 @@ add_library(linguine
         src/renderer/features/FeatureRenderer.cpp
         src/scenes/GameOverScene.cpp
         src/scenes/InfiniteRunnerScene.cpp
+        src/scenes/LeaderboardScene.cpp
         src/scenes/NewPlayerScene.cpp
         src/scenes/OptionsScene.cpp
         src/scenes/TitleScene.cpp
@@ -49,6 +50,7 @@ add_library(linguine
         src/systems/ScoringSystem.cpp
         src/systems/ShakeSystem.cpp
         src/systems/SpawnSystem.cpp
+        src/systems/TitleUiSystem.cpp
         src/systems/ToastSystem.cpp
         src/systems/ToggleSystem.cpp
         src/systems/TransformationSystem.cpp
