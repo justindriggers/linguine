@@ -72,12 +72,13 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<VelocitySystem>(getEntityManager(), get<TimeManager>()));
   registerSystem(std::make_unique<PlayerControllerSystem>(getEntityManager(), get<InputManager>(), get<AudioManager>()));
   registerSystem(std::make_unique<CameraFollowSystem>(getEntityManager()));
+  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
   registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<CollapseSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
-  registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
   registerSystem(std::make_unique<UpgradeSystem>(getEntityManager(), get<AudioManager>(), get<SaveManager>()));
+  registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
   registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));
   registerSystem(std::make_unique<LivenessSystem>(getEntityManager(), get<Renderer>(), get<AudioManager>(), get<SaveManager>(), get<ServiceLocator>()));
   registerSystem(std::make_unique<CooldownProgressSystem>(getEntityManager()));
@@ -86,12 +87,8 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
   registerSystem(std::make_unique<ToastSystem>(getEntityManager()));
   registerSystem(std::make_unique<ShakeSystem>(getEntityManager(), get<SaveManager>()));
-
-  // Scene-specific
   registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
-  registerSystem(std::make_unique<ScoringSystem>(getEntityManager(), *_spellDatabase, get<Renderer>(), get<AudioManager>(), get<SaveManager>()));
   registerSystem(std::make_unique<TutorialSystem>(getEntityManager(), get<SaveManager>(), get<Renderer>()));
-
   registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
   registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
