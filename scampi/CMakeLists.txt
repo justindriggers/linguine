@@ -30,12 +30,13 @@ add_executable(scampi
 )
 
 set(ENV{PRODUCT_BUNDLE_IDENTIFIER} "com.justindriggers.scampi")
-set(APP_VERSION "0.0.3")
+set(APP_VERSION "0.0.4")
 
 set_xcode_property(scampi PRODUCT_BUNDLE_IDENTIFIER "$ENV{PRODUCT_BUNDLE_IDENTIFIER}" "All")
 set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
 set_xcode_property(scampi DEVELOPMENT_TEAM "$ENV{DEVELOPMENT_TEAM}" "All")
 set_xcode_property(scampi ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon" "All")
+set_xcode_property(scampi CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/scampi.entitlements" "All")
 
 set_target_properties(scampi PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
@@ -84,6 +85,4 @@ if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     add_dependencies(scampi-upload scampi-archive)
-else()
-    set_xcode_property(scampi CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/scampi.entitlements" "All")
 endif()

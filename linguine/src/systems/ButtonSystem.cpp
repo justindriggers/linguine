@@ -64,6 +64,9 @@ void ButtonSystem::update(float deltaTime) {
     auto drawable = entity.get<Drawable>();
     drawable->renderable->setEnabled(button->visible);
 
+    auto selectable = entity.get<Selectable>();
+    selectable->renderable->setEnabled(button->visible);
+
     if (button->enabled && entity.has<Pressed>()) {
       auto pressed = entity.get<Pressed>();
 
