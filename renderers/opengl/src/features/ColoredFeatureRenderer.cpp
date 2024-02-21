@@ -1,6 +1,7 @@
 #include "ColoredFeatureRenderer.h"
 
 #include <string>
+#include <vector>
 
 #include <glm/gtc/type_ptr.hpp>
 

@@ -15,6 +15,14 @@ target_include_directories(pesto PUBLIC
         "${THIRD_PARTY_DIR}/stb"
 )
 
+find_package(OpenGL REQUIRED)
+target_link_libraries(pesto PRIVATE ${OPENGL_LIBRARIES})
+target_include_directories(pesto PRIVATE ${OPENGL_INCLUDE_DIR})
+
+find_package(OpenAL REQUIRED)
+target_link_libraries(pesto PRIVATE ${OPENAL_LIBRARIES})
+target_include_directories(pesto PRIVATE ${OPENAL_INCLUDE_DIR})
+
 target_link_libraries(pesto PRIVATE linguine openal opengl)
 
 set_target_properties(pesto PROPERTIES LINK_FLAGS "-sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")

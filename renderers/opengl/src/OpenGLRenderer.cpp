@@ -13,7 +13,7 @@ namespace linguine::render {
 
 class OpenGLRendererImpl : public OpenGLRenderer {
   public:
-    OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader);
+    explicit OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader);
 
     ~OpenGLRendererImpl() override;
 
@@ -33,9 +33,9 @@ class OpenGLRendererImpl : public OpenGLRenderer {
   private:
     std::unique_ptr<OpenGLFileLoader> _fileLoader;
 
-    GLuint _targetTexture;
-    GLuint _depthBuffer;
-    GLuint _framebuffer;
+    GLuint _targetTexture{};
+    GLuint _depthBuffer{};
+    GLuint _framebuffer{};
 
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
     SelectableFeatureRenderer* _selectableFeatureRenderer;
@@ -111,6 +111,8 @@ void OpenGLRendererImpl::draw() {
 void OpenGLRendererImpl::resize(uint16_t width, uint16_t height) {
   OpenGLRenderer::resize(width, height);
 
+  glViewport(0, 0, width, height);
+
   glBindTexture(GL_TEXTURE_2D, _targetTexture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -133,7 +135,7 @@ void OpenGLRendererImpl::reset() {
 }
 
 std::optional<uint64_t> OpenGLRendererImpl::getEntityIdAt(float x, float y) const {
-  if (_isFirstFrame) {
+  if (_isFirstFrame || getViewport().getWidth() == 0 || getViewport().getHeight() == 0) {
     return {};
   }
 

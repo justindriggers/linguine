@@ -1,0 +1,23 @@
+project(carbonara)
+
+add_library(carbonara SHARED
+        app/src/main/cpp/ApplicationAdapter.cpp
+        app/src/main/cpp/main.cpp
+        app/src/main/cpp/platform/AndroidInputManager.cpp
+        app/src/main/cpp/platform/AndroidLogger.cpp
+        app/src/main/cpp/platform/AndroidOpenGLFileLoader.cpp
+        app/src/main/cpp/platform/AndroidTimeManager.cpp
+)
+
+find_package(game-activity REQUIRED CONFIG)
+
+target_link_libraries(carbonara PRIVATE
+        linguine opengl
+        game-activity::game-activity_static
+        EGL GLESv3 jnigraphics
+        android log
+)
+
+# https://developer.android.com/games/agdk/game-activity/migrate-native-activity#issue
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u \
+    Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
