@@ -63,7 +63,7 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
   _context = context;
 
   auto renderer = std::shared_ptr<render::OpenGLRenderer>(
-      render::OpenGLRenderer::create(std::make_unique<AndroidOpenGLFileLoader>())
+      render::OpenGLRenderer::create(std::make_unique<AndroidOpenGLFileLoader>(*app.activity->assetManager))
   );
 
   auto logger = std::make_shared<AndroidLogger>();

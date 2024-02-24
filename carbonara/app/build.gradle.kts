@@ -41,6 +41,14 @@ android {
             version = "3.22.1"
         }
     }
+    sourceSets {
+        named("main") {
+            assets.srcDirs(
+                "../../assets/audio/",
+                "../../assets/fonts/"
+            )
+        }
+    }
 }
 
 dependencies {
