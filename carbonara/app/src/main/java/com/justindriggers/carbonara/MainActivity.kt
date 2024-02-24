@@ -1,13 +1,42 @@
 package com.justindriggers.carbonara
 
+import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import com.google.androidgamesdk.GameActivity
+import it.sephiroth.android.library.uigestures.UIGestureRecognizer
+import it.sephiroth.android.library.uigestures.UIGestureRecognizerDelegate
+import it.sephiroth.android.library.uigestures.UISwipeGestureRecognizer
 
 class MainActivity : GameActivity() {
     companion object {
         init {
             System.loadLibrary("carbonara")
         }
+    }
+
+    private lateinit var gestureRecognizerDelegate: UIGestureRecognizerDelegate
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        gestureRecognizerDelegate = UIGestureRecognizerDelegate()
+
+        val leftSwipeRecognizer = UISwipeGestureRecognizer(this)
+        leftSwipeRecognizer.direction = UISwipeGestureRecognizer.LEFT
+        leftSwipeRecognizer.actionListener = { _: UIGestureRecognizer ->
+            Native.onLeftSwipe()
+        }
+
+        gestureRecognizerDelegate.addGestureRecognizer(leftSwipeRecognizer)
+
+        val rightSwipeRecognizer = UISwipeGestureRecognizer(this)
+        rightSwipeRecognizer.direction = UISwipeGestureRecognizer.RIGHT
+        rightSwipeRecognizer.actionListener = { _: UIGestureRecognizer ->
+            Native.onRightSwipe()
+        }
+
+        gestureRecognizerDelegate.addGestureRecognizer(rightSwipeRecognizer)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -25,5 +54,10 @@ class MainActivity : GameActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureRecognizerDelegate.onTouchEvent(mSurfaceView, event)
+        return super.onTouchEvent(event)
     }
 }

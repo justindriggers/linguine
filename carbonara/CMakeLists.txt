@@ -3,6 +3,7 @@ project(carbonara)
 add_library(carbonara SHARED
         app/src/main/cpp/ApplicationAdapter.cpp
         app/src/main/cpp/main.cpp
+        app/src/main/cpp/jni/Callbacks.cpp
         app/src/main/cpp/platform/AndroidInputManager.cpp
         app/src/main/cpp/platform/AndroidLogger.cpp
         app/src/main/cpp/platform/AndroidOpenGLFileLoader.cpp
@@ -16,6 +17,10 @@ target_link_libraries(carbonara PRIVATE
         game-activity::game-activity_static
         EGL GLESv3 jnigraphics
         android log
+)
+
+target_include_directories(carbonara PRIVATE
+        app/src/main/cpp
 )
 
 # https://developer.android.com/games/agdk/game-activity/migrate-native-activity#issue

@@ -64,15 +64,15 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
   _surface = surface;
   _context = context;
 
-  auto logger = std::make_shared<AndroidLogger>();
-  auto audioManager = std::make_shared<AndroidAudioManager>();
-  auto inputManager = std::make_shared<AndroidInputManager>(app);
-  auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>();
-  auto lifecycleManager = std::make_shared<AndroidLifecycleManager>();
-
   auto renderer = std::shared_ptr<render::OpenGLRenderer>(
       render::OpenGLRenderer::create(std::make_unique<AndroidOpenGLFileLoader>())
   );
+
+  auto logger = std::make_shared<AndroidLogger>();
+  auto audioManager = std::make_shared<AndroidAudioManager>();
+  auto inputManager = std::make_shared<AndroidInputManager>(app, renderer->getViewport());
+  auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>();
+  auto lifecycleManager = std::make_shared<AndroidLifecycleManager>();
 
   auto saveManager = std::make_shared<AndroidSaveManager>();
   auto timeManager = std::make_shared<AndroidTimeManager>();

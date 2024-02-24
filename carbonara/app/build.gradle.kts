@@ -48,4 +48,5 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.games:games-activity:1.2.2")
+    implementation("com.github.sephiroth74:AndroidUIGestureRecognizer:v1.2.7")
 }

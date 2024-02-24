@@ -4,13 +4,17 @@
 
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
+#include <renderer/Viewport.h>
+
+#include "jni/SwipeListener.h"
+
 namespace linguine::carbonara {
 
-class AndroidInputManager : public InputManager {
+class AndroidInputManager : public InputManager, SwipeListener {
   public:
-    explicit AndroidInputManager(android_app& app) : _app(app) {}
+    AndroidInputManager(android_app& app, const Viewport& viewport);
 
-    ~AndroidInputManager() override = default;
+    ~AndroidInputManager() override;
 
     void pollEvents() override;
 
@@ -31,16 +35,33 @@ class AndroidInputManager : public InputManager {
     }
 
     [[nodiscard]] bool isSwipeDetected(Direction direction) const override {
-      return false;
+      switch (direction) {
+      case InputManager::Direction::Left:
+        return _currentLeftSwipe;
+      case InputManager::Direction::Right:
+        return _currentRightSwipe;
+      default:
+        return false;
+      }
     }
+
+    void onLeftSwipe() override;
+
+    void onRightSwipe() override;
 
     static void pollNativeEvents(android_app& app);
 
   private:
     std::unordered_map<uint64_t, Touch> _active;
-    std::unordered_map<uint64_t, Touch> _pending;
 
     android_app& _app;
+    const Viewport& _viewport;
+
+    bool _pendingLeftSwipe = false;
+    bool _currentLeftSwipe = false;
+
+    bool _pendingRightSwipe = false;
+    bool _currentRightSwipe = false;
 };
 
 }  // namespace linguine::carbonara

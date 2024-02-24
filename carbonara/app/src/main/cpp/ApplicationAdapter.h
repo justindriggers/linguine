@@ -3,8 +3,7 @@
 #include <Engine.h>
 
 #include <EGL/egl.h>
-
-#include "platform/AndroidInputManager.h"
+#include <game-activity/native_app_glue/android_native_app_glue.h>
 
 namespace linguine::carbonara {
 

@@ -1,6 +1,7 @@
 #include "ApplicationAdapter.h"
 
-using namespace linguine;
+#include "platform/AndroidInputManager.h"
+
 using namespace linguine::carbonara;
 
 void handle_cmd(android_app* app, int32_t cmd) {
