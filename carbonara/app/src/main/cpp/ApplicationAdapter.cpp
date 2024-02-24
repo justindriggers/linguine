@@ -19,7 +19,6 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
       EGL_BLUE_SIZE, 8,
       EGL_GREEN_SIZE, 8,
       EGL_RED_SIZE, 8,
-      EGL_DEPTH_SIZE, 24,
       EGL_NONE
   };
 
@@ -36,13 +35,12 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
       supportedConfigs.get(),
       supportedConfigs.get() + numConfigs,
       [&display](const EGLConfig &config) {
-        EGLint red, green, blue, depth;
+        EGLint red, green, blue;
 
         if (eglGetConfigAttrib(display, config, EGL_RED_SIZE, &red)
             && eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &green)
-            && eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blue)
-            && eglGetConfigAttrib(display, config, EGL_DEPTH_SIZE, &depth)) {
-          return red == 8 && green == 8 && blue == 8 && depth == 24;
+            && eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blue)) {
+          return red == 8 && green == 8 && blue == 8;
         }
 
         return false;
