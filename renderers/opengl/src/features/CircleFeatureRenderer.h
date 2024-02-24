@@ -10,7 +10,7 @@ namespace linguine::render {
 
 class CircleFeatureRenderer : public FeatureRenderer {
   public:
-    CircleFeatureRenderer(MeshRegistry& meshRegistry);
+    explicit CircleFeatureRenderer(MeshRegistry& meshRegistry);
 
     ~CircleFeatureRenderer() override;
 

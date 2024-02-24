@@ -10,7 +10,7 @@ namespace linguine::render {
 
 class ColoredFeatureRenderer : public FeatureRenderer {
   public:
-    ColoredFeatureRenderer(MeshRegistry& meshRegistry);
+    explicit ColoredFeatureRenderer(MeshRegistry& meshRegistry);
 
     ~ColoredFeatureRenderer() override;
 

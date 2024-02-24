@@ -34,7 +34,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MeshRegistry& meshRegistry)
            }
       )";
 
-    glShaderSource(vertexShaderId, 1, &vertexShaderCode, NULL);
+    glShaderSource(vertexShaderId, 1, &vertexShaderCode, nullptr);
     glCompileShader(vertexShaderId);
 
     glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &result);
@@ -46,7 +46,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MeshRegistry& meshRegistry)
       auto error = std::string();
       error.reserve(logLength + 1);
 
-      glGetShaderInfoLog(vertexShaderId, logLength, NULL, error.data());
+      glGetShaderInfoLog(vertexShaderId, logLength, nullptr, error.data());
 
       printf("Vertex shader error: %s\n", error.c_str());
       throw std::runtime_error(error);
@@ -70,7 +70,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MeshRegistry& meshRegistry)
            }
       )";
 
-    glShaderSource(fragmentShaderId, 1, &fragmentShaderCode, NULL);
+    glShaderSource(fragmentShaderId, 1, &fragmentShaderCode, nullptr);
     glCompileShader(fragmentShaderId);
 
     glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &result);
@@ -82,7 +82,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MeshRegistry& meshRegistry)
       auto error = std::string();
       error.reserve(logLength + 1);
 
-      glGetShaderInfoLog(fragmentShaderId, logLength, NULL, error.data());
+      glGetShaderInfoLog(fragmentShaderId, logLength, nullptr, error.data());
 
       printf("Fragment shader error: %s\n", error.c_str());
       throw std::runtime_error(error);
@@ -103,7 +103,7 @@ SelectableFeatureRenderer::SelectableFeatureRenderer(MeshRegistry& meshRegistry)
     auto error = std::string();
     error.reserve(logLength + 1);
 
-    glGetProgramInfoLog(_shaderProgram, logLength, NULL, error.data());
+    glGetProgramInfoLog(_shaderProgram, logLength, nullptr, error.data());
 
     printf("Program error: %s\n", error.c_str());
     throw std::runtime_error(error);

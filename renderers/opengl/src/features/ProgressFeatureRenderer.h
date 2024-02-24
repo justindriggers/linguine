@@ -10,7 +10,7 @@ namespace linguine::render {
 
 class ProgressFeatureRenderer : public FeatureRenderer {
   public:
-    ProgressFeatureRenderer(MeshRegistry& meshRegistry);
+    explicit ProgressFeatureRenderer(MeshRegistry& meshRegistry);
 
     ~ProgressFeatureRenderer() override;
 

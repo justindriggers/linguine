@@ -14,7 +14,7 @@ class OpenGLFileLoader {
 
     virtual ~OpenGLFileLoader() = default;
 
-    virtual ImageFile getImage() const = 0;
+    [[nodiscard]] virtual ImageFile getImage() const = 0;
 };
 
 }  // namespace linguine::render
