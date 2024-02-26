@@ -1,7 +1,9 @@
 #include "ApplicationAdapter.h"
 
-#include "OpenGLRenderer.h"
-#include "platform/AndroidAudioManager.h"
+#include <AAudioAudioManager.h>
+#include <OpenGLRenderer.h>
+
+#include "platform/AndroidAAudioFileLoader.h"
 #include "platform/AndroidInputManager.h"
 #include "platform/AndroidLeaderboardManager.h"
 #include "platform/AndroidLifecycleManager.h"
@@ -65,9 +67,12 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
   auto renderer = std::shared_ptr<render::OpenGLRenderer>(
       render::OpenGLRenderer::create(std::make_unique<AndroidOpenGLFileLoader>(*app.activity->assetManager))
   );
+  
+  auto audioManager = std::make_shared<audio::AAudioAudioManager>(
+      std::make_unique<AndroidAAudioFileLoader>(*app.activity->assetManager)
+  );
 
   auto logger = std::make_shared<AndroidLogger>();
-  auto audioManager = std::make_shared<AndroidAudioManager>();
   auto inputManager = std::make_shared<AndroidInputManager>(app, renderer->getViewport());
   auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>();
   auto lifecycleManager = std::make_shared<AndroidLifecycleManager>();

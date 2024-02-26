@@ -26,7 +26,7 @@ elseif (EMSCRIPTEN)
     add_subdirectory("${RENDERERS_DIR}/opengl")
 elseif (ANDROID)
     add_subdirectory(carbonara)
-    add_subdirectory("${AUDIO_DIR}/openal")
+    add_subdirectory("${AUDIO_DIR}/aaudio")
     add_subdirectory("${RENDERERS_DIR}/opengl")
 endif()
 

@@ -4,6 +4,7 @@ add_library(carbonara SHARED
         app/src/main/cpp/ApplicationAdapter.cpp
         app/src/main/cpp/main.cpp
         app/src/main/cpp/jni/Callbacks.cpp
+        app/src/main/cpp/platform/AndroidAAudioFileLoader.cpp
         app/src/main/cpp/platform/AndroidInputManager.cpp
         app/src/main/cpp/platform/AndroidLogger.cpp
         app/src/main/cpp/platform/AndroidOpenGLFileLoader.cpp
@@ -13,9 +14,9 @@ add_library(carbonara SHARED
 find_package(game-activity REQUIRED CONFIG)
 
 target_link_libraries(carbonara PRIVATE
-        linguine opengl
+        linguine linguine-aaudio opengl
         game-activity::game-activity_static
-        EGL GLESv3 jnigraphics
+        aaudio EGL GLESv3 jnigraphics
         android log
 )
 
