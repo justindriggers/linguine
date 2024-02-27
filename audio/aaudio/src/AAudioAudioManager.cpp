@@ -2,13 +2,23 @@
 
 namespace linguine::audio {
 
-aaudio_data_callback_result_t effectCallback(AAudioStream* stream, void* userData,
-                                             void* audioData, int32_t numFrames) {
-  auto* audioManager = static_cast<AAudioAudioManager*>(userData);
-  auto& streamState = audioManager->getEffectStreamState(stream);
+aaudio_data_callback_result_t effectCallback([[maybe_unused]] AAudioStream* stream,
+                                             void* userData, void* audioData,
+                                             int32_t numFrames) {
+  auto& streamState = *static_cast<AAudioAudioManager::EffectStreamState*>(userData);
 
-  auto* buffer = streamState.buffer;
-  auto bufferFrames = static_cast<int32_t>(buffer->size() / 4);
+  if (streamState.requested != streamState.playing) {
+    streamState.playing = streamState.requested;
+    streamState.nextFrame = 0;
+    streamState.isPlaying = true;
+  }
+
+  if (!streamState.requested && !streamState.playing) {
+    streamState.isPlaying = false;
+    return AAUDIO_CALLBACK_RESULT_STOP;
+  }
+
+  auto bufferFrames = static_cast<int32_t>(streamState.playing->size() / 4);
 
   if (bufferFrames > streamState.nextFrame) {
     auto frameCount = bufferFrames - streamState.nextFrame;
@@ -17,7 +27,7 @@ aaudio_data_callback_result_t effectCallback(AAudioStream* stream, void* userDat
       frameCount = numFrames;
     }
 
-    memcpy(audioData, buffer->data() + streamState.nextFrame * 4, frameCount * 4);
+    memcpy(audioData, streamState.playing->data() + streamState.nextFrame * 4, frameCount * 4);
     streamState.nextFrame += frameCount;
 
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
@@ -27,13 +37,25 @@ aaudio_data_callback_result_t effectCallback(AAudioStream* stream, void* userDat
   return AAUDIO_CALLBACK_RESULT_STOP;
 }
 
-aaudio_data_callback_result_t songCallback(AAudioStream* stream, void* userData,
-                                           void* audioData, int32_t numFrames) {
-  auto* audioManager = static_cast<AAudioAudioManager*>(userData);
-  auto& streamState = audioManager->getSongStreamState(stream);
+aaudio_data_callback_result_t songCallback([[maybe_unused]] AAudioStream* stream,
+                                           void* userData, void* audioData,
+                                           int32_t numFrames) {
+  auto& streamState = *static_cast<AAudioAudioManager::SongStreamState*>(userData);
 
-  auto* buffer = streamState.buffer;
-  auto bufferFrames = static_cast<int32_t>(buffer->size() / 4);
+  if (streamState.requested != streamState.playing) {
+    streamState.playing = streamState.requested;
+    streamState.delayFrames = streamState.requestedDelayFrames;
+    streamState.loopPoint = streamState.requestedLoopPoint;
+    streamState.nextFrame = 0;
+    streamState.isPlaying = true;
+  }
+
+  if (!streamState.requested && !streamState.playing) {
+    streamState.isPlaying = false;
+    return AAUDIO_CALLBACK_RESULT_STOP;
+  }
+
+  auto bufferFrames = static_cast<int32_t>(streamState.playing->size() / 4);
 
   if (bufferFrames > streamState.nextFrame) {
     auto delayFrames = 0;
@@ -65,7 +87,7 @@ aaudio_data_callback_result_t songCallback(AAudioStream* stream, void* userData,
     }
 
     memcpy(static_cast<std::byte*>(audioData) + delayFrames * 4,
-           buffer->data() + streamState.nextFrame * 4,
+           streamState.playing->data() + streamState.nextFrame * 4,
            frameCount * 4);
 
     streamState.nextFrame += frameCount;
@@ -75,7 +97,7 @@ aaudio_data_callback_result_t songCallback(AAudioStream* stream, void* userData,
 
   if (streamState.loopPoint) {
     streamState.nextFrame = 0;
-    streamState.delayFrames += *streamState.loopPoint - (static_cast<int32_t>(streamState.buffer->size() / 4) - *streamState.loopPoint);
+    streamState.delayFrames += *streamState.loopPoint - (static_cast<int32_t>(streamState.playing->size() / 4) - *streamState.loopPoint);
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
   }
 
@@ -100,30 +122,31 @@ AAudioAudioManager::AAudioAudioManager(std::unique_ptr<AAudioFileLoader> fileLoa
   AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_GAME);
   AAudioStreamBuilder_setContentType(builder, AAUDIO_CONTENT_TYPE_SONIFICATION);
   AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-  AAudioStreamBuilder_setDataCallback(builder, effectCallback, this);
 
-  for (auto* effectStream : _effectStreams) {
-    result = AAudioStreamBuilder_openStream(builder, &effectStream);
+  for (auto i = 0; i < _effectStreams.size(); ++i) {
+    _effectStreamStates[i] = {};
+    AAudioStreamBuilder_setDataCallback(builder, effectCallback, &_effectStreamStates[i]);
+
+    result = AAudioStreamBuilder_openStream(builder, &_effectStreams[i]);
 
     if (result < 0) {
-      AAudioStream_close(effectStream);
+      AAudioStream_close(_effectStreams[i]);
     } else {
-      _effectStreamStates[effectStream] = {};
-      _effectLruPool.push(effectStream);
+      _effectLruPool.push(i);
     }
   }
 
   AAudioStreamBuilder_setContentType(builder, AAUDIO_CONTENT_TYPE_MUSIC);
-  AAudioStreamBuilder_setDataCallback(builder, songCallback, this);
 
-  for (auto& songStream : _songStreams) {
-    result = AAudioStreamBuilder_openStream(builder, &songStream);
+  for (auto i = 0; i < _songStreams.size(); ++i) {
+    _songStreamStates[i] = {};
+    AAudioStreamBuilder_setDataCallback(builder, songCallback, &_songStreamStates[i]);
+
+    result = AAudioStreamBuilder_openStream(builder, &_songStreams[i]);
 
     if (result < 0) {
-      AAudioStream_close(songStream);
+      AAudioStream_close(_songStreams[i]);
     }
-
-    _songStreamStates[songStream] = {};
   }
 
   AAudioStreamBuilder_delete(builder);
@@ -174,23 +197,14 @@ void AAudioAudioManager::play(EffectType effectType) {
     return;
   }
 
-  auto effectStream = _effectLruPool.front();
+  auto streamIndex = _effectLruPool.front();
   _effectLruPool.pop();
-  _effectLruPool.push(effectStream);
+  _effectLruPool.push(streamIndex);
 
-  auto& streamState = getEffectStreamState(effectStream);
+  auto& streamState = _effectStreamStates[streamIndex];
+  streamState.requested = &_effectBuffers[effectType];
 
-  int64_t timeoutNanos = 10L * 1'000'000L;
-
-  AAudioStream_requestStop(effectStream);
-  AAudioStream_waitForStateChange(effectStream, AAUDIO_STREAM_STATE_STOPPING,
-                                  nullptr, timeoutNanos);
-
-  streamState.buffer = &_effectBuffers[effectType];
-  streamState.nextFrame = 0;
-  streamState.isPlaying = true;
-
-  AAudioStream_requestStart(effectStream);
+  AAudioStream_requestStart(_effectStreams[streamIndex]);
 }
 
 void AAudioAudioManager::play(SongType songType, Mode mode) {
@@ -198,34 +212,30 @@ void AAudioAudioManager::play(SongType songType, Mode mode) {
     return;
   }
 
-  stopSongs();
-
   _currentSongType = songType;
 
-  auto songStreamA = getNextSongStream();
-  auto& streamStateA = getSongStreamState(songStreamA);
+  auto streamIndexA = getNextSongStream();
+  auto streamIndexB = getNextSongStream();
 
-  streamStateA.buffer = &_songBuffers[songType];
-  streamStateA.delayFrames = 0;
-  streamStateA.nextFrame = 0;
-  streamStateA.isPlaying = true;
+  auto* songStreamA = _songStreams[streamIndexA];
+
+  auto& streamStateA = _songStreamStates[streamIndexA];
+  auto& streamStateB = _songStreamStates[streamIndexB];
 
   if (mode == Mode::Repeat) {
-    streamStateA.loopPoint = _fileLoader->getSongLoopPoint(songType);
+    streamStateA.requestedLoopPoint = _fileLoader->getSongLoopPoint(songType);
 
-    auto songStreamB = getNextSongStream();
+    streamStateB.requestedDelayFrames = _fileLoader->getSongLoopPoint(songType);
+    streamStateB.requestedLoopPoint = _fileLoader->getSongLoopPoint(songType);
+    streamStateB.requested = &_songBuffers[songType];
 
-    auto& streamStateB = getSongStreamState(songStreamB);
-    streamStateB.buffer = &_songBuffers[songType];
-    streamStateB.delayFrames = _fileLoader->getSongLoopPoint(songType);
-    streamStateB.nextFrame = 0;
-    streamStateB.isPlaying = true;
-    streamStateB.loopPoint = _fileLoader->getSongLoopPoint(songType);
-
-    AAudioStream_requestStart(songStreamB);
+    AAudioStream_requestStart(_songStreams[streamIndexB]);
   } else {
-    streamStateA.loopPoint = {};
+    streamStateB.requested = nullptr;
+    streamStateA.requestedLoopPoint = {};
   }
+
+  streamStateA.requested = &_songBuffers[songType];
 
   AAudioStream_requestStart(songStreamA);
 }
@@ -251,37 +261,37 @@ void AAudioAudioManager::stopSongs() {
 }
 
 void AAudioAudioManager::pause() {
-  for (auto* songStream : _songStreams) {
-    auto& streamState = getSongStreamState(songStream);
+  for (auto i = 0; i < _songStreams.size(); ++i) {
+    auto& streamState = _songStreamStates[i];
 
     if (streamState.isPlaying) {
-      AAudioStream_requestPause(songStream);
+      AAudioStream_requestPause(_songStreams[i]);
     }
   }
 
-  for (auto* effectStream : _effectStreams) {
-    auto& streamState = getEffectStreamState(effectStream);
+    for (auto i = 0; i < _effectStreams.size(); ++i) {
+    auto& streamState = _effectStreamStates[i];
 
     if (streamState.isPlaying) {
-      AAudioStream_requestPause(effectStream);
+      AAudioStream_requestPause(_effectStreams[i]);
     }
   }
 }
 
 void AAudioAudioManager::resume() {
-  for (auto* songStream : _songStreams) {
-    auto& streamState = getSongStreamState(songStream);
+  for (auto i = 0; i < _songStreams.size(); ++i) {
+    auto& streamState = _songStreamStates[i];
 
     if (streamState.isPlaying) {
-      AAudioStream_requestStart(songStream);
+      AAudioStream_requestStart(_songStreams[i]);
     }
   }
 
-  for (auto* effectStream : _effectStreams) {
-    auto& streamState = getEffectStreamState(effectStream);
+  for (auto i = 0; i < _effectStreams.size(); ++i) {
+    auto& streamState = _effectStreamStates[i];
 
     if (streamState.isPlaying) {
-      AAudioStream_requestStart(effectStream);
+      AAudioStream_requestStart(_effectStreams[i]);
     }
   }
 }
@@ -294,14 +304,14 @@ void AAudioAudioManager::loadBuffer(SongType songType) {
   _songBuffers[songType] = _fileLoader->getAudioDataForSong(songType);
 }
 
-AAudioStream* AAudioAudioManager::getNextSongStream() {
+uint8_t AAudioAudioManager::getNextSongStream() {
   if (_currentSongStream == 1) {
     _currentSongStream = 0;
   } else {
     _currentSongStream = 1;
   }
 
-  return _songStreams[_currentSongStream];
+  return _currentSongStream;
 }
 
 }  // namespace linguine::audio
