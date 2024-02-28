@@ -15,9 +15,11 @@ class AAudioAudioManager : public AudioManager {
   public:
     struct EffectStreamState {
       // Owned by main thread
+      uint64_t requestGeneration;
       std::vector<std::byte>* requested;
 
       // Owned by playback thread
+      uint64_t generation;
       std::vector<std::byte>* playing;
       int32_t nextFrame;
       bool isPlaying;
@@ -25,11 +27,13 @@ class AAudioAudioManager : public AudioManager {
 
     struct SongStreamState {
       // Owned by main thread
+      uint64_t requestGeneration;
       std::vector<std::byte>* requested;
       int32_t requestedDelayFrames;
       std::optional<int32_t> requestedLoopPoint;
 
       // Owned by playback thread
+      uint64_t generation;
       std::vector<std::byte>* playing;
       int32_t delayFrames;
       int32_t nextFrame;

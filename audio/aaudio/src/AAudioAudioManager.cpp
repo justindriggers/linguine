@@ -7,13 +7,14 @@ aaudio_data_callback_result_t effectCallback([[maybe_unused]] AAudioStream* stre
                                              int32_t numFrames) {
   auto& streamState = *static_cast<AAudioAudioManager::EffectStreamState*>(userData);
 
-  if (streamState.requested != streamState.playing) {
+  if (streamState.requestGeneration != streamState.generation) {
+    streamState.generation = streamState.requestGeneration;
     streamState.playing = streamState.requested;
     streamState.nextFrame = 0;
     streamState.isPlaying = true;
   }
 
-  if (!streamState.requested && !streamState.playing) {
+  if (!streamState.playing) {
     streamState.isPlaying = false;
     return AAUDIO_CALLBACK_RESULT_STOP;
   }
@@ -42,7 +43,8 @@ aaudio_data_callback_result_t songCallback([[maybe_unused]] AAudioStream* stream
                                            int32_t numFrames) {
   auto& streamState = *static_cast<AAudioAudioManager::SongStreamState*>(userData);
 
-  if (streamState.requested != streamState.playing) {
+  if (streamState.requestGeneration != streamState.generation) {
+    streamState.generation = streamState.requestGeneration;
     streamState.playing = streamState.requested;
     streamState.delayFrames = streamState.requestedDelayFrames;
     streamState.loopPoint = streamState.requestedLoopPoint;
@@ -50,7 +52,7 @@ aaudio_data_callback_result_t songCallback([[maybe_unused]] AAudioStream* stream
     streamState.isPlaying = true;
   }
 
-  if (!streamState.requested && !streamState.playing) {
+  if (!streamState.playing) {
     streamState.isPlaying = false;
     return AAUDIO_CALLBACK_RESULT_STOP;
   }
@@ -203,6 +205,7 @@ void AAudioAudioManager::play(EffectType effectType) {
 
   auto& streamState = _effectStreamStates[streamIndex];
   streamState.requested = &_effectBuffers[effectType];
+  ++streamState.requestGeneration;
 
   AAudioStream_requestStart(_effectStreams[streamIndex]);
 }
@@ -236,6 +239,9 @@ void AAudioAudioManager::play(SongType songType, Mode mode) {
   }
 
   streamStateA.requested = &_songBuffers[songType];
+
+  ++streamStateA.requestGeneration;
+  ++streamStateB.requestGeneration;
 
   AAudioStream_requestStart(songStreamA);
 }
