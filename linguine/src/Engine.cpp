@@ -29,12 +29,6 @@ Engine::Engine(
   _currentScene->init();
 }
 
-void Engine::run() {
-  while (_lifecycleManager->isRunning()) {
-    tick();
-  }
-}
-
 void Engine::tick() {
   if (_lifecycleManager->isPaused()) {
     return;

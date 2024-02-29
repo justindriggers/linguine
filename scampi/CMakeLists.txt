@@ -61,6 +61,8 @@ target_link_libraries(scampi PRIVATE ${METALKIT_LIBRARY})
 find_library(GAMEKIT_LIBRARY GameKit REQUIRED)
 target_link_libraries(scampi PRIVATE ${GAMEKIT_LIBRARY})
 
+target_include_directories(scampi PRIVATE src)
+
 if (DEFINED ENV{PROVISIONING_PROFILE_SPECIFIER})
     set_xcode_property(scampi INSTALL_PATH "$(LOCAL_APPS_DIR)" "All")
     set_xcode_property(scampi SKIP_INSTALL "No" "All")

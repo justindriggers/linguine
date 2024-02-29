@@ -1,4 +1,4 @@
-#include "MetalRenderer.h"
+#include "MetalRenderBackend.h"
 
 #define NS_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
@@ -17,12 +17,10 @@
 
 namespace linguine::render {
 
-class MetalRendererImpl : public MetalRenderer {
+class MetalRenderBackendImpl : public MetalRenderBackend {
   public:
-    explicit MetalRendererImpl(MTK::View& view, bool autoDraw,
-                               MetalTextureLoader& textureLoader)
-        : _context{}, _view(view), _autoDraw(autoDraw),
-          _textureLoader(textureLoader) {
+    MetalRenderBackendImpl(MTK::View& view, std::unique_ptr<MetalTextureLoader> textureLoader)
+        : _context{}, _view(view), _textureLoader(std::move(textureLoader)) {
       _view.setColorPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
       _view.setDepthStencilPixelFormat(MTL::PixelFormatDepth32Float);
 
@@ -36,19 +34,19 @@ class MetalRendererImpl : public MetalRenderer {
       _features.push_back(std::make_unique<ColoredFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::make_unique<ProgressFeatureRenderer>(_context, *_meshRegistry));
       _features.push_back(std::unique_ptr<SelectableFeatureRenderer>(_selectableFeatureRenderer));
-      _features.push_back(std::make_unique<TextFeatureRenderer>(_context, *_meshRegistry, _textureLoader));
+      _features.push_back(std::make_unique<TextFeatureRenderer>(_context, *_meshRegistry, *_textureLoader));
       _features.push_back(std::make_unique<CircleFeatureRenderer>(_context, *_meshRegistry));
       _features.shrink_to_fit();
     }
 
-    ~MetalRendererImpl() override {
+    ~MetalRenderBackendImpl() override {
       _context.commandQueue->release();
       _context.device->release();
     }
 
-    void draw() override;
+    void draw(const std::vector<std::unique_ptr<Camera>>& cameras) override;
 
-    void doDraw() override;
+    void resize(uint16_t width, uint16_t height) override;
 
     void reset() override;
 
@@ -61,8 +59,7 @@ class MetalRendererImpl : public MetalRenderer {
 
   private:
     MTK::View& _view;
-    bool _autoDraw;
-    MetalTextureLoader& _textureLoader;
+    std::unique_ptr<MetalTextureLoader> _textureLoader;
 
     MetalRenderContext _context;
     std::unique_ptr<MeshRegistry> _meshRegistry;
@@ -72,15 +69,7 @@ class MetalRendererImpl : public MetalRenderer {
     bool _isFirstFrame = true;
 };
 
-void MetalRendererImpl::draw() {
-  if (_autoDraw) {
-    doDraw();
-  } else {
-    _view.draw();
-  }
-}
-
-void MetalRendererImpl::doDraw() {
+void MetalRenderBackendImpl::draw(const std::vector<std::unique_ptr<Camera>>& cameras) {
   auto pool = NS::AutoreleasePool::alloc()->init();
 
   _context.commandBuffer = _context.commandQueue->commandBuffer();
@@ -90,7 +79,7 @@ void MetalRendererImpl::doDraw() {
     feature->onFrameBegin();
   }
 
-  for (const auto& camera : getCameras()) {
+  for (const auto& camera : cameras) {
     if (camera->clearColor) {
       auto clearColor = *camera->clearColor;
       _context.coloredRenderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
@@ -122,7 +111,13 @@ void MetalRendererImpl::doDraw() {
   _isFirstFrame = false;
 }
 
-void MetalRendererImpl::reset() {
+void MetalRenderBackendImpl::resize(uint16_t width, uint16_t height) {
+  for (const auto& feature : getFeatures()) {
+    feature->resize(width, height);
+  }
+}
+
+void MetalRenderBackendImpl::reset() {
   _isFirstFrame = true;
 
   for (const auto& feature : getFeatures()) {
@@ -130,7 +125,7 @@ void MetalRendererImpl::reset() {
   }
 }
 
-std::optional<uint64_t> MetalRendererImpl::getEntityIdAt(float x, float y) const {
+std::optional<uint64_t> MetalRenderBackendImpl::getEntityIdAt(float x, float y) const {
   if (_isFirstFrame) {
     return {};
   }
@@ -138,9 +133,8 @@ std::optional<uint64_t> MetalRendererImpl::getEntityIdAt(float x, float y) const
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
-MetalRenderer* MetalRenderer::create(MTK::View& view, bool autoDraw,
-                                     MetalTextureLoader& textureLoader) {
-  return new MetalRendererImpl(view, autoDraw, textureLoader);
+std::unique_ptr<MetalRenderBackend> MetalRenderBackend::create(MTK::View& view, std::unique_ptr<MetalTextureLoader> textureLoader) {
+  return std::make_unique<MetalRenderBackendImpl>(view, std::move(textureLoader));
 }
 
 } // namespace linguine::render

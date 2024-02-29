@@ -1,7 +1,7 @@
 #include "ApplicationAdapter.h"
 
 #include <AAudioAudioManager.h>
-#include <OpenGLRenderer.h>
+#include <OpenGLRenderBackend.h>
 
 #include "platform/AndroidAAudioFileLoader.h"
 #include "platform/AndroidInputManager.h"
@@ -15,6 +15,9 @@
 namespace linguine::carbonara {
 
 ApplicationAdapter::ApplicationAdapter(android_app& app) {
+  _display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  eglInitialize(_display, nullptr, nullptr);
+
   constexpr EGLint attribs[] = {
       EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
       EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -24,49 +27,32 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
       EGL_NONE
   };
 
-  auto display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-  eglInitialize(display, nullptr, nullptr);
-
   EGLint numConfigs;
-  eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
+  eglChooseConfig(_display, attribs, nullptr, 0, &numConfigs);
 
-  std::unique_ptr<EGLConfig[]> supportedConfigs(new EGLConfig[numConfigs]);
-  eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
+  auto supportedConfigs = std::vector<EGLConfig>(numConfigs);
+  eglChooseConfig(_display, attribs, supportedConfigs.data(), numConfigs, &numConfigs);
 
-  auto config = *std::find_if(
-      supportedConfigs.get(),
-      supportedConfigs.get() + numConfigs,
-      [&display](const EGLConfig &config) {
-        EGLint red, green, blue;
+  _config = *std::find_if(supportedConfigs.begin(), supportedConfigs.end(),
+                          [this](const EGLConfig& config) {
+                            EGLint red, green, blue;
 
-        if (eglGetConfigAttrib(display, config, EGL_RED_SIZE, &red)
-            && eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &green)
-            && eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blue)) {
-          return red == 8 && green == 8 && blue == 8;
-        }
+                            if (eglGetConfigAttrib(_display, config, EGL_RED_SIZE, &red)
+                                && eglGetConfigAttrib(_display, config, EGL_GREEN_SIZE, &green)
+                                && eglGetConfigAttrib(_display, config, EGL_BLUE_SIZE, &blue)) {
+                              return red == 8 && green == 8 && blue == 8;
+                            }
 
-        return false;
-      });
+                            return false;
+                          });
 
-  EGLint format;
-  eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-  EGLSurface surface = eglCreateWindowSurface(display, config, app.window, nullptr);
+  createSurface(app);
+  createContext();
 
-  EGLint contextAttribs[] = {
-      EGL_CONTEXT_MAJOR_VERSION, 3,
-      EGL_NONE
-  };
+  eglMakeCurrent(_display, _surface, _surface, _context);
 
-  EGLContext context = eglCreateContext(display, config, nullptr, contextAttribs);
-  eglMakeCurrent(display, surface, surface, context);
-
-  _display = display;
-  _surface = surface;
-  _context = context;
-
-  auto renderer = std::shared_ptr<render::OpenGLRenderer>(
-      render::OpenGLRenderer::create(std::make_unique<AndroidOpenGLFileLoader>(*app.activity->assetManager))
-  );
+  auto renderBackend = render::OpenGLRenderBackend::create(std::make_unique<AndroidOpenGLFileLoader>(*app.activity->assetManager));
+  auto renderer = std::make_shared<Renderer>(std::move(renderBackend));
   
   auto audioManager = std::make_shared<audio::AAudioAudioManager>(
       std::make_unique<AndroidAAudioFileLoader>(*app.activity->assetManager)
@@ -100,7 +86,7 @@ ApplicationAdapter::~ApplicationAdapter() {
     }
 
     eglTerminate(_display);
-    _context = EGL_NO_DISPLAY;
+    _display = EGL_NO_DISPLAY;
   }
 }
 
@@ -121,6 +107,69 @@ void ApplicationAdapter::tick() {
   _engine->tick();
 
   eglSwapBuffers(_display, _surface);
+}
+
+void ApplicationAdapter::onInitWindow(android_app& app) {
+  auto& renderer = _engine->get<Renderer>();
+
+  createSurface(app);
+
+  auto result = eglMakeCurrent(_display, _surface, _surface, _context);
+
+  if (!result) {
+    auto error = eglGetError();
+
+    if (error == EGL_CONTEXT_LOST) {
+      createContext();
+
+      eglMakeCurrent(_display, _surface, _surface, _context);
+
+      auto renderBackend = render::OpenGLRenderBackend::create(std::make_unique<AndroidOpenGLFileLoader>(*app.activity->assetManager));
+      renderer.setBackend(std::move(renderBackend));
+    } else {
+      auto message = "Error initializing window: " + std::to_string(error);
+      _engine->get<Logger>().log(message);
+      throw std::runtime_error(message);
+    }
+  }
+
+  EGLint width;
+  eglQuerySurface(_display, _surface, EGL_WIDTH, &width);
+
+  EGLint height;
+  eglQuerySurface(_display, _surface, EGL_HEIGHT, &height);
+
+  renderer.resize(width, height);
+}
+
+void ApplicationAdapter::onPause() {
+  _isPaused = true;
+  _engine->pause();
+}
+
+void ApplicationAdapter::onResume() {
+  _isPaused = false;
+  _engine->resume();
+}
+
+void ApplicationAdapter::onTerminateWindow() {
+  if (_surface != EGL_NO_SURFACE) {
+    eglDestroySurface(_display, _surface);
+    _surface = EGL_NO_SURFACE;
+  }
+}
+
+void ApplicationAdapter::createSurface(android_app& app) {
+  _surface = eglCreateWindowSurface(_display, _config, app.window, nullptr);
+}
+
+void ApplicationAdapter::createContext() {
+  EGLint contextAttribs[] = {
+      EGL_CONTEXT_MAJOR_VERSION, 3,
+      EGL_NONE
+  };
+
+  _context = eglCreateContext(_display, _config, nullptr, contextAttribs);
 }
 
 }  // namespace linguine::carbonara

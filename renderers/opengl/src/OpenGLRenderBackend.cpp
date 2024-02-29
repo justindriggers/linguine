@@ -1,4 +1,4 @@
-#include "OpenGLRenderer.h"
+#include "OpenGLRenderBackend.h"
 
 #include <GLES3/gl3.h>
 
@@ -11,13 +11,13 @@
 
 namespace linguine::render {
 
-class OpenGLRendererImpl : public OpenGLRenderer {
+class OpenGLRenderBackendImpl : public OpenGLRenderBackend {
   public:
-    explicit OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader);
+    explicit OpenGLRenderBackendImpl(std::unique_ptr<OpenGLFileLoader> fileLoader);
 
-    ~OpenGLRendererImpl() override;
+    ~OpenGLRenderBackendImpl() override;
 
-    void draw() override;
+    void draw(const std::vector<std::unique_ptr<Camera>>& cameras) override;
 
     void resize(uint16_t width, uint16_t height) override;
 
@@ -37,15 +37,18 @@ class OpenGLRendererImpl : public OpenGLRenderer {
     GLuint _depthBuffer{};
     GLuint _framebuffer{};
 
+    uint16_t _width{};
+    uint16_t _height{};
+
     std::vector<std::unique_ptr<FeatureRenderer>> _features;
-    SelectableFeatureRenderer* _selectableFeatureRenderer;
+    SelectableFeatureRenderer* _selectableFeatureRenderer{};
     bool _isFirstFrame = true;
     MeshRegistry _meshRegistry;
 
     std::unique_ptr<GammaCorrection> _gammaCorrection;
 };
 
-OpenGLRendererImpl::OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoader)
+OpenGLRenderBackendImpl::OpenGLRenderBackendImpl(std::unique_ptr<OpenGLFileLoader> fileLoader)
     : _selectableFeatureRenderer(new SelectableFeatureRenderer(_meshRegistry)),
       _fileLoader(std::move(fileLoader)) {
   glGenTextures(1, &_targetTexture);
@@ -74,18 +77,18 @@ OpenGLRendererImpl::OpenGLRendererImpl(std::unique_ptr<OpenGLFileLoader> fileLoa
   glBlendEquation(GL_FUNC_ADD);
 }
 
-OpenGLRendererImpl::~OpenGLRendererImpl() {
+OpenGLRenderBackendImpl::~OpenGLRenderBackendImpl() {
   glDeleteTextures(1, &_targetTexture);
   glDeleteRenderbuffers(1, &_depthBuffer);
   glDeleteFramebuffers(1, &_framebuffer);
 }
 
-void OpenGLRendererImpl::draw() {
+void OpenGLRenderBackendImpl::draw(const std::vector<std::unique_ptr<Camera>>& cameras) {
   for (const auto& feature : getFeatures()) {
     feature->onFrameBegin();
   }
 
-  for (const auto& camera : getCameras()) {
+  for (const auto& camera : cameras) {
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
     if (camera->clearColor) {
@@ -108,8 +111,9 @@ void OpenGLRendererImpl::draw() {
   _isFirstFrame = false;
 }
 
-void OpenGLRendererImpl::resize(uint16_t width, uint16_t height) {
-  OpenGLRenderer::resize(width, height);
+void OpenGLRenderBackendImpl::resize(uint16_t width, uint16_t height) {
+  _width = width;
+  _height = height;
 
   glViewport(0, 0, width, height);
 
@@ -128,22 +132,26 @@ void OpenGLRendererImpl::resize(uint16_t width, uint16_t height) {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _targetTexture, 0);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthBuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  for (auto& feature : _features) {
+    feature->resize(width, height);
+  }
 }
 
-void OpenGLRendererImpl::reset() {
+void OpenGLRenderBackendImpl::reset() {
   _isFirstFrame = true;
 }
 
-std::optional<uint64_t> OpenGLRendererImpl::getEntityIdAt(float x, float y) const {
-  if (_isFirstFrame || getViewport().getWidth() == 0 || getViewport().getHeight() == 0) {
+std::optional<uint64_t> OpenGLRenderBackendImpl::getEntityIdAt(float x, float y) const {
+  if (_isFirstFrame || _width == 0 || _height == 0) {
     return {};
   }
 
   return _selectableFeatureRenderer->getEntityIdAt(x, y);
 }
 
-OpenGLRenderer* OpenGLRenderer::create(std::unique_ptr<OpenGLFileLoader> fileLoader) {
-  return new OpenGLRendererImpl(std::move(fileLoader));
+std::unique_ptr<OpenGLRenderBackend> OpenGLRenderBackend::create(std::unique_ptr<OpenGLFileLoader> fileLoader) {
+  return std::make_unique<OpenGLRenderBackendImpl>(std::move(fileLoader));
 }
 
 }  // namespace linguine::render

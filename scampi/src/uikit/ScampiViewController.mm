@@ -4,24 +4,25 @@
 #import <GameKit/GKLocalPlayer.h>
 
 #import <AudioEngineAudioManager.h>
-#import <MetalRenderer.h>
+#import <MetalRenderBackend.h>
 
-#import "../metalkit/ScampiViewDelegate.h"
-#import "../platform/IosAudioEngineFileLoader.h"
-#import "../platform/IosInputManager.h"
-#import "../platform/IosLeaderboardManager.h"
-#import "../platform/IosLifecycleManager.h"
-#import "../platform/IosMetalTextureLoader.h"
-#import "../platform/IosSaveManager.h"
-#import "../platform/IosTimeManager.h"
-#import "../platform/NSLogger.h"
 #import "ScampiAppDelegate.h"
+#import "metalkit/ScampiViewDelegate.h"
+#import "platform/IosAudioEngineFileLoader.h"
+#import "platform/IosInputManager.h"
+#import "platform/IosLeaderboardManager.h"
+#import "platform/IosLifecycleManager.h"
+#import "platform/IosMetalTextureLoader.h"
+#import "platform/IosSaveManager.h"
+#import "platform/IosTimeManager.h"
+#import "platform/NSLogger.h"
+
+using namespace linguine;
 
 @implementation ScampiViewController {
   MTKView *_view;
   ScampiViewDelegate *_viewDelegate;
   std::shared_ptr<linguine::scampi::IosInputManager> _inputManager;
-  std::unique_ptr<linguine::render::MetalTextureLoader> _textureLoader;
 }
 
 - (void)viewDidLoad
@@ -83,8 +84,9 @@
   auto audioManager = std::make_shared<linguine::audio::AudioEngineAudioManager>(std::move(audioFileLoader));
 
   auto mtkTextureLoader = [[MTKTextureLoader alloc] initWithDevice:_view.device];
-  _textureLoader = std::make_unique<linguine::scampi::IosMetalTextureLoader>(mtkTextureLoader);
-  auto renderer = std::shared_ptr<linguine::Renderer>(linguine::render::MetalRenderer::create(*(__bridge MTK::View*)_view, true, *_textureLoader));
+  auto textureLoader = std::make_unique<linguine::scampi::IosMetalTextureLoader>(mtkTextureLoader);
+  auto metalRenderBackend = render::MetalRenderBackend::create(*(__bridge MTK::View*)_view, std::move(textureLoader));
+  auto renderer = std::make_shared<Renderer>(std::move(metalRenderBackend));
 
   auto insets = UIApplication.sharedApplication.windows.firstObject.safeAreaInsets;
   renderer->setInsets(static_cast<uint16_t>(insets.left), static_cast<uint16_t>(insets.right),
@@ -97,8 +99,7 @@
   auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager);
   appDelegate.engine = engine;
 
-  _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine
-                                                    renderer:renderer];
+  _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine];
 
   [_viewDelegate mtkView:_view drawableSizeWillChange:_view.bounds.size];
   [_view setDelegate:_viewDelegate];

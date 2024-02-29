@@ -1,6 +1,18 @@
 #import "AlfredoApplicationDelegate.h"
 
-#import "../platform/MacMetalTextureLoader.h"
+#import <AudioEngineAudioManager.h>
+
+#import "platform/MacAudioEngineFileLoader.h"
+#import "platform/MacInputManager.h"
+#import "platform/MacLeaderboardManager.h"
+#import "platform/MacLifecycleManager.h"
+#import "platform/MacLogger.h"
+#import "platform/MacMetalTextureLoader.h"
+#import "platform/MacSaveManager.h"
+#import "platform/MacTimeManager.h"
+
+using namespace linguine;
+using namespace linguine::alfredo;
 
 @implementation AlfredoApplicationDelegate
 
@@ -18,8 +30,7 @@
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
     NSMenu *appMenu = [[NSMenu alloc] init];
 
-    NSString *appName =
-        [[NSRunningApplication currentApplication] localizedName];
+    NSString *appName = [[NSRunningApplication currentApplication] localizedName];
     [appMenu addItemWithTitle:[NSString stringWithFormat:@"Quit %@", appName]
                        action:@selector(terminate:)
                 keyEquivalent:@"q"];
@@ -58,34 +69,47 @@
                       defer:NO];
 
     self.device = MTLCreateSystemDefaultDevice();
-    view = [[MTKView alloc] initWithFrame:frame
+    self.view = [[MTKView alloc] initWithFrame:frame
                                    device:self.device];
-    [view setPaused:YES];
-    [view setEnableSetNeedsDisplay:NO];
-    ((CAMetalLayer*)[view layer]).displaySyncEnabled = NO;
+    [self.view setPaused:YES];
+    [self.view setEnableSetNeedsDisplay:NO];
+    ((CAMetalLayer*)[self.view layer]).displaySyncEnabled = NO;
 
     auto mtkTextureLoader = [[MTKTextureLoader alloc] initWithDevice:self.device];
-    self.metalTextureLoader = new linguine::alfredo::MacMetalTextureLoader(mtkTextureLoader);
-    self.metalRenderer = linguine::render::MetalRenderer::create(*(__bridge MTK::View*)view, false, *self.metalTextureLoader);
+    auto metalTextureLoader = std::make_unique<MacMetalTextureLoader>(mtkTextureLoader);
+    auto metalRenderBackend = render::MetalRenderBackend::create(*(__bridge MTK::View*)self.view, std::move(metalTextureLoader));
 
-    _viewDelegate = [[AlfredoViewDelegate alloc] initWithRenderer:self.metalRenderer];
+    auto audioFileLoader = std::make_unique<MacAudioEngineFileLoader>();
 
-    [_viewDelegate mtkView:view drawableSizeWillChange:view.bounds.size];
-    [view setDelegate:_viewDelegate];
+    auto logger = std::make_shared<MacLogger>();
+    auto audioManager = std::make_shared<audio::AudioEngineAudioManager>(std::move(audioFileLoader));
+    auto inputManager = std::make_shared<MacInputManager>();
+    auto leaderboardManager = std::make_shared<MacLeaderboardManager>();
+    auto lifecycleManager = std::make_shared<MacLifecycleManager>();
+    auto renderer = std::make_shared<Renderer>(std::move(metalRenderBackend));
+    auto saveManager = std::make_shared<MacSaveManager>();
+    auto timeManager = std::make_shared<MacTimeManager>();
+    auto engine = std::make_unique<Engine>(logger, audioManager, inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager);
 
-    [self.window setContentView:view];
+    _viewDelegate = [[AlfredoViewDelegate alloc] initWithEngine:std::move(engine)];
+
+    [_viewDelegate mtkView:self.view drawableSizeWillChange:self.view.bounds.size];
+    [self.view setDelegate:_viewDelegate];
+
+    [self.window setContentView:self.view];
     [self.window setTitle:@"Alfredo"];
-//    [self.window center];
     [self.window makeKeyAndOrderFront:nil];
 
     [NSApp activateIgnoringOtherApps:YES];
-    [NSApp stop:nil];
+
+    while (lifecycleManager->isRunning()) {
+      [self.view draw];
+    }
   }
 }
 
-- (void)applicationWillTerminate:(NSNotification *)notification {
-  delete _metalRenderer;
-  delete _metalTextureLoader;
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+  return YES;
 }
 
 @end

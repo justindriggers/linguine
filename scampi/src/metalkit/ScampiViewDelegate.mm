@@ -1,26 +1,21 @@
 #import "ScampiViewDelegate.h"
 
-#import "../platform/NSLogger.h"
-
 @implementation ScampiViewDelegate {
-  std::shared_ptr<linguine::Engine> _engine;
-  std::shared_ptr<linguine::Renderer> _renderer;
+  std::shared_ptr<Engine> _engine;
 }
 
-- (instancetype)initWithEngine:(std::shared_ptr<linguine::Engine>&)engine
-                      renderer:(std::shared_ptr<linguine::Renderer>&)renderer {
+- (instancetype)initWithEngine:(const std::shared_ptr<Engine>&)engine {
   self = [super init];
 
   if (self) {
     _engine = engine;
-    _renderer = renderer;
   }
 
   return self;
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {
-  _renderer->resize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
+  _engine->get<Renderer>().resize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {

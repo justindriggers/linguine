@@ -4,15 +4,19 @@
 #include <unordered_map>
 #include <vector>
 
-#include "renderer/Camera.h"
-#include "renderer/features/FeatureRenderer.h"
-#include "renderer/features/RenderFeature.h"
-#include "renderer/Viewport.h"
+#include "Camera.h"
+#include "RenderBackend.h"
+#include "Viewport.h"
+#include "features/FeatureRenderer.h"
+#include "features/RenderFeature.h"
 
 namespace linguine {
 
 class Renderer {
   public:
+    explicit Renderer(std::unique_ptr<RenderBackend> backend)
+        : _backend(std::move(backend)) {}
+
     virtual ~Renderer() = default;
 
     Renderable* create(std::unique_ptr<RenderFeature> feature, Layer layer = World);
@@ -21,38 +25,51 @@ class Renderer {
 
     [[nodiscard]] const Viewport& getViewport() const;
 
-    virtual void draw() = 0;
+    void setBackend(std::unique_ptr<RenderBackend> backend) {
+      _backend = std::move(backend);
 
-    virtual void resize(uint16_t width, uint16_t height) {
-      _viewport.setSize(width, height);
-
-      for (auto& feature : getFeatures()) {
-        feature->resize(width, height);
+      for (const auto& feature : _backend->getFeatures()) {
+        for (const auto& renderable : _renderables) {
+          feature->onFeatureChanged(*renderable.second);
+        }
       }
+    }
+
+    inline void draw() {
+      _backend->draw(_cameras);
+    }
+
+    void resize(uint16_t width, uint16_t height) {
+      _viewport.setSize(width, height);
+      _backend->resize(width, height);
     }
 
     void setInsets(uint16_t left, uint16_t right, uint16_t top, uint16_t bottom) {
       _viewport.setInsets(left, right, top, bottom);
     }
 
-    virtual void reset() = 0;
+    inline void reset() {
+      _backend->reset();
+    }
 
     /**
      * @param x Where 0.0f is the left, and 1.0f is the right
      * @param y Where 0.0f is the bottom, and 1.0f is the top
      * @return Entity ID, if it exists at that location
      */
-    [[nodiscard]] virtual std::optional<uint64_t> getEntityIdAt(float x, float y) const = 0;
+    [[nodiscard]] inline std::optional<uint64_t> getEntityIdAt(float x, float y) const {
+      return _backend->getEntityIdAt(x, y);
+    }
 
   protected:
     [[nodiscard]] const std::vector<std::unique_ptr<Camera>>& getCameras() const {
       return _cameras;
     }
 
-    [[nodiscard]] virtual const std::vector<std::unique_ptr<FeatureRenderer>>& getFeatures() const = 0;
-
   private:
     Viewport _viewport;
+
+    std::unique_ptr<RenderBackend> _backend;
 
     uint64_t _nextCameraId = 0;
     uint64_t _nextRenderableId = 0;

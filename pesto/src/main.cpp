@@ -3,7 +3,7 @@
 
 #include <Engine.h>
 #include <OpenALAudioManager.h>
-#include <OpenGLRenderer.h>
+#include <OpenGLRenderBackend.h>
 
 #include "platform/WebInputManager.h"
 #include "platform/WebLeaderboardManager.h"
@@ -61,8 +61,8 @@ int main() {
 
   emscripten_webgl_make_context_current(contextHandle);
 
-  auto renderer = std::shared_ptr<OpenGLRenderer>(OpenGLRenderer::create(
-      std::make_unique<WebOpenGLFileLoader>()));
+  auto renderBackend = OpenGLRenderBackend::create(std::make_unique<WebOpenGLFileLoader>());
+  auto renderer = std::make_shared<Renderer>(std::move(renderBackend));
   renderer->resize(width, height);
 
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport(), *audioManager);

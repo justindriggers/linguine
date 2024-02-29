@@ -1,7 +1,5 @@
 #include "renderer/Renderer.h"
 
-#include <memory>
-
 namespace linguine {
 
 Renderable* Renderer::create(std::unique_ptr<RenderFeature> feature, Layer layer) {
@@ -26,13 +24,13 @@ const Viewport& Renderer::getViewport() const {
 }
 
 void Renderer::onFeatureChanged(Renderable& renderable) {
-  for (const auto& feature : getFeatures()) {
+  for (const auto& feature : _backend->getFeatures()) {
     feature->onFeatureChanged(renderable);
   }
 }
 
 void Renderer::onDestroy(Renderable& renderable) {
-  for (const auto& feature : getFeatures()) {
+  for (const auto& feature : _backend->getFeatures()) {
     feature->onDestroy(renderable);
   }
 

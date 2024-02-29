@@ -26,8 +26,6 @@ class Engine : public ServiceLocator, SceneManager {
 
     virtual ~Engine() = default;
 
-    void run();
-
     void tick();
 
     void pause();

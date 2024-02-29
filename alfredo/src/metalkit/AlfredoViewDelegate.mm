@@ -2,22 +2,22 @@
 
 @implementation AlfredoViewDelegate
 
-- (instancetype)initWithRenderer:(linguine::render::MetalRenderer *)renderer {
+- (instancetype)initWithEngine:(std::unique_ptr<Engine>)engine {
   self = [super init];
 
   if (self) {
-    _renderer = renderer;
+    _engine = std::move(engine);
   }
 
   return self;
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {
-  _renderer->resize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
+  _engine->get<linguine::Renderer>().resize(static_cast<uint16_t>(size.width), static_cast<uint16_t>(size.height));
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
-  _renderer->doDraw();
+  _engine->tick();
 }
 
 @end

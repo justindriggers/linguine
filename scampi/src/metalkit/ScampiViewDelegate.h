@@ -1,11 +1,11 @@
 #import <MetalKit/MetalKit.h>
 
 #import <Engine.h>
-#import <MetalRenderer.h>
+
+using namespace linguine;
 
 @interface ScampiViewDelegate : NSObject <MTKViewDelegate>
 
-- (instancetype)initWithEngine:(std::shared_ptr<linguine::Engine>&)engine
-                      renderer:(std::shared_ptr<linguine::Renderer>&)renderer;
+- (instancetype)initWithEngine:(const std::shared_ptr<Engine>&)engine;
 
 @end

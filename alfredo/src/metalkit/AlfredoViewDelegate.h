@@ -1,12 +1,14 @@
 #import <MetalKit/MetalKit.h>
 
-#import <MetalRenderer.h>
+#import <Engine.h>
+
+using namespace linguine;
 
 @interface AlfredoViewDelegate : NSObject <MTKViewDelegate> {
   @private
-    linguine::render::MetalRenderer * _renderer;
+    std::unique_ptr<Engine> _engine;
 }
 
-- (instancetype)initWithRenderer:(linguine::render::MetalRenderer *)renderer;
+- (instancetype)initWithEngine:(std::unique_ptr<Engine>)engine;
 
 @end

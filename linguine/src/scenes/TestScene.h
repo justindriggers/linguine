@@ -16,30 +16,30 @@
 #include "systems/GestureRecognitionSystem.h"
 #include "systems/RiserSystem.h"
 #include "systems/RotatorSystem.h"
-#include "systems/SelectionDestructionSystem.h"
 #include "systems/TransformationSystem.h"
 
 namespace linguine {
 
 class TestScene : public Scene {
   public:
-    explicit TestScene(ServiceLocator& serviceLocator)
-        : Scene(serviceLocator.get<EntityManagerFactory>().create()) {
-      registerSystem(std::make_unique<FpsSystem>(getEntityManager(), serviceLocator.get<Logger>()));
-      registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), serviceLocator.get<InputManager>(), serviceLocator.get<Renderer>(), serviceLocator.get<TimeManager>()));
-      registerSystem(std::make_unique<SelectionDestructionSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
+    explicit TestScene(ServiceLocator& serviceLocator) : Scene(serviceLocator) {}
+
+    void init() override {
+      registerSystem(std::make_unique<FpsSystem>(getEntityManager(), get<Logger>()));
+      registerSystem(std::make_unique<GestureRecognitionSystem>(getEntityManager(), get<InputManager>(), get<Renderer>(), get<TimeManager>()));
       registerSystem(std::make_unique<FallerSystem>(getEntityManager()));
-      registerSystem(std::make_unique<RiserSystem>(getEntityManager(), serviceLocator.get<AudioManager>()));
+      registerSystem(std::make_unique<RiserSystem>(getEntityManager(), get<AudioManager>()));
       registerSystem(std::make_unique<RotatorSystem>(getEntityManager()));
       registerSystem(std::make_unique<TransformationSystem>(getEntityManager()));
-      registerSystem(std::make_unique<CameraSystem>(getEntityManager(), serviceLocator.get<Renderer>()));
+      registerSystem(std::make_unique<CameraSystem>(getEntityManager(), get<Renderer>()));
 
-      auto& renderer = serviceLocator.get<Renderer>();
+      auto& renderer = get<Renderer>();
 
       // Camera
       auto cameraEntity = createEntity();
       auto fixture = cameraEntity->add<CameraFixture>();
       fixture->camera = renderer.createCamera();
+      fixture->camera->clearColor = { 0.25f, 0.25f, 0.25f };
       fixture.setRemovalListener([fixture](const Entity& e) {
         fixture->camera->destroy();
       });
@@ -56,7 +56,7 @@ class TestScene : public Scene {
 
       auto componentDist = std::uniform_int_distribution(0, 1);
 
-      for (int i = 0; i < 1'000; ++i) {
+      for (int i = 0; i < 1; ++i) {
         auto entity = createEntity();
 
         auto transform = entity->add<Transform>();
@@ -64,18 +64,18 @@ class TestScene : public Scene {
 
         auto drawable = entity->add<Drawable>();
         drawable->feature = new ColoredFeature();
-        drawable->feature->color = glm::vec3(normalDist(random), normalDist(random), normalDist(random));
+        drawable->feature->color = glm::vec4(normalDist(random), normalDist(random), normalDist(random), 1.0f);
 
         auto selectable = entity->add<Selectable>();
         selectable->feature = new SelectableFeature();
         selectable->feature->entityId = entity->getId();
 
         if (componentDist(random) > 0) {
-          drawable->feature->meshType = Quad;
-          selectable->feature->meshType = Quad;
+          drawable->feature->meshType = MeshType::Quad;
+          selectable->feature->meshType = MeshType::Quad;
         } else {
-          drawable->feature->meshType = Triangle;
-          selectable->feature->meshType = Triangle;
+          drawable->feature->meshType = MeshType::Triangle;
+          selectable->feature->meshType = MeshType::Triangle;
         }
 
         drawable->renderable = renderer.create(std::unique_ptr<ColoredFeature>(drawable->feature));
@@ -88,13 +88,13 @@ class TestScene : public Scene {
           selectable->renderable->destroy();
         });
 
-        if (componentDist(random) > 0) {
-          auto rising = entity->add<Rising>();
-          rising->speed = normalDist(random);
-        } else {
+//        if (componentDist(random) > 0) {
+//          auto rising = entity->add<Rising>();
+//          rising->speed = normalDist(random);
+//        } else {
           auto rotating = entity->add<Rotating>();
           rotating->speed = rotationDist(random);
-        }
+//        }
       }
     }
 };

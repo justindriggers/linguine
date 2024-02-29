@@ -10,7 +10,7 @@ namespace linguine::alfredo {
 void MacInputManager::pollEvents() {
   @autoreleasepool {
     NSApplication *app = NSApplication.sharedApplication;
-    auto window = [app mainWindow];
+    auto window = app.windows.firstObject;
     auto frameSize = window.contentView.frame.size;
 
     auto toRemove = std::vector<uint64_t>();

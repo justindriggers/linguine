@@ -1,10 +1,10 @@
 #import <UIKit/UIKit.h>
 
-#include <memory>
-
 #import <Engine.h>
+
+using namespace linguine;
 
 @interface ScampiAppDelegate : UIResponder <UIApplicationDelegate>
 @property (strong, nonatomic) UIWindow *window;
-@property (nonatomic) std::shared_ptr<linguine::Engine> engine;
+@property (nonatomic) std::shared_ptr<Engine> engine;
 @end

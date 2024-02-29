@@ -35,3 +35,5 @@ target_link_libraries(alfredo PRIVATE ${APPKIT_LIBRARY})
 
 find_library(METALKIT_LIBRARY MetalKit REQUIRED)
 target_link_libraries(alfredo PRIVATE ${METALKIT_LIBRARY})
+
+target_include_directories(alfredo PRIVATE src)

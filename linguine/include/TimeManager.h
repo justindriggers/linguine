@@ -34,14 +34,20 @@ class TimeManager {
     }
 
     inline void pause() {
-      _pausedTimeScale = _timeScale;
-      setTimeScale(0.0f);
+      if (!_isPaused) {
+        _pausedTimeScale = _timeScale;
+        setTimeScale(0.0f);
+        _isPaused = true;
+      }
     }
 
     inline void resume() {
-      setTimeScale(_pausedTimeScale);
-      _lastTickTime = currentTime();
-      _currentTickTime = _lastTickTime;
+      if (_isPaused) {
+        setTimeScale(_pausedTimeScale);
+        _lastTickTime = currentTime();
+        _currentTickTime = _lastTickTime;
+        _isPaused = false;
+      }
     }
 
     inline void reset() {
@@ -83,6 +89,7 @@ class TimeManager {
     float _accumulator = _fixedDeltaTime;
     float _timeScale = 1.0f;
     float _pausedTimeScale = 1.0f;
+    bool _isPaused = false;
 
     time_t _startTime;
     time_t _lastTickTime;

@@ -1,5 +1,5 @@
 add_library(opengl
-        src/OpenGLRenderer.cpp
+        src/OpenGLRenderBackend.cpp
         src/features/CircleFeatureRenderer.cpp
         src/features/ColoredFeatureRenderer.cpp
         src/features/ProgressFeatureRenderer.cpp
