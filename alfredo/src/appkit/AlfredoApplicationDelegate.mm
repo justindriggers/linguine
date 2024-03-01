@@ -75,6 +75,8 @@ using namespace linguine::alfredo;
     [self.view setEnableSetNeedsDisplay:NO];
     ((CAMetalLayer*)[self.view layer]).displaySyncEnabled = NO;
 
+    self.lifecycleManager = std::make_shared<MacLifecycleManager>();
+
     auto mtkTextureLoader = [[MTKTextureLoader alloc] initWithDevice:self.device];
     auto metalTextureLoader = std::make_unique<MacMetalTextureLoader>(mtkTextureLoader);
     auto metalRenderBackend = render::MetalRenderBackend::create(*(__bridge MTK::View*)self.view, std::move(metalTextureLoader));
@@ -85,11 +87,10 @@ using namespace linguine::alfredo;
     auto audioManager = std::make_shared<audio::AudioEngineAudioManager>(std::move(audioFileLoader));
     auto inputManager = std::make_shared<MacInputManager>();
     auto leaderboardManager = std::make_shared<MacLeaderboardManager>();
-    auto lifecycleManager = std::make_shared<MacLifecycleManager>();
     auto renderer = std::make_shared<Renderer>(std::move(metalRenderBackend));
     auto saveManager = std::make_shared<MacSaveManager>();
     auto timeManager = std::make_shared<MacTimeManager>();
-    auto engine = std::make_unique<Engine>(logger, audioManager, inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager);
+    auto engine = std::make_unique<Engine>(logger, audioManager, inputManager, leaderboardManager, self.lifecycleManager, renderer, saveManager, timeManager);
 
     _viewDelegate = [[AlfredoViewDelegate alloc] initWithEngine:std::move(engine)];
 
@@ -101,10 +102,7 @@ using namespace linguine::alfredo;
     [self.window makeKeyAndOrderFront:nil];
 
     [NSApp activateIgnoringOtherApps:YES];
-
-    while (lifecycleManager->isRunning()) {
-      [self.view draw];
-    }
+    [NSApp stop:nil];
   }
 }
 

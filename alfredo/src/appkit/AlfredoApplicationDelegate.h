@@ -12,4 +12,5 @@
 @property(nonatomic, strong) NSWindow *window;
 @property(nonatomic, strong) MTKView *view;
 @property(nonatomic, retain) id<MTLDevice> device;
+@property(nonatomic) std::shared_ptr<LifecycleManager> lifecycleManager;
 @end

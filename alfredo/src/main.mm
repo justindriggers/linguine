@@ -5,14 +5,16 @@
 using namespace linguine;
 
 int main(int argc, const char *argv[]) {
-  @autoreleasepool {
-    NSApplication *app = NSApplication.sharedApplication;
+  NSApplication *app = NSApplication.sharedApplication;
 
-    AlfredoApplicationDelegate *appDelegate = [[AlfredoApplicationDelegate alloc] init];
-    app.delegate = appDelegate;
+  AlfredoApplicationDelegate *appDelegate = [[AlfredoApplicationDelegate alloc] init];
+  app.delegate = appDelegate;
 
-    [app run];
+  [app run];
 
-    return 0;
+  while (appDelegate.lifecycleManager->isRunning()) {
+    [appDelegate.view draw];
   }
+
+  return 0;
 }

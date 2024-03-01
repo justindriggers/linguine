@@ -43,6 +43,7 @@ void MacInputManager::pollEvents() {
 
           if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
               || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+            [app sendEvent:event];
             break;
           }
 
@@ -55,6 +56,7 @@ void MacInputManager::pollEvents() {
 
           if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
               || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+            [app sendEvent:event];
             break;
           }
 
@@ -72,6 +74,7 @@ void MacInputManager::pollEvents() {
 
           if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
               || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+            [app sendEvent:event];
             break;
           }
 
@@ -87,6 +90,7 @@ void MacInputManager::pollEvents() {
 
           if (mouseLocation.x < 0.0f || mouseLocation.x > frameSize.width
               || mouseLocation.y < 0.0f || mouseLocation.y > frameSize.height) {
+            [app sendEvent:event];
             break;
           }
 
@@ -105,6 +109,10 @@ void MacInputManager::pollEvents() {
             break;
           case kVK_ANSI_W:
             _keyStates[Key::W] = true;
+
+            if (event.modifierFlags & NSEventModifierFlagCommand) {
+              [app sendEvent:event];
+            }
             break;
           case kVK_ANSI_E:
             _keyStates[Key::E] = true;
