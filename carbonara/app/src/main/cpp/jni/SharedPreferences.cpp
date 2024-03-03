@@ -26,7 +26,7 @@ SharedPreferences::SharedPreferences(android_app& app, std::string name, Mode mo
     throw std::runtime_error("Invalid method: getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;");
   }
 
-  _sharedPreferences = _env->CallObjectMethod(_app.activity->javaGameActivity,//0x736d2c4721
+  _sharedPreferences = _env->CallObjectMethod(_app.activity->javaGameActivity,
                                               getSharedPreferencesMethod,
                                               _env->NewStringUTF(name.data()), mode);
 
