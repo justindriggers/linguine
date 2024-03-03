@@ -2,28 +2,26 @@
 
 #include "SaveManager.h"
 
+#include "jni/SharedPreferences.h"
+
 namespace linguine::carbonara {
 
 class AndroidSaveManager : public SaveManager {
   public:
-    AndroidSaveManager() : SaveManager() {
+    explicit AndroidSaveManager(android_app& app)
+        : SaveManager(), _sharedPreferences(app, "state", SharedPreferences::Mode::Private) {
       load();
     }
 
     ~AndroidSaveManager() override = default;
 
   protected:
-    void load() override {
-      _points = 0;
-      _lives = 0;
-      _isMusicEnabled = true;
-      _isSoundEffectsEnabled = true;
-      _isScreenShakeEnabled = true;
-      _handedness = Handedness::Right;
-      _isNewPlayer = true;
-    }
+    void load() override;
 
-    void save() override {}
+    void save() override;
+
+  private:
+    SharedPreferences _sharedPreferences;
 };
 
 }  // namespace linguine::carbonara

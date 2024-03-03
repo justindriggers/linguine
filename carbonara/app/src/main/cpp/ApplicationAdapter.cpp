@@ -63,7 +63,7 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
   auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>();
   auto lifecycleManager = std::make_shared<AndroidLifecycleManager>();
 
-  auto saveManager = std::make_shared<AndroidSaveManager>();
+  auto saveManager = std::make_shared<AndroidSaveManager>(app);
   auto timeManager = std::make_shared<AndroidTimeManager>();
 
   _engine = std::make_unique<Engine>(logger, audioManager, inputManager,
