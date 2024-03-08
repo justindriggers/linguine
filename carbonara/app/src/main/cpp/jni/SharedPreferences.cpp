@@ -26,9 +26,11 @@ SharedPreferences::SharedPreferences(android_app& app, std::string name, Mode mo
     throw std::runtime_error("Invalid method: getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;");
   }
 
-  _sharedPreferences = _env->CallObjectMethod(_app.activity->javaGameActivity,
-                                              getSharedPreferencesMethod,
-                                              _env->NewStringUTF(name.data()), mode);
+  _sharedPreferences = _env->NewGlobalRef(
+      _env->CallObjectMethod(_app.activity->javaGameActivity,
+                             getSharedPreferencesMethod,
+                             _env->NewStringUTF(name.data()), mode)
+  );
 
   auto sharedPreferencesClass = _env->GetObjectClass(_sharedPreferences);
   _editMethod = _env->GetMethodID(sharedPreferencesClass, "edit",
@@ -53,9 +55,13 @@ SharedPreferences::SharedPreferences(android_app& app, std::string name, Mode mo
   }
 }
 
+SharedPreferences::~SharedPreferences() {
+  _env->DeleteGlobalRef(_sharedPreferences);
+}
+
 SharedPreferences::Editor SharedPreferences::edit() {
   auto editor = _env->CallObjectMethod(_sharedPreferences, _editMethod);
-  return { *_env, editor };
+  return { *_env, _env->NewGlobalRef(editor) };
 }
 
 bool SharedPreferences::getBoolean(std::string key, bool defaultValue) {
@@ -93,6 +99,10 @@ SharedPreferences::Editor::Editor(JNIEnv& env, jobject editor)
   }
 }
 
+SharedPreferences::Editor::~Editor() {
+  _env.DeleteGlobalRef(_editor);
+}
+
 SharedPreferences::Editor& SharedPreferences::Editor::putBoolean(std::string key, bool value) {
   auto editor = _env.CallObjectMethod(_editor, _putBooleanMethod, _env.NewStringUTF(key.data()), value);
 
@@ -114,7 +124,7 @@ SharedPreferences::Editor& SharedPreferences::Editor::putInt(std::string key, in
 }
 
 void SharedPreferences::Editor::apply() {
-  _env.CallObjectMethod(_editor, _applyMethod);
+  _env.CallVoidMethod(_editor, _applyMethod);
 }
 
 }  // namespace linguine::carbonara

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import com.google.androidgamesdk.GameActivity
+import com.justindriggers.carbonara.leaderboards.Leaderboards
+import com.justindriggers.carbonara.leaderboards.LeaderboardsAdapter
 import it.sephiroth.android.library.uigestures.UIGestureRecognizer
 import it.sephiroth.android.library.uigestures.UIGestureRecognizerDelegate
 import it.sephiroth.android.library.uigestures.UISwipeGestureRecognizer
@@ -16,6 +18,7 @@ class MainActivity : GameActivity() {
     }
 
     private lateinit var gestureRecognizerDelegate: UIGestureRecognizerDelegate
+    private lateinit var leaderboards: Leaderboards
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +40,8 @@ class MainActivity : GameActivity() {
         }
 
         gestureRecognizerDelegate.addGestureRecognizer(rightSwipeRecognizer)
+
+        leaderboards = LeaderboardsAdapter(this)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -59,5 +64,9 @@ class MainActivity : GameActivity() {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         gestureRecognizerDelegate.onTouchEvent(mSurfaceView, event)
         return super.onTouchEvent(event)
+    }
+
+    fun getLeaderboards(): Leaderboards {
+        return leaderboards
     }
 }

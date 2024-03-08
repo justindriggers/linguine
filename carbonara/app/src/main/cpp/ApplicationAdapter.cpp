@@ -60,7 +60,7 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
 
   auto logger = std::make_shared<AndroidLogger>();
   auto inputManager = std::make_shared<AndroidInputManager>(app, renderer->getViewport());
-  auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>();
+  auto leaderboardManager = std::make_shared<AndroidLeaderboardManager>(app);
   auto lifecycleManager = std::make_shared<AndroidLifecycleManager>();
 
   auto saveManager = std::make_shared<AndroidSaveManager>(app);

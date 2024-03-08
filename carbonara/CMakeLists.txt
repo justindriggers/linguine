@@ -4,9 +4,11 @@ add_library(carbonara SHARED
         app/src/main/cpp/ApplicationAdapter.cpp
         app/src/main/cpp/main.cpp
         app/src/main/cpp/jni/Callbacks.cpp
+        app/src/main/cpp/jni/Leaderboards.cpp
         app/src/main/cpp/jni/SharedPreferences.cpp
         app/src/main/cpp/platform/AndroidAAudioFileLoader.cpp
         app/src/main/cpp/platform/AndroidInputManager.cpp
+        app/src/main/cpp/platform/AndroidLeaderboardManager.cpp
         app/src/main/cpp/platform/AndroidLogger.cpp
         app/src/main/cpp/platform/AndroidOpenGLFileLoader.cpp
         app/src/main/cpp/platform/AndroidSaveManager.cpp

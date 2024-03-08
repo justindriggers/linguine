@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Aegis</string>
+    <string name="game_services_project_id" translatable="false">347526844483</string>
 </resources>

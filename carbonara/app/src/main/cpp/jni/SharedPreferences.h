@@ -12,6 +12,8 @@ class SharedPreferences {
       public:
         Editor(JNIEnv& env, jobject editor);
 
+        ~Editor();
+
         Editor& putBoolean(std::string key, bool value);
 
         Editor& putInt(std::string key, int32_t value);
@@ -32,6 +34,8 @@ class SharedPreferences {
     };
 
     explicit SharedPreferences(android_app& app, std::string name, Mode mode);
+
+    ~SharedPreferences();
 
     Editor edit();
 

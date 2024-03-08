@@ -11,11 +11,20 @@ android {
         applicationId = "com.justindriggers.carbonara"
         minSdk = 30
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.0.4"
+        versionCode = 5
+        versionName = "0.0.4-r2"
 
         ndk {
             debugSymbolLevel = "FULL"
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(project.properties["release.storeFile"].toString())
+            storePassword = project.properties["release.storePassword"].toString()
+            keyAlias = project.properties["release.keyAlias"].toString()
+            keyPassword = project.properties["release.keyPassword"].toString()
         }
     }
 
@@ -26,7 +35,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -60,5 +69,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.games:games-activity:1.2.2")
+    implementation("com.google.android.gms:play-services-games-v2:19.0.0")
     implementation("com.github.sephiroth74:AndroidUIGestureRecognizer:v1.2.7")
 }
