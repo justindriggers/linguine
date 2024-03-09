@@ -43,7 +43,7 @@ aaudio_data_callback_result_t songCallback([[maybe_unused]] AAudioStream* stream
                                            int32_t numFrames) {
   auto& streamState = *static_cast<AAudioAudioManager::SongStreamState*>(userData);
 
-  if (streamState.requestGeneration != streamState.generation) {
+  if (streamState.requestGeneration > streamState.generation) {
     streamState.generation = streamState.requestGeneration;
     streamState.playing = streamState.requested;
     streamState.delayFrames = streamState.requestedDelayFrames;
@@ -231,6 +231,7 @@ void AAudioAudioManager::play(SongType songType, Mode mode) {
     streamStateB.requestedDelayFrames = _fileLoader->getSongLoopPoint(songType);
     streamStateB.requestedLoopPoint = _fileLoader->getSongLoopPoint(songType);
     streamStateB.requested = &_songBuffers[songType];
+    ++streamStateB.requestGeneration;
 
     AAudioStream_requestStart(_songStreams[streamIndexB]);
   } else {
@@ -238,10 +239,9 @@ void AAudioAudioManager::play(SongType songType, Mode mode) {
     streamStateA.requestedLoopPoint = {};
   }
 
+  streamStateA.requestedDelayFrames = 0;
   streamStateA.requested = &_songBuffers[songType];
-
   ++streamStateA.requestGeneration;
-  ++streamStateB.requestGeneration;
 
   AAudioStream_requestStart(songStreamA);
 }

@@ -55,10 +55,12 @@ class LeaderboardsAdapter(
         private val leaderboardsAdapter: LeaderboardsAdapter
     ) : OnCompleteListener<AuthenticationResult> {
         override fun onComplete(task: Task<AuthenticationResult>) {
-            leaderboardsAdapter.isAuthenticated = task.isComplete && task.isSuccessful
+            leaderboardsAdapter.isAuthenticated = task.isSuccessful && task.result.isAuthenticated
 
-            leaderboardsAdapter.playersClient.currentPlayerId
-                .addOnCompleteListener(PlayerIdCompletionListener(leaderboardsAdapter))
+            if (leaderboardsAdapter.isAuthenticated) {
+                leaderboardsAdapter.playersClient.currentPlayerId
+                    .addOnCompleteListener(PlayerIdCompletionListener(leaderboardsAdapter))
+            }
         }
     }
 
