@@ -12,6 +12,8 @@ add_library(linguine
         src/entity/archetype/ArchetypeResult.cpp
         src/entity/archetype/Query.cpp
         src/entity/archetype/Store.cpp
+        src/physics/QuadTree.cpp
+        src/physics/World.cpp
         src/renderer/Camera.cpp
         src/renderer/Renderable.cpp
         src/renderer/Renderer.cpp

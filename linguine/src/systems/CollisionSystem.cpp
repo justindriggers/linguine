@@ -12,6 +12,7 @@
 #include "components/Raycaster.h"
 #include "components/Static.h"
 #include "components/Trigger.h"
+#include "components/WorldNode.h"
 
 namespace linguine {
 
@@ -24,10 +25,57 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
     entity.get<Raycaster>()->nearest = {};
   });
 
-  findEntities<PhysicalState>()->each([this](Entity& a) {
-    findEntities<PhysicalState>()->each([&a](Entity& b) {
-      detectHit(a, b);
-    });
+  findEntities<PhysicalState>()->each([this](Entity& entity) {
+    auto position = entity.get<PhysicalState>()->currentPosition;
+    auto boundingBox = BoundingBox{};
+
+    if (entity.has<BoxCollider>()) {
+      auto boxCollider = entity.get<BoxCollider>();
+      auto halfHeight = boxCollider->size.y / 2.0f;
+      auto halfWidth = boxCollider->size.x / 2.0f;
+
+      boundingBox.top = position.y + halfHeight;
+      boundingBox.bottom = position.y - halfHeight;
+      boundingBox.left = position.x - halfWidth;
+      boundingBox.right = position.x + halfWidth;
+    } else if (entity.has<CircleCollider>()) {
+      auto circleCollider = entity.get<CircleCollider>();
+      auto radius = circleCollider->radius;
+
+      boundingBox.top = position.y + radius;
+      boundingBox.bottom = position.y - radius;
+      boundingBox.left = position.x - radius;
+      boundingBox.right = position.x + radius;
+    } else if (entity.has<Raycaster>()) {
+      auto raycaster = entity.get<Raycaster>();
+      auto end = position + raycaster->direction * raycaster->distance;
+
+      boundingBox.top = glm::max(position.y, end.y);
+      boundingBox.bottom = glm::min(position.y, end.y);
+      boundingBox.left = glm::min(position.x, end.x);
+      boundingBox.right = glm::max(position.x, end.x);
+    } else {
+      return;
+    }
+
+    if (!entity.has<BoundingBox>()) {
+      auto boundingBoxComponent = entity.add<BoundingBox>();
+      *boundingBoxComponent = boundingBox;
+      boundingBoxComponent.setRemovalListener([this](const Entity& e) {
+        _world.remove(e);
+      });
+
+      _world.add(entity);
+    } else {
+      auto boundingBoxComponent = entity.get<BoundingBox>();
+      *boundingBoxComponent = boundingBox;
+    }
+  });
+
+  _world.update();
+
+  _world.applyToCandidatePairs([](Entity& a, Entity& b) {
+    detectHit(a, b);
   });
 
   findEntities<CameraFixture, PhysicalState, CircleCollider>()->each([this](const Entity& a) {

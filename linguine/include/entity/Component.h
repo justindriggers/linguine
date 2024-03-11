@@ -16,6 +16,10 @@ class Component {
       return static_cast<T*>(_entityManager.get(_entityId, _typeInfo));
     }
 
+    inline T& operator*() const {
+      return *static_cast<T*>(_entityManager.get(_entityId, _typeInfo));
+    }
+
     inline void setRemovalListener(std::function<void(const Entity)> function) {
       _entityManager.setRemovalListener(_entityId, _typeInfo, std::move(function));
     }

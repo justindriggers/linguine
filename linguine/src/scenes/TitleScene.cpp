@@ -59,7 +59,7 @@ void TitleScene::init() {
   registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<TitleUiSystem>(getEntityManager(), get<LeaderboardManager>()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+  registerSystem(std::make_unique<CollisionSystem>(getEntityManager(), _world));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
 

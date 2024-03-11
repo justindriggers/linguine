@@ -76,7 +76,7 @@ void InfiniteRunnerScene::init() {
   registerSystem(std::make_unique<EdgeSystem>(getEntityManager(), get<Renderer>()));
   registerSystem(std::make_unique<CollapseSystem>(getEntityManager()));
   registerSystem(std::make_unique<AttachmentSystem>(getEntityManager()));
-  registerSystem(std::make_unique<CollisionSystem>(getEntityManager()));
+  registerSystem(std::make_unique<CollisionSystem>(getEntityManager(), _world));
   registerSystem(std::make_unique<UpgradeSystem>(getEntityManager(), get<AudioManager>(), get<SaveManager>()));
   registerSystem(std::make_unique<HudSystem>(getEntityManager(), get<Renderer>(), get<SaveManager>()));
   registerSystem(std::make_unique<HealthProgressSystem>(getEntityManager()));

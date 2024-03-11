@@ -3,13 +3,15 @@
 #include "System.h"
 
 #include "data/RaycastHit.h"
+#include "physics/World.h"
 
 namespace linguine {
 
 class CollisionSystem : public System {
   public:
-    explicit CollisionSystem(EntityManager& entityManager)
-        : System(entityManager) {}
+    explicit CollisionSystem(EntityManager& entityManager,
+                             physics::World& world)
+        : System(entityManager), _world(world) {}
 
     void update(float deltaTime) override {}
 
@@ -39,6 +41,9 @@ class CollisionSystem : public System {
     static std::optional<RaycastHit> checkRayCircleIntersection(const Entity& a, const Entity& b);
 
     static void detectHit(Entity& a, Entity& b);
+
+  private:
+    physics::World& _world;
 };
 
 }  // namespace linguine
