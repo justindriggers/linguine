@@ -44,40 +44,6 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
       case TutorialState::State::WaitingForScore:
         if (tutorialState->hasScored) {
           tutorialState->currentState = TutorialState::State::WaitingForHeal;
-          tutorialState->elapsed = 0.0f;
-        } else if (tutorialState->elapsed >= 4.0f) {
-          auto playerPosition = 0;
-
-          findEntities<Player>()->each([&playerPosition](const Entity& playerEntity) {
-            auto player = playerEntity.get<Player>();
-
-            switch (player->state) {
-            case Player::Left:
-            case Player::CenterToLeft:
-              playerPosition = 0;
-              break;
-            case Player::Center:
-            case Player::LeftToCenter:
-            case Player::RightToCenter:
-              playerPosition = 1;
-              break;
-            case Player::Right:
-            case Player::CenterToRight:
-              playerPosition = 2;
-              break;
-            }
-          });
-
-          auto randomPosition = std::uniform_int_distribution(0, 2);
-          int position;
-
-          do {
-            position = randomPosition(_random);
-          } while (position == playerPosition);
-
-          auto randomSize = std::uniform_int_distribution(3, 5);
-          spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, randomSize(_random), position);
-          tutorialState->elapsed = 0.0f;
         }
         break;
       case TutorialState::State::WaitingForHeal:
@@ -94,7 +60,42 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
 
           spawnPoint->lastSpawnPoint = physicalState->currentPosition.y - spawnPoint->distance;
         }
-        break;
+        return;
+      }
+
+      if (tutorialState->elapsed >= 4.0f) {
+        auto playerPosition = 0;
+
+        findEntities<Player>()->each([&playerPosition](const Entity& playerEntity) {
+          auto player = playerEntity.get<Player>();
+
+          switch (player->state) {
+          case Player::Left:
+          case Player::CenterToLeft:
+            playerPosition = 0;
+            break;
+          case Player::Center:
+          case Player::LeftToCenter:
+          case Player::RightToCenter:
+            playerPosition = 1;
+            break;
+          case Player::Right:
+          case Player::CenterToRight:
+            playerPosition = 2;
+            break;
+          }
+        });
+
+        auto randomPosition = std::uniform_int_distribution(0, 2);
+        int position;
+
+        do {
+          position = randomPosition(_random);
+        } while (position == playerPosition);
+
+        auto randomSize = std::uniform_int_distribution(3, 5);
+        spawnAsteroid(entity.get<PhysicalState>()->currentPosition.y, randomSize(_random), position);
+        tutorialState->elapsed = 0.0f;
       }
     });
 

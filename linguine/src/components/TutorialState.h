@@ -11,6 +11,7 @@ struct TutorialState {
 
   State currentState = State::WaitingForScore;
   float elapsed = 3.0f;
+  float glowElapsed = 0.0f;
   bool hasScored = false;
   bool hasHealed = false;
   bool hasFinished = false;

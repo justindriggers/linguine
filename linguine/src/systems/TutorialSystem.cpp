@@ -3,6 +3,7 @@
 #include <glm/gtx/compatibility.hpp>
 
 #include "components/Drawable.h"
+#include "components/GameOver.h"
 #include "components/GlobalCooldown.h"
 #include "components/Score.h"
 #include "components/Transform.h"
@@ -12,7 +13,7 @@
 namespace linguine {
 
 void TutorialSystem::update(float deltaTime) {
-  findEntities<TutorialState>()->each([this](Entity& tutorialStateEntity) {
+  findEntities<TutorialState>()->each([this, deltaTime](Entity& tutorialStateEntity) {
     auto tutorialState = tutorialStateEntity.get<TutorialState>();
 
     switch (tutorialState->currentState) {
@@ -55,12 +56,19 @@ void TutorialSystem::update(float deltaTime) {
         drawable.setRemovalListener([drawable](const Entity& entity) {
           drawable->renderable->destroy();
         });
-      } else {
+      } else if (!findEntities<GameOver>()->get().empty()) {
         auto drawable = tutorialStateEntity.get<Drawable>();
-        drawable->feature->color.a = glm::cos(tutorialState->elapsed * 4.0f) / 2.0f + 0.5f;
+        drawable->feature->color.a = 0.0f;
+      } else {
+        tutorialState->glowElapsed += deltaTime;
+
+        auto amount = glm::cos(tutorialState->glowElapsed * 4.0f) / 2.0f + 0.5f;
+
+        auto drawable = tutorialStateEntity.get<Drawable>();
+        drawable->feature->color.a = amount * 0.8f + 0.2f;
 
         auto transform = tutorialStateEntity.get<Transform>();
-        transform->scale = glm::vec3(glm::lerp(96.0f, 44.0f, glm::clamp(tutorialState->elapsed / 0.2f, 0.0f, 1.0f)));
+        transform->scale = glm::vec3(glm::lerp(52.0f, 44.0f, amount));
       }
       break;
     }
