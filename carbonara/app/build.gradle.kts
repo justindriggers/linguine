@@ -11,8 +11,8 @@ android {
         applicationId = "com.justindriggers.carbonara"
         minSdk = 30
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.0.4-r3"
+        versionCode = 7
+        versionName = "0.0.5"
 
         ndk {
             debugSymbolLevel = "FULL"

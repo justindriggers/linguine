@@ -30,7 +30,7 @@ add_executable(scampi
 )
 
 set(ENV{PRODUCT_BUNDLE_IDENTIFIER} "com.justindriggers.scampi")
-set(APP_VERSION "0.0.4")
+set(APP_VERSION "0.0.5")
 
 set_xcode_property(scampi PRODUCT_BUNDLE_IDENTIFIER "$ENV{PRODUCT_BUNDLE_IDENTIFIER}" "All")
 set_xcode_property(scampi CODE_SIGN_IDENTITY "$ENV{CODE_SIGN_IDENTITY}" "All")
