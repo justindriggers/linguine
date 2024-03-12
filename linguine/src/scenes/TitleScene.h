@@ -16,7 +16,7 @@ class TitleScene : public Scene {
     explicit TitleScene(ServiceLocator& serviceLocator)
         : Scene(serviceLocator),
           _spellDatabase(std::make_unique<SpellDatabase>(serviceLocator, getEntityManager())),
-          _world(getEntityManager()) {}
+          _world(std::make_shared<physics::World>(getEntityManager())) {}
 
     void init() override;
 
@@ -24,7 +24,7 @@ class TitleScene : public Scene {
     std::random_device _random;
     std::unique_ptr<SpellDatabase> _spellDatabase;
     UpgradeDatabase _upgradeDatabase;
-    physics::World _world;
+    std::shared_ptr<physics::World> _world;
 };
 
 }  // namespace linguine

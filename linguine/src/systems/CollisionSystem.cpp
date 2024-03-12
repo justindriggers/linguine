@@ -62,19 +62,19 @@ void CollisionSystem::fixedUpdate(float fixedDeltaTime) {
       auto boundingBoxComponent = entity.add<BoundingBox>();
       *boundingBoxComponent = boundingBox;
       boundingBoxComponent.setRemovalListener([this](const Entity& e) {
-        _world.remove(e);
+        _world->remove(e);
       });
 
-      _world.add(entity);
+      _world->add(entity);
     } else {
       auto boundingBoxComponent = entity.get<BoundingBox>();
       *boundingBoxComponent = boundingBox;
     }
   });
 
-  _world.update();
+  _world->update();
 
-  _world.applyToCandidatePairs([](Entity& a, Entity& b) {
+  _world->applyToCandidatePairs([](Entity& a, Entity& b) {
     detectHit(a, b);
   });
 

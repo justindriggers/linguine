@@ -10,7 +10,7 @@ namespace linguine {
 class CollisionSystem : public System {
   public:
     explicit CollisionSystem(EntityManager& entityManager,
-                             physics::World& world)
+                             const std::shared_ptr<physics::World>& world)
         : System(entityManager), _world(world) {}
 
     void update(float deltaTime) override {}
@@ -43,7 +43,7 @@ class CollisionSystem : public System {
     static void detectHit(Entity& a, Entity& b);
 
   private:
-    physics::World& _world;
+    std::shared_ptr<physics::World> _world;
 };
 
 }  // namespace linguine

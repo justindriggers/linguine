@@ -1,8 +1,9 @@
 #include "QuadTree.h"
 
+#include <vector>
+
 #include "World.h"
 #include "components/WorldNode.h"
-
 #include "components/Static.h"
 
 namespace linguine::physics {
