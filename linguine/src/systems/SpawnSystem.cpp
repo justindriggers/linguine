@@ -13,7 +13,6 @@
 #include "components/Score.h"
 #include "components/SpawnPoint.h"
 #include "components/StarSpawnPoint.h"
-#include "components/Text.h"
 #include "components/Transform.h"
 #include "components/Trigger.h"
 #include "components/TutorialState.h"
@@ -58,7 +57,7 @@ void SpawnSystem::fixedUpdate(float fixedDeltaTime) {
           auto spawnPoint = entity.get<SpawnPoint>();
           auto physicalState = entity.get<PhysicalState>();
 
-          spawnPoint->lastSpawnPoint = physicalState->currentPosition.y - spawnPoint->distance;
+          spawnPoint->lastSpawnPoint = physicalState->currentPosition.y;
         }
         return;
       }

@@ -56,12 +56,12 @@ void TutorialSystem::update(float deltaTime) {
         drawable.setRemovalListener([drawable](const Entity& entity) {
           drawable->renderable->destroy();
         });
-      } else if (!findEntities<GameOver>()->get().empty()) {
+      }
+
+      if (!findEntities<GameOver>()->get().empty()) {
         auto drawable = tutorialStateEntity.get<Drawable>();
         drawable->feature->color.a = 0.0f;
       } else {
-        tutorialState->glowElapsed += deltaTime;
-
         auto amount = glm::cos(tutorialState->glowElapsed * 4.0f) / 2.0f + 0.5f;
 
         auto drawable = tutorialStateEntity.get<Drawable>();
@@ -69,6 +69,8 @@ void TutorialSystem::update(float deltaTime) {
 
         auto transform = tutorialStateEntity.get<Transform>();
         transform->scale = glm::vec3(glm::lerp(52.0f, 44.0f, amount));
+
+        tutorialState->glowElapsed += deltaTime;
       }
       break;
     }
