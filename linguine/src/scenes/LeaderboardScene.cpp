@@ -88,6 +88,9 @@ void LeaderboardScene::init() {
         for (auto i = 0; i < scores.size(); ++i) {
           auto& record = scores[i];
 
+          auto number = std::to_string(i + 1) + ".";
+          auto score = std::to_string(record.score);
+
           int nameOffset;
 
           {
@@ -99,7 +102,7 @@ void LeaderboardScene::init() {
 
             auto text = rankEntity->add<Text>();
             text->feature = new TextFeature();
-            text->feature->text = std::to_string(i + 1) + ".";
+            text->feature->text = number;
             text->feature->color = Palette::White;
             text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
             text.setRemovalListener([text](const Entity& e) {
@@ -116,11 +119,17 @@ void LeaderboardScene::init() {
             transform->position = { -82.0f, top - static_cast<float>(i) * 30.0f, 5.0f };
             transform->scale = glm::vec3(8.0f);
 
-            auto randomLength = std::uniform_int_distribution(3, 15);
+            auto name = record.name;
+
+            auto maxLength = 26 - number.size() - score.size();
+
+            if (name.size() > maxLength) {
+              name.resize(maxLength);
+            }
 
             auto text = nameEntity->add<Text>();
             text->feature = new TextFeature();
-            text->feature->text = record.name;
+            text->feature->text = name;
             text->feature->color = Palette::White;
             text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
             text.setRemovalListener([text](const Entity& e) {
@@ -139,7 +148,7 @@ void LeaderboardScene::init() {
 
             auto text = scoreEntity->add<Text>();
             text->feature = new TextFeature();
-            text->feature->text = std::to_string(record.score);
+            text->feature->text = score;
 
             if (record.isPlayer) {
               text->feature->color = Palette::White;
