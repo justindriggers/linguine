@@ -590,12 +590,12 @@ void TitleScene::init() {
 
       auto attachment = footerTextEntity->add<Attachment>();
       attachment->parentId = footerEntity->getId();
-      attachment->offset = { -72.5f, 2.5f };
+      attachment->offset = { -75.0f, 2.5f };
       attachment->useFixedUpdate = false;
 
       auto text = footerTextEntity->add<Text>();
       text->feature = new TextFeature();
-      text->feature->text = "Copyright 2023 Justin Driggers";
+      text->feature->text = "Copyright 2023-2024 Kravick LLC";
       text->renderable = renderer.create(std::unique_ptr<TextFeature>(text->feature), UI);
       text.setRemovalListener([text](const Entity& e) {
         text->renderable->destroy();
