@@ -1,5 +1,7 @@
 package com.justindriggers.carbonara
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -68,5 +70,10 @@ class MainActivity : GameActivity() {
 
     fun getLeaderboards(): Leaderboards {
         return leaderboards
+    }
+
+    fun openUrl(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        startActivity(intent)
     }
 }

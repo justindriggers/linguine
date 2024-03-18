@@ -6,6 +6,7 @@ add_library(carbonara SHARED
         app/src/main/cpp/jni/Callbacks.cpp
         app/src/main/cpp/jni/Leaderboards.cpp
         app/src/main/cpp/jni/SharedPreferences.cpp
+        app/src/main/cpp/jni/Urls.cpp
         app/src/main/cpp/platform/AndroidAAudioFileLoader.cpp
         app/src/main/cpp/platform/AndroidInputManager.cpp
         app/src/main/cpp/platform/AndroidLeaderboardManager.cpp
@@ -13,6 +14,7 @@ add_library(carbonara SHARED
         app/src/main/cpp/platform/AndroidOpenGLFileLoader.cpp
         app/src/main/cpp/platform/AndroidSaveManager.cpp
         app/src/main/cpp/platform/AndroidTimeManager.cpp
+        app/src/main/cpp/platform/AndroidUrlHandler.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)

@@ -15,6 +15,7 @@
 #import "platform/IosMetalTextureLoader.h"
 #import "platform/IosSaveManager.h"
 #import "platform/IosTimeManager.h"
+#import "platform/IosUrlHander.h"
 #import "platform/NSLogger.h"
 
 using namespace linguine;
@@ -93,10 +94,11 @@ using namespace linguine;
       static_cast<uint16_t>(insets.top), static_cast<uint16_t>(insets.bottom));
 
   auto saveManager = std::make_shared<linguine::scampi::IosSaveManager>();
+  auto urlHandler = std::make_shared<linguine::scampi::IosUrlHandler>();
 
   auto appDelegate = (ScampiAppDelegate *)[[UIApplication sharedApplication] delegate];
 
-  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager);
+  auto engine = std::make_shared<linguine::Engine>(logger, audioManager, _inputManager, leaderboardManager, lifecycleManager, renderer, saveManager, timeManager, urlHandler);
   appDelegate.engine = engine;
 
   _viewDelegate = [[ScampiViewDelegate alloc] initWithEngine:engine];

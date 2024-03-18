@@ -11,6 +11,7 @@
 #include "platform/AndroidOpenGLFileLoader.h"
 #include "platform/AndroidSaveManager.h"
 #include "platform/AndroidTimeManager.h"
+#include "platform/AndroidUrlHandler.h"
 
 namespace linguine::carbonara {
 
@@ -65,10 +66,12 @@ ApplicationAdapter::ApplicationAdapter(android_app& app) {
 
   auto saveManager = std::make_shared<AndroidSaveManager>(app);
   auto timeManager = std::make_shared<AndroidTimeManager>();
+  auto urlHandler = std::make_shared<AndroidUrlHandler>(app);
 
   _engine = std::make_unique<Engine>(logger, audioManager, inputManager,
                                      leaderboardManager, lifecycleManager,
-                                     renderer, saveManager, timeManager);
+                                     renderer, saveManager, timeManager,
+                                     urlHandler);
 }
 
 ApplicationAdapter::~ApplicationAdapter() {

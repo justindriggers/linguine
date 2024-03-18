@@ -22,7 +22,8 @@ class Engine : public ServiceLocator, SceneManager {
            const std::shared_ptr<LifecycleManager>& lifecycleManager,
            const std::shared_ptr<Renderer>& renderer,
            const std::shared_ptr<SaveManager>& saveManager,
-           const std::shared_ptr<TimeManager>& timeManager);
+           const std::shared_ptr<TimeManager>& timeManager,
+           const std::shared_ptr<UrlHandler>& urlHandler);
 
     virtual ~Engine() = default;
 
@@ -73,6 +74,10 @@ class Engine : public ServiceLocator, SceneManager {
       return *_timeManager;
     }
 
+    UrlHandler& getUrlHandler() override {
+      return *_urlHandler;
+    }
+
     const std::unique_ptr<EntityManagerFactory> _entityManagerFactory;
     const std::shared_ptr<AudioManager> _audioManager;
     const std::shared_ptr<InputManager> _inputManager;
@@ -82,6 +87,7 @@ class Engine : public ServiceLocator, SceneManager {
     const std::shared_ptr<Renderer> _renderer;
     const std::shared_ptr<SaveManager> _saveManager;
     const std::shared_ptr<TimeManager> _timeManager;
+    const std::shared_ptr<UrlHandler> _urlHandler;
 
     void load(std::unique_ptr<Scene> scene) override {
       _pendingScene = std::move(scene);

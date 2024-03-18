@@ -36,6 +36,7 @@ add_library(linguine
         src/systems/EdgeSystem.cpp
         src/systems/EffectSystem.cpp
         src/systems/EventSystem.cpp
+        src/systems/ExternalLinkSystem.cpp
         src/systems/FallerSystem.cpp
         src/systems/FireSystem.cpp
         src/systems/FpsSystem.cpp

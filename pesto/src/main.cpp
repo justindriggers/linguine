@@ -13,6 +13,7 @@
 #include "platform/WebOpenGLFileLoader.h"
 #include "platform/WebSaveManager.h"
 #include "platform/WebTimeManager.h"
+#include "platform/WebUrlHandler.h"
 
 using namespace linguine;
 using namespace linguine::pesto;
@@ -66,10 +67,12 @@ int main() {
   renderer->resize(width, height);
 
   auto inputManager = std::make_shared<WebInputManager>(renderer->getViewport(), *audioManager);
+  auto urlHandler = std::make_shared<WebUrlHandler>();
 
   engine = std::make_unique<Engine>(logger, audioManager, inputManager,
                                     leaderboardManager, lifecycleManager,
-                                    renderer, saveManager, timeManager);
+                                    renderer, saveManager, timeManager,
+                                    urlHandler);
 
   emscripten_set_visibilitychange_callback(engine.get(), false, [](int eventType, const EmscriptenVisibilityChangeEvent* visibilityChangeEvent, void* userData) -> EM_BOOL {
     auto& engine = *static_cast<Engine*>(userData);

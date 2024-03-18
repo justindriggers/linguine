@@ -8,6 +8,7 @@
 #include "SaveManager.h"
 #include "SceneManager.h"
 #include "TimeManager.h"
+#include "UrlHandler.h"
 #include "audio/AudioManager.h"
 #include "entity/EntityManagerFactory.h"
 #include "input/InputManager.h"
@@ -77,6 +78,11 @@ class ServiceLocator {
       return getTimeManager();
     }
 
+    template<>
+    inline UrlHandler& get<UrlHandler>() {
+      return getUrlHandler();
+    }
+
   private:
     template<typename>
     struct undefined_service : std::false_type {};
@@ -100,6 +106,8 @@ class ServiceLocator {
     virtual SceneManager& getSceneManager() = 0;
 
     virtual TimeManager& getTimeManager() = 0;
+
+    virtual UrlHandler& getUrlHandler() = 0;
 };
 
 }  // namespace linguine

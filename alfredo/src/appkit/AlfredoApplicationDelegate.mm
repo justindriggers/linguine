@@ -10,6 +10,7 @@
 #import "platform/MacMetalTextureLoader.h"
 #import "platform/MacSaveManager.h"
 #import "platform/MacTimeManager.h"
+#import "platform/MacUrlHander.h"
 
 using namespace linguine;
 using namespace linguine::alfredo;
@@ -90,7 +91,8 @@ using namespace linguine::alfredo;
     auto renderer = std::make_shared<Renderer>(std::move(metalRenderBackend));
     auto saveManager = std::make_shared<MacSaveManager>();
     auto timeManager = std::make_shared<MacTimeManager>();
-    auto engine = std::make_unique<Engine>(logger, audioManager, inputManager, leaderboardManager, self.lifecycleManager, renderer, saveManager, timeManager);
+    auto urlHandler = std::make_shared<MacUrlHandler>();
+    auto engine = std::make_unique<Engine>(logger, audioManager, inputManager, leaderboardManager, self.lifecycleManager, renderer, saveManager, timeManager, urlHandler);
 
     _viewDelegate = [[AlfredoViewDelegate alloc] initWithEngine:std::move(engine)];
 

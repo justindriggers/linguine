@@ -23,6 +23,7 @@ add_executable(scampi
         src/platform/IosMetalTextureLoader.mm
         src/platform/IosSaveManager.mm
         src/platform/IosTimeManager.cpp
+        src/platform/IosUrlHandler.mm
         src/platform/NSLogger.mm
         src/uikit/ScampiAppDelegate.mm
         src/uikit/ScampiViewController.mm

@@ -13,7 +13,8 @@ Engine::Engine(
     const std::shared_ptr<LifecycleManager>& lifecycleManager,
     const std::shared_ptr<Renderer>& renderer,
     const std::shared_ptr<SaveManager>& saveManager,
-    const std::shared_ptr<TimeManager>& timeManager)
+    const std::shared_ptr<TimeManager>& timeManager,
+    const std::shared_ptr<UrlHandler>& urlHandler)
     : _entityManagerFactory(std::make_unique<archetype::ArchetypeEntityManagerFactory>()),
       _audioManager(audioManager),
       _inputManager(inputManager),
@@ -22,7 +23,8 @@ Engine::Engine(
       _logger(logger),
       _renderer(renderer),
       _saveManager(saveManager),
-      _timeManager(timeManager) {
+      _timeManager(timeManager),
+      _urlHandler(urlHandler) {
   _audioManager->setMusicEnabled(_saveManager->isMusicEnabled());
   _audioManager->setSoundEffectsEnabled(_saveManager->isSoundEffectsEnabled());
   _currentScene = std::make_unique<TitleScene>(*this);

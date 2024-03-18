@@ -9,6 +9,7 @@ add_executable(pesto
         src/platform/WebOpenALFileLoader.cpp
         src/platform/WebOpenGLFileLoader.cpp
         src/platform/WebTimeManager.cpp
+        src/platform/WebUrlHandler.cpp
 )
 
 target_include_directories(pesto PUBLIC

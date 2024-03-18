@@ -13,6 +13,7 @@ add_executable(alfredo
         src/platform/MacLogger.mm
         src/platform/MacMetalTextureLoader.mm
         src/platform/MacTimeManager.cpp
+        src/platform/MacUrlHandler.mm
 )
 
 set(CMAKE_OBJC_FLAGS "-fobjc-arc")

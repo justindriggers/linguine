@@ -12,6 +12,7 @@
 #include "components/Dialog.h"
 #include "components/Drawable.h"
 #include "components/Emitter.h"
+#include "components/ExternalLink.h"
 #include "components/Fire.h"
 #include "components/Follow.h"
 #include "components/Footer.h"
@@ -21,6 +22,7 @@
 #include "components/Particle.h"
 #include "components/PhysicalState.h"
 #include "components/Player.h"
+#include "components/Selectable.h"
 #include "components/ShipPart.h"
 #include "components/StarSpawnPoint.h"
 #include "components/Text.h"
@@ -36,6 +38,7 @@
 #include "systems/CollisionSystem.h"
 #include "systems/DialogSystem.h"
 #include "systems/EdgeSystem.h"
+#include "systems/ExternalLinkSystem.h"
 #include "systems/FireSystem.h"
 #include "systems/FpsSystem.h"
 #include "systems/GestureRecognitionSystem.h"
@@ -62,6 +65,7 @@ void TitleScene::init() {
   registerSystem(std::make_unique<CollisionSystem>(getEntityManager(), _world));
   registerSystem(std::make_unique<ParticleSystem>(getEntityManager()));
   registerSystem(std::make_unique<FireSystem>(getEntityManager()));
+  registerSystem(std::make_unique<ExternalLinkSystem>(getEntityManager(), get<UrlHandler>()));
 
   registerSystem(std::make_unique<SpawnSystem>(getEntityManager(), get<Renderer>(), *_spellDatabase));
 
@@ -558,6 +562,17 @@ void TitleScene::init() {
       drawable.setRemovalListener([drawable](const Entity& e) {
         drawable->renderable->destroy();
       });
+
+      auto selectable = footerPanelEntity->add<Selectable>();
+      selectable->feature = new SelectableFeature();
+      selectable->feature->entityId = footerPanelEntity->getId();
+      selectable->renderable = renderer.create(std::unique_ptr<SelectableFeature>(selectable->feature), UI);
+      selectable.setRemovalListener([selectable](const Entity& e) {
+        selectable->renderable->destroy();
+      });
+
+      auto externalLink = footerPanelEntity->add<ExternalLink>();
+      externalLink->url = "https://log.kravick.dev";
     }
 
     {
