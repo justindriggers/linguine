@@ -23,7 +23,7 @@ class AndroidLeaderboardManager : public LeaderboardManager {
                      std::function<void(std::string reason)> onError) override;
 
   private:
-    const std::string LeaderboardId = "CgkIw6Db0Y4KEAIQAQ";
+    const std::string LeaderboardId = "CgkIw6Db0Y4KEAIQBA";
 
     Leaderboards _leaderboards;
 };

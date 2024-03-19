@@ -19,7 +19,7 @@ void IosLeaderboardManager::getHighScores(std::function<void(std::vector<Record>
     return;
   }
 
-  [GKLeaderboard loadLeaderboardsWithIDs:@[@"beta"]
+  [GKLeaderboard loadLeaderboardsWithIDs:@[@"release"]
                        completionHandler:^(NSArray<GKLeaderboard *> *leaderboards, NSError *loadLeaderboardsError) {
                          if (loadLeaderboardsError) {
                            onError([loadLeaderboardsError.localizedDescription cStringUsingEncoding:NSUTF8StringEncoding]);
@@ -68,7 +68,7 @@ void IosLeaderboardManager::submitScore(int32_t score,
   [GKLeaderboard submitScore:score
                      context:0
                       player:GKLocalPlayer.localPlayer
-              leaderboardIDs:@[@"beta"]
+              leaderboardIDs:@[@"release"]
            completionHandler:^(NSError *error) {
              if (error) {
                onError([error.localizedDescription cStringUsingEncoding:NSUTF8StringEncoding]);
