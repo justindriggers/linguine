@@ -68,7 +68,7 @@ void AndroidInputManager::pollEvents() {
       auto x = GameActivityPointerAxes_getX(&pointer);
       auto y = GameActivityPointerAxes_getY(&pointer);
 
-      _active.insert({pointer.id, { x / static_cast<float>(_viewport.getWidth()),
+      _active.insert({static_cast<uint64_t>(pointer.id), { x / static_cast<float>(_viewport.getWidth()),
                                    1.0f - y / static_cast<float>(_viewport.getHeight()),
                                    Down }});
       break;
@@ -122,7 +122,7 @@ void AndroidInputManager::pollNativeEvents(android_app& app) {
   int events;
   android_poll_source* source;
 
-  if (ALooper_pollAll(0, nullptr, &events, (void **) &source) >= 0) {
+  while (ALooper_pollOnce(0, nullptr, &events, (void **) &source) >= 0) {
     if (source) {
       source->process(&app, source);
     }

@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.justindriggers.carbonara"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.justindriggers.carbonara"
         minSdk = 30
-        targetSdk = 34
-        versionCode = 8
-        versionName = "1.0.0"
+        targetSdk = 35
+        versionCode = 9
+        versionName = "1.0.1"
 
         ndk {
             debugSymbolLevel = "FULL"
