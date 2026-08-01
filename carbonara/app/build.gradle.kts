@@ -1,18 +1,17 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 android {
     namespace = "com.justindriggers.carbonara"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.justindriggers.carbonara"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 9
-        versionName = "1.0.1"
+        targetSdk = 37
+        versionCode = 10
+        versionName = "1.0.2"
 
         ndk {
             debugSymbolLevel = "FULL"
@@ -38,13 +37,6 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         prefab = true
     }
@@ -65,10 +57,10 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.games:games-activity:1.2.2")
-    implementation("com.google.android.gms:play-services-games-v2:19.0.0")
+    implementation("com.google.android.gms:play-services-games-v2:22.0.0")
     implementation("com.github.sephiroth74:AndroidUIGestureRecognizer:v1.2.7")
 }
